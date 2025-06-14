@@ -18,6 +18,7 @@ import Settings from "./pages/Settings";
 import { SessionProvider } from "./contexts/SessionProvider";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { TwelveDataProvider } from "./contexts/TwelveDataProvider";
+import StrategyPage from "./pages/StrategyPage";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +38,7 @@ const App = () => (
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/journal" element={<Journal />} />
                 <Route path="/strategies" element={<Strategies />} />
+                <Route path="/strategies/:strategyId" element={<StrategyPage />} />
                 <Route path="/feed" element={<Feed />} />
                 <Route path="/analytics" element={<Analytics />} />
                 <Route path="/u/:username" element={<Profile />} />
