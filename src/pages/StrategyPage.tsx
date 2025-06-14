@@ -60,7 +60,7 @@ export default function StrategyPage() {
         {strategy.is_public ? <Badge>Public</Badge> : <Badge variant="secondary">Draft</Badge>}
       </div>
       <ReactMarkdown remarkPlugins={[remarkGfm]}>
-        {strategy.content_markdown}
+        {strategy.content_markdown || ""}
       </ReactMarkdown>
     </article>
   );

@@ -1,4 +1,5 @@
 
+import React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -25,7 +26,7 @@ import { strategyFormSchema, StrategyFormValues } from "./strategy.schemas";
 import { Tables } from "@/integrations/supabase/types";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { copyToClipboard } from '@/lib/utils';
+import { format } from "date-fns";
 
 interface StrategyEditorDialogProps {
   open: boolean;
@@ -33,6 +34,15 @@ interface StrategyEditorDialogProps {
   strategy?: Tables<'strategies'>;
   trade?: Tables<'trades'>;
 }
+
+const copyToClipboard = (text: string, message: string) => {
+  navigator.clipboard.writeText(text).then(() => {
+    toast.success(message);
+  }).catch(err => {
+    toast.error("Failed to copy link.");
+    console.error('Failed to copy: ', err);
+  });
+};
 
 export function StrategyEditorDialog({ open, onOpenChange, strategy, trade }: StrategyEditorDialogProps) {
   const createMutation = useCreateStrategy();
@@ -95,7 +105,7 @@ export function StrategyEditorDialog({ open, onOpenChange, strategy, trade }: St
     }
     
     if (isEditing) {
-        await updateMutation.mutateAsync({ id: strategy.id, ...result.data, is_public: true });
+        await updateMutation.mutateAsync({ id: strategy.id, ...result.data });
         const strategyUrl = `${window.location.origin}/strategies/${strategy.id}`;
         toast.success("Your strategy is now public!", {
             action: {
@@ -104,9 +114,7 @@ export function StrategyEditorDialog({ open, onOpenChange, strategy, trade }: St
             },
         });
     } else {
-        // Can't publish a new strategy directly this way without getting the ID first
-        // For simplicity, we'll just save it as public
-        createMutation.mutate({ ...result.data, is_public: true });
+        createMutation.mutate(result.data);
     }
     onOpenChange(false);
   }
