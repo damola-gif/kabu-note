@@ -14,7 +14,7 @@ interface FinnhubQuote {
 }
 
 export async function fetchQuote(symbol: string): Promise<FinnhubQuote> {
-    if (FINNHUB_API_KEY === 'YOUR_FINNHUB_API_KEY') {
+    if (FINNHUB_API_KEY.startsWith('YOUR_')) {
         throw new Error("Finnhub API key is not configured in src/config.ts");
     }
     const response = await fetch(`${BASE_URL}/quote?symbol=${symbol.toUpperCase()}&token=${FINNHUB_API_KEY}`);

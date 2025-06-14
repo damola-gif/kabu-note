@@ -19,8 +19,8 @@ export const FinnhubProvider = ({ children }: { children: ReactNode }) => {
   const subscriptions = useRef<Record<string, PriceCallback[]>>({});
 
   const connect = useCallback(() => {
-    if (socket.current || FINNHUB_API_KEY === 'YOUR_FINNHUB_API_KEY') {
-      if (FINNHUB_API_KEY === 'YOUR_FINNHUB_API_KEY') {
+    if (socket.current || FINNHUB_API_KEY.startsWith('YOUR_')) {
+      if (FINNHUB_API_KEY.startsWith('YOUR_')) {
         console.warn("Finnhub API key not set in src/config.ts. Real-time features will be disabled.");
       }
       return;
