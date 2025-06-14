@@ -6,7 +6,7 @@ export default function Journal() {
     <AppShell>
       <div className="flex justify-between items-center mt-8 mb-4">
         <h2 className="text-xl font-bold">Trade Journal</h2>
-        <Button variant="teal">New Trade</Button>
+        <Button variant="default">New Trade</Button>
       </div>
       <div className="bg-card rounded-lg shadow p-4 mb-4 flex gap-3 flex-wrap items-center">
         <Button size="sm" variant="outline">All</Button>
