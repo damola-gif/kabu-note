@@ -9,10 +9,8 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarProvider,
-  SidebarTrigger,
-  SidebarInset,
 } from "@/components/ui/sidebar";
+import { Link, useLocation } from "react-router-dom";
 
 const items = [
   {
@@ -43,6 +41,8 @@ const items = [
 ];
 
 export function AppSidebar() {
+  const { pathname } = useLocation();
+
   return (
     <Sidebar>
       <SidebarContent>
@@ -52,11 +52,11 @@ export function AppSidebar() {
             <SidebarMenu>
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <a href={item.url} className="flex items-center gap-2">
+                  <SidebarMenuButton asChild isActive={pathname === item.url}>
+                    <Link to={item.url} className="flex items-center gap-2">
                       <item.icon />
                       <span>{item.title}</span>
-                    </a>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
