@@ -21,7 +21,7 @@ import { useSession } from "@/contexts/SessionProvider";
 const PAGE_TITLES: Record<string, string> = {
   "/dashboard": "Dashboard",
   "/journal": "Trade Journal",
-  "/strategies": "Strategies",
+  "/strategies": "Strategy Library",
   "/feed": "Feed",
   "/analytics": "Analytics",
   "/settings": "Settings",

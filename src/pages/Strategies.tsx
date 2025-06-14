@@ -153,8 +153,8 @@ export default function Strategies() {
         <div className="w-full">
             <div className="flex justify-between items-center mb-6">
                 <div>
-                    <h1 className="text-3xl font-bold">My Strategies</h1>
-                    <p className="text-muted-foreground">Your collection of authored trading strategies.</p>
+                    <h1 className="text-3xl font-bold">Strategy Library</h1>
+                    <p className="text-muted-foreground">Browse and manage your collection of trading strategies.</p>
                 </div>
                 <Button onClick={handleNewStrategy}>
                     <PlusCircle className="mr-2 h-4 w-4" />
