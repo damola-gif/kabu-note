@@ -1,36 +1,101 @@
 
+import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  type CarouselApi,
+} from "@/components/ui/carousel";
 import { Button } from "@/components/ui/button";
 
 const slides = [
   {
     title: "Log trades in seconds",
-    desc: "Quickly record your trades. Focus on what matters.",
-    img: "/onboarding1.png",
+    description: "Quickly capture every detail of your trades without the hassle.",
+    illustration: "📊",
   },
   {
     title: "Annotate your charts",
-    desc: "Mark up charts for clearer trade reviews.",
-    img: "/onboarding2.png",
+    description: "Mark up your chart screenshots to analyze your entries and exits.",
+    illustration: "✍️",
   },
   {
     title: "AI-powered checklists",
-    desc: "Smarter trade routines with AI help.",
-    img: "/onboarding3.png",
-  }
+    description: "Leverage AI to ensure your trades align with your strategy.",
+    illustration: "🤖",
+  },
 ];
 
 export default function Onboarding() {
-  // TODO: Add animation/swipe, state, skip/Get started logic
+  const [api, setApi] = useState<CarouselApi>();
+  const [current, setCurrent] = useState(0);
+  const [count, setCount] = useState(0);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!api) {
+      return;
+    }
+
+    setCount(api.scrollSnapList().length);
+    setCurrent(api.selectedScrollSnap());
+
+    const onSelect = () => {
+      setCurrent(api.selectedScrollSnap());
+    };
+
+    api.on("select", onSelect);
+
+    return () => {
+      api.off("select", onSelect);
+    };
+  }, [api]);
+
+  const handleNext = useCallback(() => {
+    api?.scrollNext();
+  }, [api]);
+  
+  const handleDone = useCallback(() => {
+    navigate("/dashboard");
+  }, [navigate]);
+
+  const isLastSlide = current === count - 1;
+
   return (
-    <div className="w-full h-screen flex items-center justify-center bg-background">
-      <div className="w-full max-w-md bg-card p-6 rounded-xl shadow-md animate-fade-in flex flex-col items-center">
-        <img src={slides[0].img} alt="" className="mb-4 h-40 w-auto object-contain" />
-        <h2 className="text-2xl font-bold mb-2">{slides[0].title}</h2>
-        <p className="text-muted-foreground mb-6">{slides[0].desc}</p>
-        <div className="w-full flex justify-between mt-auto">
-          <Button variant="ghost">Skip</Button>
-          <Button>Next</Button>
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
+      <Carousel setApi={setApi} className="w-full max-w-md">
+        <CarouselContent>
+          {slides.map((slide, index) => (
+            <CarouselItem key={index}>
+              <div className="p-1">
+                <Card>
+                  <CardContent className="flex flex-col aspect-square items-center justify-center p-6 text-center">
+                    <div className="text-8xl mb-4">{slide.illustration}</div>
+                    <h3 className="text-2xl font-bold mb-2">{slide.title}</h3>
+                    <p className="text-muted-foreground">{slide.description}</p>
+                  </CardContent>
+                </Card>
+              </div>
+            </CarouselItem>
+          ))}
+        </CarouselContent>
+      </Carousel>
+      <div className="py-2 mt-4 text-center text-sm text-muted-foreground">
+        <div className="flex gap-2 justify-center">
+            {Array.from({ length: count }).map((_, i) => (
+                <span key={i} className={`block h-2 w-2 rounded-full ${current === i ? 'bg-primary' : 'bg-muted-foreground/50'}`} />
+            ))}
         </div>
+      </div>
+      <div className="flex items-center gap-4 mt-4">
+        <Button variant="ghost" onClick={handleDone} className={isLastSlide ? 'invisible' : ''}>
+          Skip
+        </Button>
+        <Button onClick={isLastSlide ? handleDone : handleNext}>
+          {isLastSlide ? "Get Started" : "Next"}
+        </Button>
       </div>
     </div>
   );

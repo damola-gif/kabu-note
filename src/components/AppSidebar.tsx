@@ -1,5 +1,5 @@
 
-import { Home, List, TrendingUp, Settings } from "lucide-react";
+import { Home, List, TrendingUp, Settings, Newspaper } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -16,19 +16,24 @@ import {
 
 const items = [
   {
-    title: "Home",
-    url: "/",
+    title: "Dashboard",
+    url: "/dashboard",
     icon: Home,
   },
   {
-    title: "Trades",
-    url: "/trades",
+    title: "Journal",
+    url: "/journal",
     icon: List,
   },
   {
     title: "Strategies",
     url: "/strategies",
     icon: TrendingUp,
+  },
+  {
+    title: "Feed",
+    url: "/feed",
+    icon: Newspaper,
   },
   {
     title: "Settings",
