@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { NewTradeDialog } from "@/components/trade/NewTradeDialog";
 import { EditTradeDialog } from "@/components/trade/EditTradeDialog";
@@ -8,6 +9,9 @@ import { JournalHeader, TradeFilter } from "@/components/journal/JournalHeader";
 import { TradesTable } from "@/components/trade/TradesTable";
 import { DateRange } from "react-day-picker";
 import { startOfDay, endOfDay } from "date-fns";
+import { useFinnhub } from "@/contexts/FinnhubProvider";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 export default function Journal() {
   const [isNewTradeDialogOpen, setIsNewTradeDialogOpen] = useState(false);
@@ -16,6 +20,8 @@ export default function Journal() {
   const [selectedTrade, setSelectedTrade] = useState<Tables<'trades'> | null>(null);
   const [filter, setFilter] = useState<TradeFilter>("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
+
+  const { isConnected } = useFinnhub();
 
   const {
     data: trades,
@@ -76,6 +82,15 @@ export default function Journal() {
 
   return (
     <>
+      {!isConnected && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Live Feed Disconnected</AlertTitle>
+          <AlertDescription>
+            Could not connect to the real-time price feed. Live data will not be updated. This might be due to an issue with your Finnhub API key (free plans may not include WebSocket access) or your network connection.
+          </AlertDescription>
+        </Alert>
+      )}
       <JournalHeader 
         filter={filter}
         onFilterChange={setFilter}
