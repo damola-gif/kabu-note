@@ -1,3 +1,4 @@
+
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -55,7 +56,11 @@ export function useCreateStrategy() {
   return useMutation({
     mutationFn: async (newStrategy: StrategyFormValues) => {
       if (!user) throw new Error("User must be logged in to create a strategy");
-      const { error } = await supabase.from("strategies").insert({ ...newStrategy, user_id: user.id });
+      const dataToInsert: TablesInsert<'strategies'> = {
+        ...newStrategy,
+        user_id: user.id,
+      };
+      const { error } = await supabase.from("strategies").insert(dataToInsert);
       if (error) throw error;
     },
     onSuccess: () => {
