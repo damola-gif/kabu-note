@@ -1,9 +1,10 @@
+
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useSession } from "@/contexts/SessionProvider";
 import { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
-import { TradeFormValues } from "@/components/trade/trade.schemas";
+import { TradeFormValues, EditTradeFormValues } from "@/components/trade/trade.schemas";
 
 async function fetchTrades(userId: string | undefined) {
   if (!userId) return [];
@@ -56,13 +57,33 @@ export function useUpdateTrade() {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async (payload: {
-          values: TablesUpdate<"trades">;
+          values: EditTradeFormValues;
           tradeId: string;
         }) => {
+          const { values, tradeId } = payload;
+          const updateData: TablesUpdate<"trades"> = { ...values };
+
+          // If exit_price is being set, calculate P/L and set closed_at
+          if (values.exit_price !== null && values.exit_price !== undefined) {
+              const { side, size, entry_price, exit_price } = values;
+              let pnl;
+              if (side === 'long') {
+                  pnl = (exit_price - entry_price) * size;
+              } else { // short
+                  pnl = (entry_price - exit_price) * size;
+              }
+              updateData.pnl = pnl;
+              updateData.closed_at = new Date().toISOString();
+          } else {
+            // If exit_price is cleared, clear pnl and closed_at
+            updateData.pnl = null;
+            updateData.closed_at = null;
+          }
+
           const { error } = await supabase
             .from("trades")
-            .update(payload.values)
-            .eq("id", payload.tradeId);
+            .update(updateData)
+            .eq("id", tradeId);
           if (error) throw error;
         },
         onSuccess: () => {
