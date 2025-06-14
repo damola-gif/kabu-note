@@ -1,4 +1,3 @@
-
 import * as React from "react";
 import {
   Dialog,
@@ -126,7 +125,7 @@ export function NewTradeDialog({ open, onOpenChange }: NewTradeDialogProps) {
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a side" />
-                      </T rig_ger>
+                      </SelectTrigger>
                     </FormControl>
                     <SelectContent>
                       <SelectItem value="long">Long</SelectItem>
