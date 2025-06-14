@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useUpdateTrade } from "@/hooks/useTrades";
@@ -51,6 +52,9 @@ export function EditTradeDialog({ open, onOpenChange, trade }: EditTradeDialogPr
         size: trade.size,
         entry_price: trade.entry_price,
         exit_price: trade.exit_price,
+        stop_loss: trade.stop_loss,
+        take_profit: trade.take_profit,
+        closing_notes: trade.closing_notes,
       });
     }
   }, [trade, open, form]);
@@ -155,6 +159,59 @@ export function EditTradeDialog({ open, onOpenChange, trade }: EditTradeDialogPr
                     <Input
                       type="number"
                       placeholder="Leave blank if open"
+                      {...field}
+                      value={field.value ?? ""}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="stop_loss"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Stop Loss</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="e.g., 145.00"
+                      {...field}
+                      value={field.value ?? ""}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="take_profit"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Take Profit</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="e.g., 160.50"
+                      {...field}
+                      value={field.value ?? ""}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="closing_notes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Closing Notes</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="e.g., Trade executed as planned."
                       {...field}
                       value={field.value ?? ""}
                     />

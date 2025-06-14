@@ -1,4 +1,3 @@
-
 import * as React from "react";
 import {
   Dialog,
@@ -44,6 +43,9 @@ export function NewTradeDialog({ open, onOpenChange }: NewTradeDialogProps) {
       symbol: "",
       side: "long",
       entry_price: 0,
+      size: undefined,
+      stop_loss: null,
+      take_profit: null,
     },
   });
 
@@ -128,6 +130,32 @@ export function NewTradeDialog({ open, onOpenChange }: NewTradeDialogProps) {
                   <FormLabel>Entry Price</FormLabel>
                   <FormControl>
                     <Input type="number" placeholder="e.g., 150.25" {...field} value={field.value ?? ''} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="stop_loss"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Stop Loss</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="e.g., 145.00" {...field} value={field.value ?? ''} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="take_profit"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Take Profit</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="e.g., 160.50" {...field} value={field.value ?? ''} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

@@ -1,4 +1,3 @@
-
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -37,6 +36,8 @@ export function useCreateTrade() {
         side: newTrade.side,
         size: newTrade.size,
         entry_price: newTrade.entry_price,
+        stop_loss: newTrade.stop_loss,
+        take_profit: newTrade.take_profit,
         user_id: user.id,
       };
       const { error } = await supabase.from("trades").insert(tradeData);

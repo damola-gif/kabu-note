@@ -12,6 +12,7 @@ export type Database = {
       trades: {
         Row: {
           closed_at: string | null
+          closing_notes: string | null
           created_at: string
           entry_price: number
           exit_price: number | null
@@ -20,12 +21,15 @@ export type Database = {
           pnl: number | null
           side: Database["public"]["Enums"]["trade_side"]
           size: number
+          stop_loss: number | null
           symbol: string
+          take_profit: number | null
           updated_at: string
           user_id: string
         }
         Insert: {
           closed_at?: string | null
+          closing_notes?: string | null
           created_at?: string
           entry_price: number
           exit_price?: number | null
@@ -34,12 +38,15 @@ export type Database = {
           pnl?: number | null
           side: Database["public"]["Enums"]["trade_side"]
           size: number
+          stop_loss?: number | null
           symbol: string
+          take_profit?: number | null
           updated_at?: string
           user_id: string
         }
         Update: {
           closed_at?: string | null
+          closing_notes?: string | null
           created_at?: string
           entry_price?: number
           exit_price?: number | null
@@ -48,7 +55,9 @@ export type Database = {
           pnl?: number | null
           side?: Database["public"]["Enums"]["trade_side"]
           size?: number
+          stop_loss?: number | null
           symbol?: string
+          take_profit?: number | null
           updated_at?: string
           user_id?: string
         }
