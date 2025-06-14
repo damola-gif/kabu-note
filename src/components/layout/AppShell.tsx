@@ -1,11 +1,20 @@
-
 import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
-import { Bell, User } from "lucide-react";
-import { useLocation } from "react-router-dom";
+import { Bell, User, LogOut } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 // Simple top bar with notifications, avatar, and path title
 const PAGE_TITLES: Record<string, string> = {
@@ -25,6 +34,17 @@ function getPageTitle(path: string) {
 export function AppShell({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const title = getPageTitle(location.pathname);
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success("Signed out successfully!");
+      navigate("/auth");
+    }
+  };
 
   return (
     <SidebarProvider>
@@ -41,15 +61,30 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <Bell />
                 {/* TODO: Notifications badge */}
               </Button>
-              <div>
-                <Avatar>
-                  <AvatarImage src="" />
-                  <AvatarFallback>
-                    <User className="w-5 h-5" />
-                  </AvatarFallback>
-                </Avatar>
-                {/* TODO: Dropdown for profile/logout */}
-              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0">
+                    <Avatar>
+                      <AvatarImage src="" />
+                      <AvatarFallback>
+                        <User className="w-5 h-5" />
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">Account</p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Log out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </header>
           <main className="flex-1 overflow-y-auto">
