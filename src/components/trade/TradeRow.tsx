@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { TableRow, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -96,35 +95,38 @@ export function TradeRow({ trade, onEdit, onDelete, onViewDetails, isDeleting, o
                     : <Badge variant="secondary">Open</Badge>}
             </TableCell>
             <TableCell className="text-right">
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                            <span className="sr-only">Open menu</span>
-                            <MoreHorizontal className="h-4 w-4" />
+                <div className="flex items-center justify-end gap-2">
+                    {isOpen && (
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => onClose(trade)}
+                        >
+                            Close
                         </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => onViewDetails(trade)}>View Details</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => onEdit(trade)}>
-                            Edit
-                        </DropdownMenuItem>
-                        {isOpen && (
+                    )}
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                                <span className="sr-only">Open menu</span>
+                                <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => onViewDetails(trade)}>View Details</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => onEdit(trade)}>
+                                Edit
+                            </DropdownMenuItem>
                             <DropdownMenuItem
                                 className="text-destructive"
-                                onClick={() => onClose(trade)}
+                                onClick={() => onDelete(trade.id)}
+                                disabled={isDeleting}
                             >
-                                Close Trade
+                                Delete
                             </DropdownMenuItem>
-                        )}
-                        <DropdownMenuItem
-                            className="text-destructive"
-                            onClick={() => onDelete(trade.id)}
-                            disabled={isDeleting}
-                        >
-                            Delete
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
             </TableCell>
         </TableRow>
     );
