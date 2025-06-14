@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { NewTradeDialog } from "@/components/trade/NewTradeDialog";
 import { EditTradeDialog } from "@/components/trade/EditTradeDialog";
@@ -7,6 +6,8 @@ import { Tables } from "@/integrations/supabase/types";
 import { useTrades, useDeleteTrade } from "@/hooks/useTrades";
 import { JournalHeader, TradeFilter } from "@/components/journal/JournalHeader";
 import { TradesTable } from "@/components/trade/TradesTable";
+import { DateRange } from "react-day-picker";
+import { startOfDay, endOfDay } from "date-fns";
 
 export default function Journal() {
   const [isNewTradeDialogOpen, setIsNewTradeDialogOpen] = useState(false);
@@ -14,6 +15,7 @@ export default function Journal() {
   const [isTradeDetailsSheetOpen, setIsTradeDetailsSheetOpen] = useState(false);
   const [selectedTrade, setSelectedTrade] = useState<Tables<'trades'> | null>(null);
   const [filter, setFilter] = useState<TradeFilter>("all");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
   const {
     data: trades,
@@ -25,8 +27,17 @@ export default function Journal() {
 
   const filteredTrades =
     trades?.filter((trade) => {
-      if (filter === "all") return true;
-      return trade.side === filter;
+      const sideMatch = filter === "all" || trade.side === filter;
+
+      let dateMatch = true;
+      if (dateRange?.from) {
+        const tradeDate = new Date(trade.opened_at);
+        const fromDate = startOfDay(dateRange.from);
+        const toDate = dateRange.to ? endOfDay(dateRange.to) : endOfDay(dateRange.from);
+        dateMatch = tradeDate >= fromDate && tradeDate <= toDate;
+      }
+      
+      return sideMatch && dateMatch;
     }) ?? [];
 
   const handleEditClick = (trade: Tables<'trades'>) => {
@@ -69,6 +80,8 @@ export default function Journal() {
         filter={filter}
         onFilterChange={setFilter}
         onNewTrade={() => setIsNewTradeDialogOpen(true)}
+        dateRange={dateRange}
+        onDateRangeChange={setDateRange}
       />
       
       <div className="bg-card rounded-lg shadow">
