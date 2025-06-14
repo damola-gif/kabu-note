@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/contexts/SessionProvider";
 import { NewTradeDialog } from "@/components/trade/NewTradeDialog";
 import { EditTradeDialog } from "@/components/trade/EditTradeDialog";
+import { TradeDetailsSheet } from "@/components/trade/TradeDetailsSheet";
 import { format } from "date-fns";
 import { MoreHorizontal } from "lucide-react";
 import {
@@ -42,6 +43,7 @@ export default function Journal() {
   const queryClient = useQueryClient();
   const [isNewTradeDialogOpen, setIsNewTradeDialogOpen] = useState(false);
   const [isEditTradeDialogOpen, setIsEditTradeDialogOpen] = useState(false);
+  const [isTradeDetailsSheetOpen, setIsTradeDetailsSheetOpen] = useState(false);
   const [selectedTrade, setSelectedTrade] = useState<Tables<'trades'> | null>(null);
   const [filter, setFilter] = useState<TradeFilter>("all");
 
@@ -80,6 +82,11 @@ export default function Journal() {
   const handleEditClick = (trade: Tables<'trades'>) => {
     setSelectedTrade(trade);
     setIsEditTradeDialogOpen(true);
+  };
+
+  const handleViewDetailsClick = (trade: Tables<'trades'>) => {
+    setSelectedTrade(trade);
+    setIsTradeDetailsSheetOpen(true);
   };
 
   return (
@@ -188,7 +195,7 @@ export default function Journal() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem>View Details</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleViewDetailsClick(trade)}>View Details</DropdownMenuItem>
                       <DropdownMenuItem onClick={() => handleEditClick(trade)}>
                         Edit
                       </DropdownMenuItem>
@@ -215,6 +222,13 @@ export default function Journal() {
         <EditTradeDialog
             open={isEditTradeDialogOpen}
             onOpenChange={setIsEditTradeDialogOpen}
+            trade={selectedTrade}
+        />
+      )}
+      {selectedTrade && (
+        <TradeDetailsSheet
+            open={isTradeDetailsSheetOpen}
+            onOpenChange={setIsTradeDetailsSheetOpen}
             trade={selectedTrade}
         />
       )}
