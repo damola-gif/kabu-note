@@ -17,6 +17,7 @@ export type Database = {
           image_path: string | null
           is_public: boolean | null
           name: string
+          updated_at: string | null
           user_id: string
         }
         Insert: {
@@ -26,6 +27,7 @@ export type Database = {
           image_path?: string | null
           is_public?: boolean | null
           name: string
+          updated_at?: string | null
           user_id: string
         }
         Update: {
@@ -35,6 +37,7 @@ export type Database = {
           image_path?: string | null
           is_public?: boolean | null
           name?: string
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []

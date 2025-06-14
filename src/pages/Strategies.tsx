@@ -27,11 +27,13 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { supabase } from '@/integrations/supabase/client';
+import { Input } from '@/components/ui/input';
 
 export default function Strategies() {
     const [isEditorOpen, setIsEditorOpen] = useState(false);
     const [selectedStrategy, setSelectedStrategy] = useState<Tables<'strategies'> | undefined>();
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [searchTerm, setSearchTerm] = useState("");
     const { data: strategies, isLoading, error } = useStrategies();
     const deleteMutation = useDeleteStrategy();
     const navigate = useNavigate();
@@ -84,7 +86,21 @@ export default function Strategies() {
             return <p className="text-destructive">Error loading strategies: {error.message}</p>;
         }
 
-        if (!strategies || strategies.length === 0) {
+        const filteredStrategies = strategies?.filter(strategy =>
+            strategy.name.toLowerCase().includes(searchTerm.toLowerCase())
+        ) ?? [];
+
+        if (filteredStrategies.length === 0) {
+            if (searchTerm) {
+                return (
+                    <div className="text-center py-10 border-2 border-dashed rounded-lg">
+                        <h2 className="text-xl font-semibold">No Strategies Found</h2>
+                        <p className="text-muted-foreground mt-2">
+                            Your search for "{searchTerm}" did not match any strategies.
+                        </p>
+                    </div>
+                );
+            }
             return (
                 <div className="text-center py-10 border-2 border-dashed rounded-lg">
                     <h2 className="text-xl font-semibold">No Strategies Yet</h2>
@@ -99,7 +115,7 @@ export default function Strategies() {
 
         return (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {strategies.map((strategy) => {
+                {filteredStrategies.map((strategy) => {
                     const imageUrl = strategy.image_path ? supabase.storage.from('strategy_images').getPublicUrl(strategy.image_path).data.publicUrl : null;
                     return (
                     <Card key={strategy.id} className="flex flex-col">
@@ -153,15 +169,24 @@ export default function Strategies() {
 
     return (
         <div className="w-full">
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex justify-between items-center mb-6 gap-4">
                 <div>
                     <h1 className="text-3xl font-bold">Strategy Library</h1>
                     <p className="text-muted-foreground">Browse and manage your collection of trading strategies.</p>
                 </div>
-                <Button onClick={handleNewStrategy}>
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    New Strategy
-                </Button>
+                <div className="flex items-center gap-2">
+                    <Input
+                        type="search"
+                        placeholder="Search strategies..."
+                        className="w-64"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                    <Button onClick={handleNewStrategy}>
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        New Strategy
+                    </Button>
+                </div>
             </div>
             
             {renderContent()}
