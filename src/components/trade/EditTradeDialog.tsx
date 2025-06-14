@@ -1,4 +1,3 @@
-
 import * as React from "react";
 import {
   Dialog,
@@ -28,7 +27,7 @@ import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useUpdateTrade } from "@/hooks/useTrades";
-import { Tables, TablesUpdate } from "@/integrations/supabase/types";
+import { Tables } from "@/integrations/supabase/types";
 import { editTradeFormSchema, EditTradeFormValues } from "./trade.schemas";
 
 interface EditTradeDialogProps {
@@ -57,35 +56,7 @@ export function EditTradeDialog({ open, onOpenChange, trade }: EditTradeDialogPr
   }, [trade, open, form]);
 
   const onSubmit = (values: EditTradeFormValues) => {
-    const updatedTradeValues: TablesUpdate<"trades"> = {
-      symbol: values.symbol,
-      side: values.side,
-      size: values.size,
-      entry_price: values.entry_price,
-      exit_price: values.exit_price,
-      updated_at: new Date().toISOString(),
-    };
-
-    if (values.exit_price && !trade.exit_price) {
-      updatedTradeValues.closed_at = new Date().toISOString();
-    } else if (!values.exit_price && trade.exit_price) {
-      updatedTradeValues.closed_at = null;
-    }
-
-    if (values.exit_price) {
-      const exitPrice = values.exit_price;
-      const entryPrice = values.entry_price;
-      const size = values.size;
-      if (values.side === "long") {
-        updatedTradeValues.pnl = (exitPrice - entryPrice) * size;
-      } else {
-        updatedTradeValues.pnl = (entryPrice - exitPrice) * size;
-      }
-    } else {
-      updatedTradeValues.pnl = null;
-    }
-
-    updateTradeMutation.mutate({ values: updatedTradeValues, tradeId: trade.id }, {
+    updateTradeMutation.mutate({ values, tradeId: trade.id }, {
       onSuccess: () => {
         onOpenChange(false);
       }

@@ -56,7 +56,11 @@ export function TradesTable({ trades, onEdit, onDelete, onViewDetails, isDeletin
                         <TableCell>
                             {trade.entry_price} → {trade.exit_price ?? "–"}
                         </TableCell>
-                        <TableCell>{trade.pnl ?? "–"}</TableCell>
+                        <TableCell className={trade.pnl === null ? "" : trade.pnl >= 0 ? "text-green-600" : "text-red-600"}>
+                            {trade.pnl !== null
+                                ? `${trade.pnl >= 0 ? '+' : ''}$${trade.pnl.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                                : '–'}
+                        </TableCell>
                         <TableCell>
                             {format(new Date(trade.opened_at), "MMM d, yyyy")}
                         </TableCell>
