@@ -28,6 +28,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCreateTrade } from "@/hooks/useTrades";
 import { tradeFormSchema, TradeFormValues } from "./trade.schemas";
+import { fetchQuote } from "@/api/finnhub";
+import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 interface NewTradeDialogProps {
   open: boolean;
@@ -36,6 +39,7 @@ interface NewTradeDialogProps {
 
 export function NewTradeDialog({ open, onOpenChange }: NewTradeDialogProps) {
   const createTradeMutation = useCreateTrade();
+  const [isFetchingPrice, setIsFetchingPrice] = React.useState<string | null>(null);
 
   const form = useForm<TradeFormValues>({
     resolver: zodResolver(tradeFormSchema),
@@ -56,6 +60,24 @@ export function NewTradeDialog({ open, onOpenChange }: NewTradeDialogProps) {
         form.reset();
       },
     });
+  };
+
+  const handleUseCurrentPrice = async (fieldName: "entry_price" | "stop_loss" | "take_profit") => {
+    const symbol = form.getValues("symbol");
+    if (!symbol) {
+        toast.error("Please enter a symbol first.");
+        return;
+    }
+    setIsFetchingPrice(fieldName);
+    try {
+        const quote = await fetchQuote(symbol);
+        form.setValue(fieldName, quote.c, { shouldValidate: true });
+        toast.success(`Set ${fieldName.replace(/_/g, ' ')} to current price: ${quote.c}`);
+    } catch (error: any) {
+        toast.error(error.message || "Failed to fetch current price.");
+    } finally {
+        setIsFetchingPrice(null);
+    }
   };
 
   React.useEffect(() => {
@@ -127,7 +149,12 @@ export function NewTradeDialog({ open, onOpenChange }: NewTradeDialogProps) {
               name="entry_price"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Entry Price</FormLabel>
+                  <div className="flex justify-between items-center">
+                    <FormLabel>Entry Price</FormLabel>
+                    <Button type="button" size="sm" variant="link" className="h-auto p-0 text-xs" onClick={() => handleUseCurrentPrice('entry_price')} disabled={!!isFetchingPrice}>
+                      {isFetchingPrice === 'entry_price' ? <Loader2 className="animate-spin h-3 w-3" /> : 'Use Current'}
+                    </Button>
+                  </div>
                   <FormControl>
                     <Input type="number" placeholder="e.g., 150.25" {...field} value={field.value ?? ''} />
                   </FormControl>
@@ -140,7 +167,12 @@ export function NewTradeDialog({ open, onOpenChange }: NewTradeDialogProps) {
               name="stop_loss"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Stop Loss</FormLabel>
+                  <div className="flex justify-between items-center">
+                    <FormLabel>Stop Loss</FormLabel>
+                    <Button type="button" size="sm" variant="link" className="h-auto p-0 text-xs" onClick={() => handleUseCurrentPrice('stop_loss')} disabled={!!isFetchingPrice}>
+                      {isFetchingPrice === 'stop_loss' ? <Loader2 className="animate-spin h-3 w-3" /> : 'Use Current'}
+                    </Button>
+                  </div>
                   <FormControl>
                     <Input type="number" placeholder="e.g., 145.00" {...field} value={field.value ?? ''} />
                   </FormControl>
@@ -153,7 +185,12 @@ export function NewTradeDialog({ open, onOpenChange }: NewTradeDialogProps) {
               name="take_profit"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Take Profit</FormLabel>
+                  <div className="flex justify-between items-center">
+                    <FormLabel>Take Profit</FormLabel>
+                    <Button type="button" size="sm" variant="link" className="h-auto p-0 text-xs" onClick={() => handleUseCurrentPrice('take_profit')} disabled={!!isFetchingPrice}>
+                      {isFetchingPrice === 'take_profit' ? <Loader2 className="animate-spin h-3 w-3" /> : 'Use Current'}
+                    </Button>
+                  </div>
                   <FormControl>
                     <Input type="number" placeholder="e.g., 160.50" {...field} value={field.value ?? ''} />
                   </FormControl>

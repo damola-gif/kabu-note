@@ -17,6 +17,7 @@ import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import { SessionProvider } from "./contexts/SessionProvider";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
+import { FinnhubProvider } from "./contexts/FinnhubProvider";
 
 const queryClient = new QueryClient();
 
@@ -26,26 +27,28 @@ const App = () => (
       <Toaster />
       <Sonner />
       <SessionProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
+        <FinnhubProvider>
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/auth" element={<Auth />} />
 
-            <Route element={<ProtectedRoute />}>
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/journal" element={<Journal />} />
-              <Route path="/strategies" element={<Strategies />} />
-              <Route path="/feed" element={<Feed />} />
-              <Route path="/analytics" element={<Analytics />} />
-              <Route path="/u/:username" element={<Profile />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/onboarding" element={<Onboarding />} />
-            </Route>
+              <Route element={<ProtectedRoute />}>
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/journal" element={<Journal />} />
+                <Route path="/strategies" element={<Strategies />} />
+                <Route path="/feed" element={<Feed />} />
+                <Route path="/analytics" element={<Analytics />} />
+                <Route path="/u/:username" element={<Profile />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/onboarding" element={<Onboarding />} />
+              </Route>
 
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </FinnhubProvider>
       </SessionProvider>
     </TooltipProvider>
   </QueryClientProvider>

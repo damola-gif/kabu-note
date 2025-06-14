@@ -30,6 +30,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useUpdateTrade } from "@/hooks/useTrades";
 import { Tables } from "@/integrations/supabase/types";
 import { editTradeFormSchema, EditTradeFormValues } from "./trade.schemas";
+import { fetchQuote } from "@/api/finnhub";
+import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 interface EditTradeDialogProps {
   open: boolean;
@@ -39,6 +42,7 @@ interface EditTradeDialogProps {
 
 export function EditTradeDialog({ open, onOpenChange, trade }: EditTradeDialogProps) {
   const updateTradeMutation = useUpdateTrade();
+  const [isFetchingPrice, setIsFetchingPrice] = React.useState<string | null>(null);
 
   const form = useForm<EditTradeFormValues>({
     resolver: zodResolver(editTradeFormSchema),
@@ -65,6 +69,24 @@ export function EditTradeDialog({ open, onOpenChange, trade }: EditTradeDialogPr
         onOpenChange(false);
       }
     });
+  };
+
+  const handleUseCurrentPrice = async (fieldName: "entry_price" | "exit_price" | "stop_loss" | "take_profit") => {
+    const symbol = form.getValues("symbol");
+    if (!symbol) {
+        toast.error("Please enter a symbol first.");
+        return;
+    }
+    setIsFetchingPrice(fieldName);
+    try {
+        const quote = await fetchQuote(symbol);
+        form.setValue(fieldName, quote.c, { shouldValidate: true });
+        toast.success(`Set ${fieldName.replace(/_/g, ' ')} to current price: ${quote.c}`);
+    } catch (error: any) {
+        toast.error(error.message || "Failed to fetch current price.");
+    } finally {
+        setIsFetchingPrice(null);
+    }
   };
 
   return (
@@ -137,7 +159,12 @@ export function EditTradeDialog({ open, onOpenChange, trade }: EditTradeDialogPr
               name="entry_price"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Entry Price</FormLabel>
+                   <div className="flex justify-between items-center">
+                    <FormLabel>Entry Price</FormLabel>
+                    <Button type="button" size="sm" variant="link" className="h-auto p-0 text-xs" onClick={() => handleUseCurrentPrice('entry_price')} disabled={!!isFetchingPrice}>
+                      {isFetchingPrice === 'entry_price' ? <Loader2 className="animate-spin h-3 w-3" /> : 'Use Current'}
+                    </Button>
+                  </div>
                   <FormControl>
                     <Input
                       type="number"
@@ -154,7 +181,12 @@ export function EditTradeDialog({ open, onOpenChange, trade }: EditTradeDialogPr
               name="exit_price"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Exit Price</FormLabel>
+                   <div className="flex justify-between items-center">
+                    <FormLabel>Exit Price</FormLabel>
+                    <Button type="button" size="sm" variant="link" className="h-auto p-0 text-xs" onClick={() => handleUseCurrentPrice('exit_price')} disabled={!!isFetchingPrice}>
+                      {isFetchingPrice === 'exit_price' ? <Loader2 className="animate-spin h-3 w-3" /> : 'Use Current'}
+                    </Button>
+                  </div>
                   <FormControl>
                     <Input
                       type="number"
@@ -172,7 +204,12 @@ export function EditTradeDialog({ open, onOpenChange, trade }: EditTradeDialogPr
               name="stop_loss"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Stop Loss</FormLabel>
+                  <div className="flex justify-between items-center">
+                    <FormLabel>Stop Loss</FormLabel>
+                    <Button type="button" size="sm" variant="link" className="h-auto p-0 text-xs" onClick={() => handleUseCurrentPrice('stop_loss')} disabled={!!isFetchingPrice}>
+                      {isFetchingPrice === 'stop_loss' ? <Loader2 className="animate-spin h-3 w-3" /> : 'Use Current'}
+                    </Button>
+                  </div>
                   <FormControl>
                     <Input
                       type="number"
@@ -190,7 +227,12 @@ export function EditTradeDialog({ open, onOpenChange, trade }: EditTradeDialogPr
               name="take_profit"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Take Profit</FormLabel>
+                  <div className="flex justify-between items-center">
+                    <FormLabel>Take Profit</FormLabel>
+                    <Button type="button" size="sm" variant="link" className="h-auto p-0 text-xs" onClick={() => handleUseCurrentPrice('take_profit')} disabled={!!isFetchingPrice}>
+                      {isFetchingPrice === 'take_profit' ? <Loader2 className="animate-spin h-3 w-3" /> : 'Use Current'}
+                    </Button>
+                  </div>
                   <FormControl>
                     <Input
                       type="number"
