@@ -1,4 +1,5 @@
 
+import * as React from "react";
 import {
   Dialog,
   DialogContent,
@@ -56,7 +57,6 @@ export function NewTradeDialog({ open, onOpenChange }: NewTradeDialogProps) {
     defaultValues: {
       symbol: "",
       side: "long",
-      size: 0,
       entry_price: 0,
     },
   });
@@ -126,7 +126,7 @@ export function NewTradeDialog({ open, onOpenChange }: NewTradeDialogProps) {
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a side" />
-                      </SelectTrigger>
+                      </T rig_ger>
                     </FormControl>
                     <SelectContent>
                       <SelectItem value="long">Long</SelectItem>
@@ -144,7 +144,7 @@ export function NewTradeDialog({ open, onOpenChange }: NewTradeDialogProps) {
                 <FormItem>
                   <FormLabel>Size</FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder="e.g., 100" {...field} />
+                    <Input type="number" placeholder="e.g., 100" {...field} value={field.value ?? ''} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -157,7 +157,7 @@ export function NewTradeDialog({ open, onOpenChange }: NewTradeDialogProps) {
                 <FormItem>
                   <FormLabel>Entry Price</FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder="e.g., 150.25" {...field} />
+                    <Input type="number" placeholder="e.g., 150.25" {...field} value={field.value ?? ''} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
