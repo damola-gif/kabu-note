@@ -1,33 +1,21 @@
+
 import React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
   DialogDescription,
 } from "@/components/ui/dialog";
 import { useCreateStrategy, useUpdateStrategy } from "@/hooks/useStrategies";
 import { strategyFormSchema, StrategyFormValues } from "./strategy.schemas";
 import { Tables } from "@/integrations/supabase/types";
-import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
-import { X } from "lucide-react";
+import { StrategyForm } from "./StrategyForm";
 
 interface StrategyEditorDialogProps {
   open: boolean;
@@ -61,8 +49,6 @@ export function StrategyEditorDialog({ open, onOpenChange, strategy, trade }: St
       image_path: undefined,
     },
   });
-
-  const imageFileRef = form.register("image_file");
 
   React.useEffect(() => {
     if (open) {
@@ -99,7 +85,10 @@ export function StrategyEditorDialog({ open, onOpenChange, strategy, trade }: St
             name: title,
             content_markdown: content.trim(),
             is_public: false,
-        })
+            image_file: undefined,
+            image_path: undefined,
+        });
+        setImagePreview(null);
       } else {
           form.reset({
               name: "",
@@ -128,8 +117,7 @@ export function StrategyEditorDialog({ open, onOpenChange, strategy, trade }: St
   const removeImage = () => {
       setImagePreview(null);
       form.setValue("image_file", undefined);
-      const imageInput = document.querySelector('input[type="file"][name="image_file"]') as HTMLInputElement;
-      if (imageInput) imageInput.value = "";
+      // We no longer need to manually clear the input as RHF handles it with controlled components
       form.setValue("image_path", null); // Signal removal
   }
 
@@ -144,9 +132,11 @@ export function StrategyEditorDialog({ open, onOpenChange, strategy, trade }: St
         return;
     }
     
+    // Zod will parse and validate the final values
     const validatedValues = strategyFormSchema.parse(valuesForPublish);
 
     if (isEditing) {
+        if (!strategy) return;
         await updateMutation.mutateAsync({ id: strategy.id, values: validatedValues, originalImagePath: strategy.image_path });
         const strategyUrl = `${window.location.origin}/strategies/${strategy.id}`;
         toast.success("Your strategy is now public!", {
@@ -156,7 +146,7 @@ export function StrategyEditorDialog({ open, onOpenChange, strategy, trade }: St
             },
         });
     } else {
-        await createMutation.mutateAsync(validatedValues);
+        const newStrategy = await createMutation.mutateAsync(validatedValues);
         toast.success("Strategy published successfully!");
     }
     onOpenChange(false);
@@ -164,6 +154,7 @@ export function StrategyEditorDialog({ open, onOpenChange, strategy, trade }: St
 
   function onSubmit(values: StrategyFormValues) {
     if (isEditing) {
+      if (!strategy) return;
       updateMutation.mutate({ id: strategy.id, values, originalImagePath: strategy.image_path });
     } else {
       createMutation.mutate(values);
@@ -182,91 +173,16 @@ export function StrategyEditorDialog({ open, onOpenChange, strategy, trade }: St
             {isEditing ? "Update your strategy details below." : "Author a new strategy. You can save it as a draft or publish it."}
           </DialogDescription>
         </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Title</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. Breakout RSI Strategy" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="content_markdown"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Strategy Content (Markdown)</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Write your strategy details here..." {...field} rows={15} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="image_file"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Strategy Image (Optional)</FormLabel>
-                  <FormControl>
-                    <Input type="file" accept="image/jpeg,image/png,image/gif,image/webp" {...imageFileRef} onChange={handleImageChange} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {imagePreview && (
-              <div className="relative w-full h-48 mt-2 rounded-md border">
-                <img src={imagePreview} alt="Strategy preview" className="rounded-md object-contain w-full h-full" />
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="icon"
-                  className="absolute top-2 right-2 h-7 w-7"
-                  onClick={removeImage}
-                >
-                  <X className="h-4 w-4" />
-                  <span className="sr-only">Remove image</span>
-                </Button>
-              </div>
-            )}
-            
-            <DialogFooter className="!justify-between pt-4 sticky bottom-0 bg-background py-4">
-                <FormField
-                  control={form.control}
-                  name="is_public"
-                  render={({ field }) => (
-                    <FormItem className="flex items-center gap-2 space-y-0">
-                      <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormLabel className="!mt-0">Publish Publicly</FormLabel>
-                    </FormItem>
-                  )}
-                />
-                <div className="flex gap-2">
-                    <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
-                    <Button type="submit" disabled={isLoading}>{isLoading ? "Saving..." : "Save Draft"}</Button>
-                    <Button type="button" onClick={handlePublish} disabled={isLoading}>
-                      {isLoading ? "Publishing..." : "Publish"}
-                    </Button>
-                </div>
-            </DialogFooter>
-          </form>
-        </Form>
+        <StrategyForm
+            form={form}
+            onSubmit={onSubmit}
+            imagePreview={imagePreview}
+            onImageChange={handleImageChange}
+            onImageRemove={removeImage}
+            isLoading={isLoading}
+            onCancel={() => onOpenChange(false)}
+            handlePublish={handlePublish}
+        />
       </DialogContent>
     </Dialog>
   );

@@ -78,8 +78,9 @@ export function useCreateStrategy() {
         user_id: user.id,
         image_path: imagePath,
       };
-      const { error } = await supabase.from("strategies").insert(dataToInsert);
+      const { data, error } = await supabase.from("strategies").insert(dataToInsert).select().single();
       if (error) throw error;
+      return data;
     },
     onSuccess: () => {
       toast.success("Strategy created successfully");
