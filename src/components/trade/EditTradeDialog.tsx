@@ -1,3 +1,4 @@
+
 import * as React from "react";
 import {
   Dialog,
@@ -30,7 +31,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useUpdateTrade } from "@/hooks/useTrades";
 import { Tables } from "@/integrations/supabase/types";
 import { editTradeFormSchema, EditTradeFormValues } from "./trade.schemas";
-import { fetchQuote } from "@/api/finnhub";
+import { fetchQuote } from "@/api/twelvedata";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
