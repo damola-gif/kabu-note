@@ -3,16 +3,17 @@ import { useState } from 'react';
 import { useStrategies, useDeleteStrategy } from '@/hooks/useStrategies';
 import { Button } from '@/components/ui/button';
 import { StrategyEditorDialog } from '@/components/strategy/StrategyEditorDialog';
-import { Link } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { useNavigate } from 'react-router-dom';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { PlusCircle, MoreHorizontal, Edit, Trash2 } from 'lucide-react';
+import { PlusCircle, MoreHorizontal, Edit, Trash2, Eye } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tables } from '@/integrations/supabase/types';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -33,6 +34,7 @@ export default function Strategies() {
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const { data: strategies, isLoading, error } = useStrategies();
     const deleteMutation = useDeleteStrategy();
+    const navigate = useNavigate();
 
     const handleNewStrategy = () => {
         setSelectedStrategy(undefined);
@@ -121,6 +123,11 @@ export default function Strategies() {
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
+                                        <DropdownMenuItem onClick={() => navigate(`/strategies/${strategy.id}`)}>
+                                            <Eye className="mr-2 h-4 w-4" />
+                                            <span>View Details</span>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuSeparator />
                                         <DropdownMenuItem onClick={() => handleEdit(strategy)}>
                                             <Edit className="mr-2 h-4 w-4" />
                                             <span>Edit</span>
@@ -138,11 +145,6 @@ export default function Strategies() {
                                 {strategy.content_markdown?.substring(0, 150) || "No content."}
                             </p>
                         </CardContent>
-                        <CardFooter>
-                            <Button asChild variant="outline" className="w-full">
-                                <Link to={`/strategies/${strategy.id}`}>View Strategy</Link>
-                            </Button>
-                        </CardFooter>
                     </Card>
                 )})}
             </div>
