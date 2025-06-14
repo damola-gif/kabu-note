@@ -1,3 +1,4 @@
+
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -58,7 +59,7 @@ export function useUpdateTrade() {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async (payload: {
-          values: EditTradeFormValues;
+          values: TablesUpdate<"trades">;
           tradeId: string;
         }) => {
           const { values, tradeId } = payload;
@@ -66,17 +67,28 @@ export function useUpdateTrade() {
 
           // If exit_price is being set, calculate P/L and set closed_at
           if (values.exit_price !== null && values.exit_price !== undefined) {
-              const { side, size, entry_price, exit_price } = values;
+              // Fetch original trade to ensure correct P/L calculation based on original entry price
+              const { data: originalTrade, error: fetchError } = await supabase
+                .from('trades')
+                .select('side, size, entry_price')
+                .eq('id', tradeId)
+                .single();
+              
+              if (fetchError) throw fetchError;
+              if (!originalTrade) throw new Error("Original trade not found to calculate P/L.");
+
+              const { side, size, entry_price } = originalTrade;
+              
               let pnl;
               if (side === 'long') {
-                  pnl = (exit_price - entry_price) * size;
+                  pnl = (values.exit_price - entry_price) * size;
               } else { // short
-                  pnl = (entry_price - exit_price) * size;
+                  pnl = (entry_price - values.exit_price) * size;
               }
               updateData.pnl = pnl;
               updateData.closed_at = new Date().toISOString();
-          } else {
-            // If exit_price is cleared, clear pnl and closed_at
+          } else if (values.hasOwnProperty('exit_price') && values.exit_price === null) {
+            // If exit_price is explicitly cleared (e.g., from Edit form), reopen the trade
             updateData.pnl = null;
             updateData.closed_at = null;
           }

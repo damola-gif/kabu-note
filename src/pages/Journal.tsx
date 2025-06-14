@@ -1,6 +1,8 @@
+
 import { useState } from "react";
 import { NewTradeDialog } from "@/components/trade/NewTradeDialog";
 import { EditTradeDialog } from "@/components/trade/EditTradeDialog";
+import { CloseTradeDialog } from "@/components/trade/CloseTradeDialog";
 import { TradeDetailsSheet } from "@/components/trade/TradeDetailsSheet";
 import { Tables } from "@/integrations/supabase/types";
 import { useTrades, useDeleteTrade } from "@/hooks/useTrades";
@@ -15,6 +17,7 @@ import { AlertCircle } from "lucide-react";
 export default function Journal() {
   const [isNewTradeDialogOpen, setIsNewTradeDialogOpen] = useState(false);
   const [isEditTradeDialogOpen, setIsEditTradeDialogOpen] = useState(false);
+  const [isCloseTradeDialogOpen, setIsCloseTradeDialogOpen] = useState(false);
   const [isTradeDetailsSheetOpen, setIsTradeDetailsSheetOpen] = useState(false);
   const [selectedTrade, setSelectedTrade] = useState<Tables<'trades'> | null>(null);
   const [filter, setFilter] = useState<TradeFilter>("all");
@@ -50,6 +53,11 @@ export default function Journal() {
     setIsEditTradeDialogOpen(true);
   };
 
+  const handleCloseClick = (trade: Tables<'trades'>) => {
+    setSelectedTrade(trade);
+    setIsCloseTradeDialogOpen(true);
+  };
+
   const handleViewDetailsClick = (trade: Tables<'trades'>) => {
     setSelectedTrade(trade);
     setIsTradeDetailsSheetOpen(true);
@@ -74,6 +82,7 @@ export default function Journal() {
         onEdit={handleEditClick}
         onDelete={(tradeId) => deleteMutation.mutate(tradeId)}
         onViewDetails={handleViewDetailsClick}
+        onClose={handleCloseClick}
         isDeleting={deleteMutation.isPending}
       />
     );
@@ -110,6 +119,13 @@ export default function Journal() {
         <EditTradeDialog
             open={isEditTradeDialogOpen}
             onOpenChange={setIsEditTradeDialogOpen}
+            trade={selectedTrade}
+        />
+      )}
+      {selectedTrade && (
+        <CloseTradeDialog
+            open={isCloseTradeDialogOpen}
+            onOpenChange={setIsCloseTradeDialogOpen}
             trade={selectedTrade}
         />
       )}

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { TableRow, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -19,10 +20,11 @@ interface TradeRowProps {
   onEdit: (trade: Tables<"trades">) => void;
   onDelete: (tradeId: string) => void;
   onViewDetails: (trade: Tables<"trades">) => void;
+  onClose: (trade: Tables<"trades">) => void;
   isDeleting: boolean;
 }
 
-export function TradeRow({ trade, onEdit, onDelete, onViewDetails, isDeleting }: TradeRowProps) {
+export function TradeRow({ trade, onEdit, onDelete, onViewDetails, isDeleting, onClose }: TradeRowProps) {
     const { subscribe, unsubscribe, isConnected } = useTwelveData();
     const [livePrice, setLivePrice] = useState<number | null>(null);
     const [priceChange, setPriceChange] = useState<"up" | "down" | "none">("none");
@@ -106,6 +108,14 @@ export function TradeRow({ trade, onEdit, onDelete, onViewDetails, isDeleting }:
                         <DropdownMenuItem onClick={() => onEdit(trade)}>
                             Edit
                         </DropdownMenuItem>
+                        {isOpen && (
+                            <DropdownMenuItem
+                                className="text-destructive"
+                                onClick={() => onClose(trade)}
+                            >
+                                Close Trade
+                            </DropdownMenuItem>
+                        )}
                         <DropdownMenuItem
                             className="text-destructive"
                             onClick={() => onDelete(trade.id)}

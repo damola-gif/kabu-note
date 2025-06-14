@@ -1,4 +1,3 @@
-
 import * as z from "zod";
 
 export const tradeFormSchema = z.object({
@@ -24,3 +23,10 @@ export const editTradeFormSchema = z.object({
 });
 
 export type EditTradeFormValues = z.infer<typeof editTradeFormSchema>;
+
+export const closeTradeFormSchema = z.object({
+  exit_price: z.coerce.number().nonnegative({ message: "Exit price must be a non-negative number." }),
+  closing_notes: z.string().optional().nullable(),
+});
+
+export type CloseTradeFormValues = z.infer<typeof closeTradeFormSchema>;

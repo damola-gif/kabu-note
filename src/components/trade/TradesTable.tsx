@@ -14,10 +14,11 @@ interface TradesTableProps {
   onEdit: (trade: Tables<"trades">) => void;
   onDelete: (tradeId: string) => void;
   onViewDetails: (trade: Tables<"trades">) => void;
+  onClose: (trade: Tables<"trades">) => void;
   isDeleting: boolean;
 }
 
-export function TradesTable({ trades, onEdit, onDelete, onViewDetails, isDeleting }: TradesTableProps) {
+export function TradesTable({ trades, onEdit, onDelete, onViewDetails, isDeleting, onClose }: TradesTableProps) {
     return (
         <Table>
             <TableHeader>
@@ -40,6 +41,7 @@ export function TradesTable({ trades, onEdit, onDelete, onViewDetails, isDeletin
                         onEdit={onEdit}
                         onDelete={onDelete}
                         onViewDetails={onViewDetails}
+                        onClose={onClose}
                         isDeleting={isDeleting}
                     />
                 ))}
