@@ -37,7 +37,7 @@ const tradeFormSchema = z.object({
   symbol: z.string().min(1, "Symbol is required."),
   side: z.enum(["long", "short"]),
   size: z.coerce.number().positive("Size must be a positive number."),
-  entry_price: z.coerce.number().positive("Entry price must be a positive number."),
+  entry_price: z.coerce.number().nonnegative("Entry price must be a non-negative number."),
 });
 
 type TradeFormValues = z.infer<typeof tradeFormSchema>;
@@ -82,7 +82,13 @@ export function NewTradeDialog({ open, onOpenChange }: NewTradeDialogProps) {
       toast.error("You must be logged in to create a trade.");
       return;
     }
-    const newTrade: TablesInsert<"trades"> = { ...values, user_id: user.id };
+    const newTrade: TablesInsert<"trades"> = {
+      user_id: user.id,
+      symbol: values.symbol,
+      side: values.side,
+      size: values.size,
+      entry_price: values.entry_price,
+    };
     mutation.mutate(newTrade);
   };
 
