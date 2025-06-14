@@ -1,17 +1,62 @@
 
 import { useState } from 'react';
-import { useStrategies } from '@/hooks/useStrategies';
+import { useStrategies, useDeleteStrategy } from '@/hooks/useStrategies';
 import { Button } from '@/components/ui/button';
 import { StrategyEditorDialog } from '@/components/strategy/StrategyEditorDialog';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, MoreHorizontal, Edit, Trash2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tables } from '@/integrations/supabase/types';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function Strategies() {
     const [isEditorOpen, setIsEditorOpen] = useState(false);
+    const [selectedStrategy, setSelectedStrategy] = useState<Tables<'strategies'> | undefined>();
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const { data: strategies, isLoading, error } = useStrategies();
+    const deleteMutation = useDeleteStrategy();
+
+    const handleNewStrategy = () => {
+        setSelectedStrategy(undefined);
+        setIsEditorOpen(true);
+    };
+
+    const handleEdit = (strategy: Tables<'strategies'>) => {
+        setSelectedStrategy(strategy);
+        setIsEditorOpen(true);
+    };
+    
+    const handleDelete = (strategy: Tables<'strategies'>) => {
+        setSelectedStrategy(strategy);
+        setIsDeleteDialogOpen(true);
+    };
+
+    const confirmDelete = () => {
+        if (!selectedStrategy) return;
+        deleteMutation.mutate(selectedStrategy.id, {
+            onSuccess: () => {
+                setIsDeleteDialogOpen(false);
+                setSelectedStrategy(undefined);
+            }
+        });
+    };
 
     const renderContent = () => {
         if (isLoading) {
@@ -41,7 +86,7 @@ export default function Strategies() {
                 <div className="text-center py-10 border-2 border-dashed rounded-lg">
                     <h2 className="text-xl font-semibold">No Strategies Yet</h2>
                     <p className="text-muted-foreground mt-2">Click the button to create your first trading strategy.</p>
-                    <Button className="mt-4" onClick={() => setIsEditorOpen(true)}>
+                    <Button className="mt-4" onClick={handleNewStrategy}>
                         <PlusCircle className="mr-2 h-4 w-4" />
                         Create Strategy
                     </Button>
@@ -54,10 +99,31 @@ export default function Strategies() {
                 {strategies.map((strategy) => (
                     <Card key={strategy.id} className="flex flex-col">
                         <CardHeader>
-                            <CardTitle className="truncate">{strategy.name}</CardTitle>
-                            <CardDescription>
-                                {strategy.is_public ? <Badge>Public</Badge> : <Badge variant="secondary">Draft</Badge>}
-                            </CardDescription>
+                             <div className="flex justify-between items-start gap-2">
+                                <div className="flex-grow space-y-1 overflow-hidden">
+                                    <CardTitle className="truncate" title={strategy.name}>{strategy.name}</CardTitle>
+                                    <CardDescription>
+                                        {strategy.is_public ? <Badge>Public</Badge> : <Badge variant="secondary">Draft</Badge>}
+                                    </CardDescription>
+                                </div>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="flex-shrink-0">
+                                            <MoreHorizontal className="h-4 w-4" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuItem onClick={() => handleEdit(strategy)}>
+                                            <Edit className="mr-2 h-4 w-4" />
+                                            <span>Edit</span>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => handleDelete(strategy)} className="text-destructive focus:text-destructive">
+                                            <Trash2 className="mr-2 h-4 w-4" />
+                                            <span>Delete</span>
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </div>
                         </CardHeader>
                         <CardContent className="flex-grow">
                             <p className="text-muted-foreground line-clamp-3">
@@ -82,7 +148,7 @@ export default function Strategies() {
                     <h1 className="text-3xl font-bold">My Strategies</h1>
                     <p className="text-muted-foreground">Your collection of authored trading strategies.</p>
                 </div>
-                <Button onClick={() => setIsEditorOpen(true)}>
+                <Button onClick={handleNewStrategy}>
                     <PlusCircle className="mr-2 h-4 w-4" />
                     New Strategy
                 </Button>
@@ -90,7 +156,39 @@ export default function Strategies() {
             
             {renderContent()}
 
-            <StrategyEditorDialog open={isEditorOpen} onOpenChange={setIsEditorOpen} />
+            <StrategyEditorDialog 
+                open={isEditorOpen} 
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setSelectedStrategy(undefined);
+                    }
+                    setIsEditorOpen(open);
+                }}
+                strategy={selectedStrategy}
+            />
+
+            {selectedStrategy && (
+              <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                  <AlertDialogContent>
+                      <AlertDialogHeader>
+                      <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                          This action cannot be undone. This will permanently delete the strategy "{selectedStrategy.name}".
+                      </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={confirmDelete}
+                        disabled={deleteMutation.isPending}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                          {deleteMutation.isPending ? "Deleting..." : "Delete"}
+                      </AlertDialogAction>
+                      </AlertDialogFooter>
+                  </AlertDialogContent>
+              </AlertDialog>
+            )}
         </div>
     );
 };
