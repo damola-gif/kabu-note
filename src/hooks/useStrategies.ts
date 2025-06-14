@@ -55,11 +55,28 @@ export function useCreateStrategy() {
   return useMutation({
     mutationFn: async (newStrategy: StrategyFormValues) => {
       if (!user) throw new Error("User must be logged in to create a strategy");
+      
+      let imagePath: string | null = null;
+
+      if (newStrategy.image_file && newStrategy.image_file.length > 0) {
+        const file = newStrategy.image_file[0];
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Date.now()}.${fileExt}`;
+        const filePath = `${user.id}/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage.from('strategy_images').upload(filePath, file);
+        if (uploadError) {
+          throw new Error(`Image upload failed: ${uploadError.message}`);
+        }
+        imagePath = filePath;
+      }
+      
       const dataToInsert: TablesInsert<'strategies'> = {
         name: newStrategy.name,
         content_markdown: newStrategy.content_markdown,
         is_public: newStrategy.is_public,
         user_id: user.id,
+        image_path: imagePath,
       };
       const { error } = await supabase.from("strategies").insert(dataToInsert);
       if (error) throw error;
@@ -79,7 +96,39 @@ export function useUpdateStrategy() {
   const { user } = useSession();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, ...updateData }: TablesUpdate<'strategies'> & { id: string }) => {
+    mutationFn: async ({ id, values, originalImagePath }: { id: string; values: StrategyFormValues, originalImagePath?: string | null }) => {
+      if (!user) throw new Error("User must be logged in to update a strategy");
+      
+      let finalImagePath: string | null = originalImagePath || null;
+
+      // Case 1: New image uploaded
+      if (values.image_file && values.image_file.length > 0) {
+        // If an old image exists, remove it
+        if (originalImagePath) {
+          await supabase.storage.from('strategy_images').remove([originalImagePath]);
+        }
+        // Upload the new image
+        const file = values.image_file[0];
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Date.now()}.${fileExt}`;
+        const filePath = `${user.id}/${fileName}`;
+        const { error: uploadError } = await supabase.storage.from('strategy_images').upload(filePath, file);
+        if (uploadError) throw uploadError;
+        finalImagePath = filePath;
+      } 
+      // Case 2: Image explicitly removed (form sends image_path: null)
+      else if (originalImagePath && values.image_path === null) {
+        await supabase.storage.from('strategy_images').remove([originalImagePath]);
+        finalImagePath = null;
+      }
+      
+      const updateData: TablesUpdate<'strategies'> = {
+        name: values.name,
+        content_markdown: values.content_markdown,
+        is_public: values.is_public,
+        image_path: finalImagePath,
+      };
+
       const { error } = await supabase
         .from("strategies")
         .update(updateData)

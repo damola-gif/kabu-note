@@ -25,6 +25,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { supabase } from '@/integrations/supabase/client';
 
 export default function Strategies() {
     const [isEditorOpen, setIsEditorOpen] = useState(false);
@@ -61,7 +62,7 @@ export default function Strategies() {
     const renderContent = () => {
         if (isLoading) {
             return (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {[...Array(3)].map((_, i) => (
                         <Card key={i}>
                             <CardHeader>
@@ -95,9 +96,16 @@ export default function Strategies() {
         }
 
         return (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {strategies.map((strategy) => (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {strategies.map((strategy) => {
+                    const imageUrl = strategy.image_path ? supabase.storage.from('strategy_images').getPublicUrl(strategy.image_path).data.publicUrl : null;
+                    return (
                     <Card key={strategy.id} className="flex flex-col">
+                        {imageUrl && (
+                            <div className="aspect-video w-full border-b">
+                                <img src={imageUrl} alt={strategy.name} className="w-full h-full object-cover" />
+                            </div>
+                        )}
                         <CardHeader>
                              <div className="flex justify-between items-start gap-2">
                                 <div className="flex-grow space-y-1 overflow-hidden">
@@ -136,7 +144,7 @@ export default function Strategies() {
                             </Button>
                         </CardFooter>
                     </Card>
-                ))}
+                )})}
             </div>
         );
     }

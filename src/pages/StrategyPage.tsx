@@ -1,4 +1,3 @@
-
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useStrategy } from "@/hooks/useStrategies";
 import { useSession } from "@/contexts/SessionProvider";
@@ -8,6 +7,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function StrategyPage() {
   const { strategyId } = useParams<{ strategyId: string }>();
@@ -52,13 +52,18 @@ export default function StrategyPage() {
     );
   }
 
+  const imageUrl = strategy.image_path
+    ? supabase.storage.from('strategy_images').getPublicUrl(strategy.image_path).data.publicUrl
+    : null;
+
   return (
     <article className="prose dark:prose-invert max-w-none">
       <h1>{strategy.name}</h1>
       <div className="flex items-center gap-4 mb-4 text-sm text-muted-foreground">
-        <span>Published on {format(new Date(strategy.created_at), "PPP")}</span>
+        <span>Published on {format(new Date(strategy.created_at!), "PPP")}</span>
         {strategy.is_public ? <Badge>Public</Badge> : <Badge variant="secondary">Draft</Badge>}
       </div>
+      {imageUrl && <img src={imageUrl} alt={strategy.name} className="w-full rounded-lg mb-6 max-h-[500px] object-contain border" />}
       <ReactMarkdown remarkPlugins={[remarkGfm]}>
         {strategy.content_markdown || ""}
       </ReactMarkdown>

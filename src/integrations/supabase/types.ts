@@ -14,6 +14,7 @@ export type Database = {
           content_markdown: string | null
           created_at: string | null
           id: string
+          image_path: string | null
           is_public: boolean | null
           name: string
           user_id: string
@@ -22,6 +23,7 @@ export type Database = {
           content_markdown?: string | null
           created_at?: string | null
           id?: string
+          image_path?: string | null
           is_public?: boolean | null
           name: string
           user_id: string
@@ -30,6 +32,7 @@ export type Database = {
           content_markdown?: string | null
           created_at?: string | null
           id?: string
+          image_path?: string | null
           is_public?: boolean | null
           name?: string
           user_id?: string

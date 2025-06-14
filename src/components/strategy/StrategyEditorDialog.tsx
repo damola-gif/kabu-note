@@ -1,4 +1,3 @@
-
 import React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -27,6 +26,8 @@ import { Tables } from "@/integrations/supabase/types";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
+import { X } from "lucide-react";
 
 interface StrategyEditorDialogProps {
   open: boolean;
@@ -48,6 +49,7 @@ export function StrategyEditorDialog({ open, onOpenChange, strategy, trade }: St
   const createMutation = useCreateStrategy();
   const updateMutation = useUpdateStrategy();
   const isEditing = !!strategy;
+  const [imagePreview, setImagePreview] = React.useState<string | null>(null);
 
   const form = useForm<StrategyFormValues>({
     resolver: zodResolver(strategyFormSchema),
@@ -55,17 +57,29 @@ export function StrategyEditorDialog({ open, onOpenChange, strategy, trade }: St
       name: "",
       content_markdown: "",
       is_public: false,
+      image_file: undefined,
+      image_path: undefined,
     },
   });
 
+  const imageFileRef = form.register("image_file");
+
   React.useEffect(() => {
-    if (strategy) {
-      form.reset({
-        name: strategy.name,
-        content_markdown: strategy.content_markdown ?? '',
-        is_public: strategy.is_public ?? false,
-      });
-    } else if (trade) {
+    if (open) {
+      if (strategy) {
+        form.reset({
+          name: strategy.name,
+          content_markdown: strategy.content_markdown ?? '',
+          is_public: strategy.is_public ?? false,
+          image_path: strategy.image_path ?? undefined,
+        });
+        if (strategy.image_path) {
+          const { data: { publicUrl } } = supabase.storage.from('strategy_images').getPublicUrl(strategy.image_path);
+          setImagePreview(publicUrl);
+        } else {
+          setImagePreview(null);
+        }
+      } else if (trade) {
         const title = `${format(new Date(), "yyyy-MM-dd")} - ${trade.symbol} Strategy`;
         const content = `
 *   **Symbol:** ${trade.symbol}
@@ -86,26 +100,54 @@ export function StrategyEditorDialog({ open, onOpenChange, strategy, trade }: St
             content_markdown: content.trim(),
             is_public: false,
         })
-    } else {
-        form.reset({
-            name: "",
-            content_markdown: "",
-            is_public: false,
-        });
+      } else {
+          form.reset({
+              name: "",
+              content_markdown: "",
+              is_public: false,
+              image_file: undefined,
+              image_path: undefined,
+          });
+          setImagePreview(null);
+      }
     }
   }, [strategy, trade, form, open]);
   
-  const handlePublish = async () => {
-    const values = form.getValues();
-    const result = strategyFormSchema.safeParse({...values, is_public: true });
+  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+      form.setValue("image_path", "new-file-selected"); // prevent removal signal
+    }
+  };
 
-    if (!result.success) {
-      form.trigger();
-      return;
+  const removeImage = () => {
+      setImagePreview(null);
+      form.setValue("image_file", undefined);
+      const imageInput = document.querySelector('input[type="file"][name="image_file"]') as HTMLInputElement;
+      if (imageInput) imageInput.value = "";
+      form.setValue("image_path", null); // Signal removal
+  }
+
+  const handlePublish = async () => {
+    // Get values and set is_public to true for validation and submission
+    const currentValues = form.getValues();
+    const valuesForPublish = { ...currentValues, is_public: true };
+    
+    const result = await form.trigger();
+    if (!result) {
+        toast.error("Please fix the validation errors before publishing.");
+        return;
     }
     
+    const validatedValues = strategyFormSchema.parse(valuesForPublish);
+
     if (isEditing) {
-        await updateMutation.mutateAsync({ id: strategy.id, ...result.data });
+        await updateMutation.mutateAsync({ id: strategy.id, values: validatedValues, originalImagePath: strategy.image_path });
         const strategyUrl = `${window.location.origin}/strategies/${strategy.id}`;
         toast.success("Your strategy is now public!", {
             action: {
@@ -114,14 +156,15 @@ export function StrategyEditorDialog({ open, onOpenChange, strategy, trade }: St
             },
         });
     } else {
-        createMutation.mutate(result.data);
+        await createMutation.mutateAsync(validatedValues);
+        toast.success("Strategy published successfully!");
     }
     onOpenChange(false);
   }
 
   function onSubmit(values: StrategyFormValues) {
     if (isEditing) {
-      updateMutation.mutate({ id: strategy.id, ...values });
+      updateMutation.mutate({ id: strategy.id, values, originalImagePath: strategy.image_path });
     } else {
       createMutation.mutate(values);
     }
@@ -132,7 +175,7 @@ export function StrategyEditorDialog({ open, onOpenChange, strategy, trade }: St
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isEditing ? "Edit Strategy" : "Create New Strategy"}</DialogTitle>
           <DialogDescription>
@@ -168,7 +211,37 @@ export function StrategyEditorDialog({ open, onOpenChange, strategy, trade }: St
               )}
             />
             
-            <DialogFooter className="!justify-between">
+            <FormField
+              control={form.control}
+              name="image_file"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Strategy Image (Optional)</FormLabel>
+                  <FormControl>
+                    <Input type="file" accept="image/jpeg,image/png,image/gif,image/webp" {...imageFileRef} onChange={handleImageChange} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {imagePreview && (
+              <div className="relative w-full h-48 mt-2 rounded-md border">
+                <img src={imagePreview} alt="Strategy preview" className="rounded-md object-contain w-full h-full" />
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="icon"
+                  className="absolute top-2 right-2 h-7 w-7"
+                  onClick={removeImage}
+                >
+                  <X className="h-4 w-4" />
+                  <span className="sr-only">Remove image</span>
+                </Button>
+              </div>
+            )}
+            
+            <DialogFooter className="!justify-between pt-4 sticky bottom-0 bg-background py-4">
                 <FormField
                   control={form.control}
                   name="is_public"
