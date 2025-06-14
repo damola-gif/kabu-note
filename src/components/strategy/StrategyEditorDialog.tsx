@@ -147,7 +147,17 @@ export function StrategyEditorDialog({ open, onOpenChange, strategy, trade }: St
         });
     } else {
         const newStrategy = await createMutation.mutateAsync(validatedValues);
-        toast.success("Strategy published successfully!");
+        if (newStrategy?.id) {
+          const strategyUrl = `${window.location.origin}/strategies/${newStrategy.id}`;
+          toast.success("Strategy published successfully!", {
+              action: {
+                  label: "Copy Link",
+                  onClick: () => copyToClipboard(strategyUrl, "Strategy link copied to clipboard!"),
+              },
+          });
+        } else {
+          toast.success("Strategy published successfully!");
+        }
     }
     onOpenChange(false);
   }

@@ -1,3 +1,4 @@
+
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -82,8 +83,11 @@ export function useCreateStrategy() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
-      toast.success("Strategy created successfully");
+    onSuccess: (data, variables) => {
+      // Only show default toast for drafts, publish flow has its own toast.
+      if (!variables.is_public) {
+        toast.success("Strategy created successfully");
+      }
       queryClient.invalidateQueries({ queryKey: ["strategies", user?.id] });
     },
     onError: (error) => {
@@ -137,7 +141,10 @@ export function useUpdateStrategy() {
       if (error) throw error;
     },
     onSuccess: (_, variables) => {
-      toast.success("Strategy updated successfully!");
+      // Only show default toast for drafts, publish flow has its own toast.
+      if (!variables.values.is_public) {
+        toast.success("Strategy updated successfully!");
+      }
       queryClient.invalidateQueries({ queryKey: ["strategies", user?.id] });
       queryClient.invalidateQueries({ queryKey: ["strategy", variables.id] });
     },
