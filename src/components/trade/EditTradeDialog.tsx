@@ -27,22 +27,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { useSession } from "@/contexts/SessionProvider";
+import { useUpdateTrade } from "@/hooks/useTrades";
 import { Tables, TablesUpdate } from "@/integrations/supabase/types";
-
-const editTradeFormSchema = z.object({
-  symbol: z.string().min(1, "Symbol is required."),
-  side: z.enum(["long", "short"]),
-  size: z.coerce.number().positive("Size must be a positive number."),
-  entry_price: z.coerce.number().nonnegative("Entry price must be a non-negative number."),
-  exit_price: z.coerce.number().nonnegative("Exit price must be non-negative.").nullable(),
-});
-
-type EditTradeFormValues = z.infer<typeof editTradeFormSchema>;
+import { editTradeFormSchema, EditTradeFormValues } from "./trade.schemas";
 
 interface EditTradeDialogProps {
   open: boolean;
@@ -51,8 +38,7 @@ interface EditTradeDialogProps {
 }
 
 export function EditTradeDialog({ open, onOpenChange, trade }: EditTradeDialogProps) {
-  const queryClient = useQueryClient();
-  const { user } = useSession();
+  const updateTradeMutation = useUpdateTrade();
 
   const form = useForm<EditTradeFormValues>({
     resolver: zodResolver(editTradeFormSchema),
@@ -69,27 +55,6 @@ export function EditTradeDialog({ open, onOpenChange, trade }: EditTradeDialogPr
       });
     }
   }, [trade, open, form]);
-
-  const mutation = useMutation({
-    mutationFn: async (updatedTrade: {
-      values: TablesUpdate<"trades">;
-      tradeId: string;
-    }) => {
-      const { error } = await supabase
-        .from("trades")
-        .update(updatedTrade.values)
-        .eq("id", updatedTrade.tradeId);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success("Trade updated successfully!");
-      queryClient.invalidateQueries({ queryKey: ["trades", user?.id] });
-      onOpenChange(false);
-    },
-    onError: (error) => {
-      toast.error(`Error updating trade: ${error.message}`);
-    },
-  });
 
   const onSubmit = (values: EditTradeFormValues) => {
     const updatedTradeValues: TablesUpdate<"trades"> = {
@@ -120,7 +85,11 @@ export function EditTradeDialog({ open, onOpenChange, trade }: EditTradeDialogPr
       updatedTradeValues.pnl = null;
     }
 
-    mutation.mutate({ values: updatedTradeValues, tradeId: trade.id });
+    updateTradeMutation.mutate({ values: updatedTradeValues, tradeId: trade.id }, {
+      onSuccess: () => {
+        onOpenChange(false);
+      }
+    });
   };
 
   return (
@@ -231,8 +200,8 @@ export function EditTradeDialog({ open, onOpenChange, trade }: EditTradeDialogPr
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={mutation.isPending}>
-                {mutation.isPending ? "Saving..." : "Save Changes"}
+              <Button type="submit" disabled={updateTradeMutation.isPending}>
+                {updateTradeMutation.isPending ? "Saving..." : "Save Changes"}
               </Button>
             </DialogFooter>
           </form>

@@ -1,3 +1,4 @@
+
 import * as React from "react";
 import {
   Dialog,
@@ -26,21 +27,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { useSession } from "@/contexts/SessionProvider";
-import { TablesInsert } from "@/integrations/supabase/types";
-
-const tradeFormSchema = z.object({
-  symbol: z.string().min(1, "Symbol is required."),
-  side: z.enum(["long", "short"]),
-  size: z.coerce.number().positive("Size must be a positive number."),
-  entry_price: z.coerce.number().nonnegative("Entry price must be a non-negative number."),
-});
-
-type TradeFormValues = z.infer<typeof tradeFormSchema>;
+import { useCreateTrade } from "@/hooks/useTrades";
+import { tradeFormSchema, TradeFormValues } from "./trade.schemas";
 
 interface NewTradeDialogProps {
   open: boolean;
@@ -48,8 +36,7 @@ interface NewTradeDialogProps {
 }
 
 export function NewTradeDialog({ open, onOpenChange }: NewTradeDialogProps) {
-  const { user } = useSession();
-  const queryClient = useQueryClient();
+  const createTradeMutation = useCreateTrade();
 
   const form = useForm<TradeFormValues>({
     resolver: zodResolver(tradeFormSchema),
@@ -60,36 +47,20 @@ export function NewTradeDialog({ open, onOpenChange }: NewTradeDialogProps) {
     },
   });
 
-  const mutation = useMutation({
-    mutationFn: async (newTrade: TablesInsert<"trades">) => {
-      const { error } = await supabase.from("trades").insert(newTrade);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success("Trade created successfully!");
-      queryClient.invalidateQueries({ queryKey: ["trades"] });
-      onOpenChange(false);
-      form.reset();
-    },
-    onError: (error) => {
-      toast.error(`Error creating trade: ${error.message}`);
-    },
-  });
-
   const onSubmit = (values: TradeFormValues) => {
-    if (!user) {
-      toast.error("You must be logged in to create a trade.");
-      return;
-    }
-    const newTrade: TablesInsert<"trades"> = {
-      user_id: user.id,
-      symbol: values.symbol,
-      side: values.side,
-      size: values.size,
-      entry_price: values.entry_price,
-    };
-    mutation.mutate(newTrade);
+    createTradeMutation.mutate(values, {
+      onSuccess: () => {
+        onOpenChange(false);
+        form.reset();
+      },
+    });
   };
+
+  React.useEffect(() => {
+    if (!open) {
+      form.reset();
+    }
+  }, [open, form]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -164,8 +135,8 @@ export function NewTradeDialog({ open, onOpenChange }: NewTradeDialogProps) {
             />
             <DialogFooter>
               <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
-              <Button type="submit" disabled={mutation.isPending}>
-                {mutation.isPending ? "Saving..." : "Save Trade"}
+              <Button type="submit" disabled={createTradeMutation.isPending}>
+                {createTradeMutation.isPending ? "Saving..." : "Save Trade"}
               </Button>
             </DialogFooter>
           </form>
