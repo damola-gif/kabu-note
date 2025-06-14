@@ -12,6 +12,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/contexts/SessionProvider";
 import { NewTradeDialog } from "@/components/trade/NewTradeDialog";
+import { EditTradeDialog } from "@/components/trade/EditTradeDialog";
 import { format } from "date-fns";
 import { MoreHorizontal } from "lucide-react";
 import {
@@ -21,6 +22,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
+import { Tables } from "@/integrations/supabase/types";
 
 async function fetchTrades(userId: string | undefined) {
   if (!userId) return [];
@@ -39,6 +41,8 @@ export default function Journal() {
   const { user } = useSession();
   const queryClient = useQueryClient();
   const [isNewTradeDialogOpen, setIsNewTradeDialogOpen] = useState(false);
+  const [isEditTradeDialogOpen, setIsEditTradeDialogOpen] = useState(false);
+  const [selectedTrade, setSelectedTrade] = useState<Tables<'trades'> | null>(null);
   const [filter, setFilter] = useState<TradeFilter>("all");
 
   const {
@@ -72,6 +76,11 @@ export default function Journal() {
       if (filter === "all") return true;
       return trade.side === filter;
     }) ?? [];
+
+  const handleEditClick = (trade: Tables<'trades'>) => {
+    setSelectedTrade(trade);
+    setIsEditTradeDialogOpen(true);
+  };
 
   return (
     <>
@@ -180,7 +189,9 @@ export default function Journal() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem>View Details</DropdownMenuItem>
-                      <DropdownMenuItem>Edit</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleEditClick(trade)}>
+                        Edit
+                      </DropdownMenuItem>
                       <DropdownMenuItem
                         className="text-destructive"
                         onClick={() => deleteMutation.mutate(trade.id)}
@@ -200,6 +211,13 @@ export default function Journal() {
         open={isNewTradeDialogOpen}
         onOpenChange={setIsNewTradeDialogOpen}
       />
+      {selectedTrade && (
+        <EditTradeDialog
+            open={isEditTradeDialogOpen}
+            onOpenChange={setIsEditTradeDialogOpen}
+            trade={selectedTrade}
+        />
+      )}
     </>
   );
 }
