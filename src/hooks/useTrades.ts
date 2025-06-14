@@ -1,4 +1,3 @@
-
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -33,7 +32,10 @@ export function useCreateTrade() {
     mutationFn: async (newTrade: TradeFormValues) => {
       if (!user) throw new Error("User must be logged in to create a trade");
       const tradeData: TablesInsert<'trades'> = {
-        ...newTrade,
+        symbol: newTrade.symbol,
+        side: newTrade.side,
+        size: newTrade.size,
+        entry_price: newTrade.entry_price,
         user_id: user.id,
       };
       const { error } = await supabase.from("trades").insert(tradeData);

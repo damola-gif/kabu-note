@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +26,7 @@ export default function Auth() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -32,6 +34,20 @@ export default function Auth() {
       navigate("/dashboard", { replace: true });
     }
   }, [session, navigate]);
+
+  const handleGoogleSignIn = async () => {
+    setGoogleLoading(true);
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/dashboard`,
+      },
+    });
+    if (error) {
+      toast.error(error.message);
+      setGoogleLoading(false);
+    }
+  };
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,9 +111,8 @@ export default function Auth() {
               Sign Up
             </button>
           </div>
-          <Button className="w-full mb-4" variant="secondary" disabled>
-            Continue with Google
-            {/* Hook up supabase.auth.signInWithOAuth in backend step */}
+          <Button className="w-full mb-4" variant="secondary" onClick={handleGoogleSignIn} disabled={loading || googleLoading}>
+            {googleLoading ? "Redirecting..." : "Continue with Google"}
           </Button>
 
           <div className="flex items-center gap-2 mb-4">
@@ -107,11 +122,11 @@ export default function Auth() {
           </div>
 
           <form className="space-y-3 mb-4" onSubmit={handleAuth}>
-            <Input placeholder="Email" required autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} />
-            <Input placeholder="Password" type="password" required autoComplete={tab === "sign-up" ? "new-password" : "current-password"} value={password} onChange={(e) => setPassword(e.target.value)} />
-            {tab === "sign-up" && <Input placeholder="Confirm Password" type="password" required autoComplete="new-password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />}
+            <Input placeholder="Email" required autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} disabled={loading || googleLoading} />
+            <Input placeholder="Password" type="password" required autoComplete={tab === "sign-up" ? "new-password" : "current-password"} value={password} onChange={(e) => setPassword(e.target.value)} disabled={loading || googleLoading} />
+            {tab === "sign-up" && <Input placeholder="Confirm Password" type="password" required autoComplete="new-password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} disabled={loading || googleLoading} />}
             {tab === "sign-in" && <a href="#" className="text-xs text-primary/80 hover:underline float-right">Forgot password?</a>}
-            <Button className="w-full mt-3" type="submit" disabled={loading}>
+            <Button className="w-full mt-3" type="submit" disabled={loading || googleLoading}>
               {loading ? "Processing..." : tab === "sign-in" ? "Sign In" : "Create Account"}
             </Button>
           </form>
@@ -123,3 +138,4 @@ export default function Auth() {
     </div>
   );
 }
+
