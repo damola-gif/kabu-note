@@ -15,6 +15,8 @@ interface StrategyImageUploadProps {
 }
 
 export function StrategyImageUpload({ control, imagePreview, onImageChange, onImageRemove }: StrategyImageUploadProps) {
+  const fileInputRef = React.useRef<HTMLInputElement | null>(null);
+
   return (
     <>
       <FormField
@@ -24,15 +26,28 @@ export function StrategyImageUpload({ control, imagePreview, onImageChange, onIm
           <FormItem>
             <FormLabel>Strategy Image (Optional)</FormLabel>
             <FormControl>
-              <Input
-                type="file"
-                accept="image/jpeg,image/png,image/gif,image/webp"
-                onChange={(e) => {
-                  field.onChange(e.target.files); // Update RHF state
-                  onImageChange(e); // Update preview
-                }}
-              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                Choose File
+              </Button>
             </FormControl>
+            {/* This input is visually hidden but provides the file selection functionality */}
+            <Input
+              type="file"
+              accept="image/jpeg,image/png,image/gif,image/webp"
+              className="hidden"
+              ref={(e) => {
+                field.ref(e);
+                fileInputRef.current = e;
+              }}
+              onChange={(e) => {
+                field.onChange(e.target.files); // Update RHF state
+                onImageChange(e); // Update preview
+              }}
+            />
             <FormMessage />
           </FormItem>
         )}
