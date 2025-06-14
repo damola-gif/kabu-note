@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
@@ -7,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useSession } from "@/contexts/SessionProvider";
 
 // Logo Placeholder
 function KabuLogo() {
@@ -19,12 +19,19 @@ function KabuLogo() {
 }
 
 export default function Auth() {
+  const { session } = useSession();
   const [tab, setTab] = useState<"sign-in" | "sign-up">("sign-in");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (session) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [session, navigate]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,8 +72,12 @@ export default function Auth() {
     setLoading(false);
   };
 
+  if (session) {
+    return null;
+  }
+
   return (
-    <div className="min-h-screen bg-muted flex items-center justify-center">
+    <div className="min-h-screen bg-muted flex items-center justify-center p-4">
       <Card className="w-full max-w-sm shadow-lg animate-fade-in">
         <CardContent className="pt-6">
           <KabuLogo />

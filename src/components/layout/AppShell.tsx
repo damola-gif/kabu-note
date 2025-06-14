@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useSession } from "@/contexts/SessionProvider";
 
 // Simple top bar with notifications, avatar, and path title
 const PAGE_TITLES: Record<string, string> = {
@@ -32,6 +33,7 @@ function getPageTitle(path: string) {
 }
 
 export function AppShell({ children }: { children: React.ReactNode }) {
+  const { user } = useSession();
   const location = useLocation();
   const title = getPageTitle(location.pathname);
   const navigate = useNavigate();
@@ -76,6 +78,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
                       <p className="text-sm font-medium leading-none">Account</p>
+                      {user && (
+                        <p className="text-xs leading-none text-muted-foreground">
+                          {user.email}
+                        </p>
+                      )}
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
@@ -87,7 +94,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </DropdownMenu>
             </div>
           </header>
-          <main className="flex-1 overflow-y-auto">
+          <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8">
             {children}
           </main>
         </SidebarInset>

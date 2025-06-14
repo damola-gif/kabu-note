@@ -1,11 +1,10 @@
-
 import { AppShell } from "@/components/layout/AppShell";
 
 export default function Dashboard() {
   return (
-    <AppShell>
+    <>
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-8 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <div className="bg-card shadow rounded-lg p-4 flex flex-col items-center">
           <span className="text-lg font-bold text-green-600">Today's P/L</span>
           <span className="text-2xl font-mono">+0.00</span>
@@ -42,6 +41,6 @@ export default function Dashboard() {
           <div className="py-2 text-muted-foreground">No closed trades</div>
         </div>
       </div>
-    </AppShell>
+    </>
   );
 }

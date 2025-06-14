@@ -1,11 +1,9 @@
-import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
 
 export default function Journal() {
   return (
-    <AppShell>
-      <div className="flex justify-between items-center mt-8 mb-4">
-        <h2 className="text-xl font-bold">Trade Journal</h2>
+    <>
+      <div className="flex justify-end items-center mb-4">
         <Button variant="default">New Trade</Button>
       </div>
       <div className="bg-card rounded-lg shadow p-4 mb-4 flex gap-3 flex-wrap items-center">
@@ -35,6 +33,6 @@ export default function Journal() {
           </tbody>
         </table>
       </div>
-    </AppShell>
+    </>
   );
 }
