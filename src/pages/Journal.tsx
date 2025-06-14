@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { NewTradeDialog } from "@/components/trade/NewTradeDialog";
 import { EditTradeDialog } from "@/components/trade/EditTradeDialog";
@@ -9,7 +8,7 @@ import { JournalHeader, TradeFilter } from "@/components/journal/JournalHeader";
 import { TradesTable } from "@/components/trade/TradesTable";
 import { DateRange } from "react-day-picker";
 import { startOfDay, endOfDay } from "date-fns";
-import { useFinnhub } from "@/contexts/FinnhubProvider";
+import { useTwelveData } from "@/contexts/TwelveDataProvider";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 
@@ -21,7 +20,7 @@ export default function Journal() {
   const [filter, setFilter] = useState<TradeFilter>("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
-  const { isConnected } = useFinnhub();
+  const { isConnected } = useTwelveData();
 
   const {
     data: trades,
@@ -87,7 +86,7 @@ export default function Journal() {
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Live Feed Disconnected</AlertTitle>
           <AlertDescription>
-            Could not connect to the real-time price feed. Live data will not be updated. This might be due to an issue with your Finnhub API key (free plans may not include WebSocket access) or your network connection.
+            Could not connect to the real-time price feed from Twelve Data. Live data will not be updated. This might be due to an issue with your API key or network connection.
           </AlertDescription>
         </Alert>
       )}

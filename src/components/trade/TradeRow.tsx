@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { TableRow, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -11,7 +10,7 @@ import {
 import { MoreHorizontal } from "lucide-react";
 import { format } from "date-fns";
 import { Tables } from "@/integrations/supabase/types";
-import { useFinnhub } from '@/contexts/FinnhubProvider';
+import { useTwelveData } from '@/contexts/TwelveDataProvider';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 
@@ -24,7 +23,7 @@ interface TradeRowProps {
 }
 
 export function TradeRow({ trade, onEdit, onDelete, onViewDetails, isDeleting }: TradeRowProps) {
-    const { subscribe, unsubscribe, isConnected } = useFinnhub();
+    const { subscribe, unsubscribe, isConnected } = useTwelveData();
     const [livePrice, setLivePrice] = useState<number | null>(null);
     const [priceChange, setPriceChange] = useState<"up" | "down" | "none">("none");
 

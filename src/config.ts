@@ -1,4 +1,4 @@
 
-// IMPORTANT: Replace with your actual Finnhub API key.
-// You can get a free key from https://finnhub.io/register
-export const FINNHUB_API_KEY = "d16vfohr01qkv5jdjju0d16vfohr01qkv5jdjjug";
+// IMPORTANT: Replace with your actual Twelve Data API key.
+// You can get a free key from https://twelvedata.com/
+export const TWELVE_DATA_API_KEY = "YOUR_TWELVE_DATA_API_KEY_HERE";

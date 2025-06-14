@@ -28,7 +28,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCreateTrade } from "@/hooks/useTrades";
 import { tradeFormSchema, TradeFormValues } from "./trade.schemas";
-import { fetchQuote } from "@/api/finnhub";
+import { fetchQuote } from "@/api/twelvedata";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 

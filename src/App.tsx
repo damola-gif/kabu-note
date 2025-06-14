@@ -17,7 +17,7 @@ import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import { SessionProvider } from "./contexts/SessionProvider";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
-import { FinnhubProvider } from "./contexts/FinnhubProvider";
+import { TwelveDataProvider } from "./contexts/TwelveDataProvider";
 
 const queryClient = new QueryClient();
 
@@ -27,7 +27,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <SessionProvider>
-        <FinnhubProvider>
+        <TwelveDataProvider>
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />
@@ -48,7 +48,7 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
-        </FinnhubProvider>
+        </TwelveDataProvider>
       </SessionProvider>
     </TooltipProvider>
   </QueryClientProvider>
