@@ -7,19 +7,70 @@ import { TrendingUp, Users, BookOpen } from 'lucide-react';
 import { useFollowing } from '@/hooks/useProfile';
 import { useStrategyActions } from '@/hooks/useStrategyActions';
 import { useSession } from '@/contexts/SessionProvider';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 export function FeedSidebar() {
   const { user } = useSession();
   const { data: followingIds = [] } = useFollowing();
   const { handleFollowToggle } = useStrategyActions();
 
-  // Mock data - in real app, these would come from API calls
+  // Fetch top traders based on strategy engagement
+  const { data: topTraders = [] } = useQuery({
+    queryKey: ['topTraders'],
+    queryFn: async () => {
+      const { data: strategies, error } = await supabase
+        .from('strategies')
+        .select(`
+          user_id,
+          likes_count,
+          approval_votes,
+          profiles!inner(id, username, avatar_url)
+        `)
+        .eq('is_public', true)
+        .not('profiles.username', 'is', null);
+
+      if (error) throw error;
+
+      // Group by user and calculate engagement score
+      const userEngagement = new Map();
+      
+      strategies.forEach(strategy => {
+        const userId = strategy.user_id;
+        const profile = strategy.profiles;
+        
+        if (!userEngagement.has(userId)) {
+          userEngagement.set(userId, {
+            id: userId,
+            username: profile.username,
+            avatar: profile.avatar_url || '',
+            totalLikes: 0,
+            totalVotes: 0,
+            strategiesCount: 0
+          });
+        }
+        
+        const user = userEngagement.get(userId);
+        user.totalLikes += strategy.likes_count || 0;
+        user.totalVotes += strategy.approval_votes || 0;
+        user.strategiesCount += 1;
+      });
+
+      // Convert to array and sort by engagement score
+      const traders = Array.from(userEngagement.values())
+        .map(trader => ({
+          ...trader,
+          engagementScore: (trader.totalLikes * 2) + trader.totalVotes + (trader.strategiesCount * 5)
+        }))
+        .sort((a, b) => b.engagementScore - a.engagementScore)
+        .slice(0, 3);
+
+      return traders;
+    },
+  });
+
+  // Mock data for trending tags - could be fetched from database later
   const trendingTags = ['#SPY', '#Bitcoin', '#Swing', '#Scalping', '#Options'];
-  const topTraders = [
-    { id: '1', username: 'traderpro', avatar: '', followers: 1234 },
-    { id: '2', username: 'cryptoking', avatar: '', followers: 987 },
-    { id: '3', username: 'swingmaster', avatar: '', followers: 756 },
-  ];
 
   return (
     <div className="space-y-6">
@@ -58,11 +109,13 @@ export function FeedSidebar() {
                 <div className="flex items-center space-x-2">
                   <Avatar className="h-8 w-8">
                     <AvatarImage src={trader.avatar} />
-                    <AvatarFallback>{trader.username[0].toUpperCase()}</AvatarFallback>
+                    <AvatarFallback>{trader.username?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
                   </Avatar>
                   <div>
                     <p className="text-sm font-medium">{trader.username}</p>
-                    <p className="text-xs text-muted-foreground">{trader.followers} followers</p>
+                    <p className="text-xs text-muted-foreground">
+                      {trader.totalLikes} likes • {trader.strategiesCount} strategies
+                    </p>
                   </div>
                 </div>
                 {!isOwnProfile && user && (
