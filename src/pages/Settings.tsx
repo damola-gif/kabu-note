@@ -1,125 +1,140 @@
 
-import { User, Bell, Shield, Palette, HelpCircle } from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { ProfileSettings } from "@/components/settings/ProfileSettings";
+import { SecuritySettings } from "@/components/settings/SecuritySettings";
+import { TradingPreferences } from "@/components/settings/TradingPreferences";
+import { PrivacySettings } from "@/components/settings/PrivacySettings";
+import { DataExport } from "@/components/settings/DataExport";
+import { DangerZone } from "@/components/settings/DangerZone";
+import { 
+  User, 
+  Shield, 
+  TrendingUp, 
+  Eye, 
+  Download, 
+  Trash2 
+} from "lucide-react";
 
-const settingsSections = [
+const settingSections = [
   {
+    id: "profile",
     title: "Profile Settings",
     icon: User,
-    description: "Manage your account information and preferences",
-    items: [
-      "Personal Information",
-      "Profile Picture", 
-      "Username & Display Name",
-      "Bio & Social Links"
-    ]
+    description: "Manage your personal information and profile",
+    component: ProfileSettings
   },
   {
-    title: "Notifications",
-    icon: Bell,
-    description: "Control how you receive updates and alerts",
-    items: [
-      "Trade Alerts",
-      "Social Activity",
-      "Email Notifications",
-      "Push Notifications"
-    ]
-  },
-  {
-    title: "Privacy & Security",
+    id: "security",
+    title: "Security & Login",
     icon: Shield,
-    description: "Manage your privacy and security settings",
-    items: [
-      "Privacy Settings",
-      "Two-Factor Authentication",
-      "Account Permissions",
-      "Data Export"
-    ]
+    description: "Password, 2FA and connected accounts",
+    component: SecuritySettings
   },
   {
-    title: "Appearance",
-    icon: Palette,
-    description: "Customize how the app looks and feels",
-    items: [
-      "Theme Preference",
-      "Language Settings",
-      "Chart Preferences",
-      "Dashboard Layout"
-    ]
+    id: "trading",
+    title: "Trading Preferences",
+    icon: TrendingUp,
+    description: "Currency, timeframes and trade alerts",
+    component: TradingPreferences
+  },
+  {
+    id: "privacy",
+    title: "Privacy & Sharing",
+    icon: Eye,
+    description: "Control who can see your strategies",
+    component: PrivacySettings
+  },
+  {
+    id: "data",
+    title: "Data & Export",
+    icon: Download,
+    description: "Export data and manage your information",
+    component: DataExport
+  },
+  {
+    id: "danger",
+    title: "Danger Zone",
+    icon: Trash2,
+    description: "Delete account and clear data",
+    component: DangerZone
   }
 ];
 
-const Settings = () => (
-  <div className="space-y-8">
-    {/* Header */}
-    <div>
-      <h1 className="text-3xl font-bold text-[#1E2A4E]">Settings</h1>
-      <p className="text-gray-600 mt-2">Manage your account and application preferences.</p>
-    </div>
+const Settings = () => {
+  const [activeSection, setActiveSection] = useState("profile");
 
-    {/* Settings Grid */}
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      {settingsSections.map((section) => {
-        const IconComponent = section.icon;
-        return (
-          <div key={section.title} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-            <div className="flex items-start space-x-4">
-              <div className="p-3 bg-[#2AB7CA]/10 rounded-lg">
-                <IconComponent className="h-6 w-6 text-[#2AB7CA]" />
-              </div>
-              
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold text-[#1E2A4E] mb-2">
-                  {section.title}
-                </h3>
-                <p className="text-gray-600 text-sm mb-4">
-                  {section.description}
-                </p>
-                
-                <ul className="space-y-2 mb-4">
-                  {section.items.map((item) => (
-                    <li key={item} className="text-sm text-gray-700 flex items-center">
-                      <div className="w-1.5 h-1.5 bg-[#2AB7CA] rounded-full mr-3"></div>
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-                
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  className="border-[#2AB7CA] text-[#2AB7CA] hover:bg-[#2AB7CA]/10"
-                >
-                  Configure
-                </Button>
-              </div>
-            </div>
+  const ActiveComponent = settingSections.find(s => s.id === activeSection)?.component || ProfileSettings;
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-[#1E2A4E] mb-2">Settings</h1>
+          <p className="text-gray-600">Manage your account and application preferences</p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Sidebar Navigation - Desktop */}
+          <div className="lg:col-span-1">
+            <Card className="sticky top-4">
+              <CardHeader>
+                <CardTitle className="text-lg">Settings</CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <nav className="space-y-1">
+                  {settingSections.map((section) => {
+                    const IconComponent = section.icon;
+                    return (
+                      <Button
+                        key={section.id}
+                        variant={activeSection === section.id ? "secondary" : "ghost"}
+                        className={`w-full justify-start px-4 py-3 h-auto ${
+                          activeSection === section.id 
+                            ? "bg-[#2AB7CA]/10 text-[#2AB7CA] border-r-2 border-[#2AB7CA]" 
+                            : "text-gray-700 hover:bg-gray-50"
+                        }`}
+                        onClick={() => setActiveSection(section.id)}
+                      >
+                        <IconComponent className="h-4 w-4 mr-3" />
+                        <div className="text-left">
+                          <div className="font-medium">{section.title}</div>
+                          <div className="text-xs text-gray-500 hidden sm:block">
+                            {section.description}
+                          </div>
+                        </div>
+                      </Button>
+                    );
+                  })}
+                </nav>
+              </CardContent>
+            </Card>
           </div>
-        );
-      })}
-    </div>
 
-    {/* Help Section */}
-    <div className="bg-gradient-to-r from-[#1E2A4E] to-[#2AB7CA] p-6 rounded-xl text-white">
-      <div className="flex items-center space-x-4">
-        <HelpCircle className="h-8 w-8" />
-        <div className="flex-1">
-          <h3 className="text-lg font-semibold mb-2">Need Help?</h3>
-          <p className="text-sm opacity-90 mb-4">
-            Check out our documentation or contact support for assistance.
-          </p>
-          <div className="flex space-x-3">
-            <Button variant="secondary" size="sm">
-              Documentation
-            </Button>
-            <Button variant="outline" size="sm" className="border-white text-white hover:bg-white/10">
-              Contact Support
-            </Button>
+          {/* Main Content */}
+          <div className="lg:col-span-3">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xl text-[#1E2A4E]">
+                  {settingSections.find(s => s.id === activeSection)?.title}
+                </CardTitle>
+                <CardDescription>
+                  {settingSections.find(s => s.id === activeSection)?.description}
+                </CardDescription>
+              </CardHeader>
+              <Separator />
+              <CardContent className="pt-6">
+                <ActiveComponent />
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default Settings;
