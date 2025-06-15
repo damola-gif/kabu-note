@@ -17,15 +17,7 @@ import { toast } from "sonner";
 import { useSession } from "@/contexts/SessionProvider";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { MobileNavigation } from "@/components/MobileNavigation";
-import { useState } from "react";
-
-const navigationItems = [
-  { name: "Dashboard", path: "/dashboard" },
-  { name: "Journal", path: "/journal" },
-  { name: "Strategy", path: "/strategies" },
-  { name: "Feed", path: "/feed" },
-  { name: "Profile", path: "/u/profile" },
-];
+import { useState, useEffect } from "react";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { user } = useSession();
@@ -33,6 +25,49 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userProfile, setUserProfile] = useState<any>(null);
+
+  // Fetch user profile to get username
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (user) {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", user.id)
+          .single();
+
+        if (error && error.code !== 'PGRST116') {
+          console.error("Error fetching profile:", error);
+        } else if (data) {
+          setUserProfile(data);
+        }
+      }
+    };
+
+    fetchProfile();
+  }, [user]);
+
+  // Generate profile URL based on username
+  const getProfileUrl = () => {
+    const trimmedUsername = typeof userProfile?.username === "string"
+      ? userProfile.username.trim()
+      : "";
+    
+    if (!trimmedUsername || trimmedUsername.length < 3 || trimmedUsername.toLowerCase() === "profile") {
+      return "/settings"; // Redirect to settings if no valid username
+    }
+    
+    return `/u/${trimmedUsername}`;
+  };
+
+  const navigationItems = [
+    { name: "Dashboard", path: "/dashboard" },
+    { name: "Journal", path: "/journal" },
+    { name: "Strategy", path: "/strategies" },
+    { name: "Feed", path: "/feed" },
+    { name: "Profile", path: getProfileUrl() },
+  ];
 
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut();
