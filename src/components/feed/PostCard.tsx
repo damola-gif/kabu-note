@@ -8,6 +8,7 @@ import { Post } from '@/hooks/usePosts';
 import { formatDistanceToNow } from 'date-fns';
 import { useSession } from '@/contexts/SessionProvider';
 import { usePostLikes, useTogglePostLike } from '@/hooks/usePosts';
+import { useNavigate } from 'react-router-dom';
 
 interface PostCardProps {
   post: Post;
@@ -15,6 +16,7 @@ interface PostCardProps {
 
 export function PostCard({ post }: PostCardProps) {
   const { user } = useSession();
+  const navigate = useNavigate();
   const { data: likedPostIds = [] } = usePostLikes();
   const toggleLike = useTogglePostLike();
   
@@ -23,6 +25,12 @@ export function PostCard({ post }: PostCardProps) {
   const handleLikeToggle = () => {
     if (!user) return;
     toggleLike.mutate({ postId: post.id, isLiked });
+  };
+
+  const handleProfileClick = () => {
+    if (post.profiles?.username) {
+      navigate(`/u/${post.profiles.username}`);
+    }
   };
 
   const renderMedia = () => {
@@ -96,7 +104,10 @@ export function PostCard({ post }: PostCardProps) {
     <Card className="overflow-hidden">
       <CardContent className="p-6">
         {/* Author Info */}
-        <div className="flex items-center space-x-3 mb-4">
+        <div 
+          className="flex items-center space-x-3 mb-4 cursor-pointer hover:opacity-80 transition-opacity"
+          onClick={handleProfileClick}
+        >
           <Avatar className="h-10 w-10">
             <AvatarImage src={post.profiles?.avatar_url || ''} />
             <AvatarFallback>

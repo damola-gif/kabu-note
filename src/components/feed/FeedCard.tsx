@@ -12,6 +12,7 @@ import { useStrategyActions } from '@/hooks/useStrategyActions';
 import { useFollowing } from '@/hooks/useProfile';
 import { CommentSection } from '@/components/comments/CommentSection';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface FeedCardProps {
   strategy: StrategyWithProfile;
@@ -19,6 +20,7 @@ interface FeedCardProps {
 
 export function FeedCard({ strategy }: FeedCardProps) {
   const { user } = useSession();
+  const navigate = useNavigate();
   const { data: likedIds = [] } = useLikedStrategyIds();
   const { data: bookmarkedIds = [] } = useBookmarkedStrategyIds();
   const { data: followingIds = [] } = useFollowing();
@@ -34,12 +36,21 @@ export function FeedCard({ strategy }: FeedCardProps) {
     window.open(`/strategies/${strategy.id}`, '_blank');
   };
 
+  const handleProfileClick = () => {
+    if (strategy.profile?.username) {
+      navigate(`/u/${strategy.profile.username}`);
+    }
+  };
+
   return (
     <Card className="overflow-hidden hover:shadow-md transition-shadow">
       <CardContent className="p-6">
         {/* Author Info */}
         <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-3">
+          <div 
+            className="flex items-center space-x-3 cursor-pointer hover:opacity-80 transition-opacity"
+            onClick={handleProfileClick}
+          >
             <Avatar className="h-10 w-10">
               <AvatarImage src={strategy.profile?.avatar_url || ''} />
               <AvatarFallback>
