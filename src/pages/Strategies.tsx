@@ -3,35 +3,14 @@ import { useState } from 'react';
 import { useStrategies, useDeleteStrategy, useForkStrategy, StrategyWithProfile } from '@/hooks/useStrategies';
 import { Button } from '@/components/ui/button';
 import { StrategyEditorDialog } from '@/components/strategy/StrategyEditorDialog';
-import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { PlusCircle, MoreHorizontal, Edit, Trash2, Eye, Globe, Lock, Copy } from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
+import { PlusCircle } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { supabase } from '@/integrations/supabase/client';
 import { DateRange } from 'react-day-picker';
 import { StrategyFilters } from '@/components/strategy/StrategyFilters';
 import { useSession } from '@/contexts/SessionProvider';
 import { useFollowing, useFollowUser, useUnfollowUser } from '@/hooks/useProfile';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { StrategyGrid } from '@/components/strategy/StrategyGrid';
+import { DeleteStrategyDialog } from '@/components/strategy/DeleteStrategyDialog';
 
 export default function Strategies() {
     const [isEditorOpen, setIsEditorOpen] = useState(false);
@@ -49,7 +28,6 @@ export default function Strategies() {
     const forkMutation = useForkStrategy();
     const followMutation = useFollowUser();
     const unfollowMutation = useUnfollowUser();
-    const navigate = useNavigate();
 
     const handleNewStrategy = () => {
         setSelectedStrategy(undefined);
@@ -120,154 +98,13 @@ export default function Strategies() {
             if (isLoadingFollowing || !followingIds) {
                 return false;
             }
-            authorMatch = followingIds.includes(strategy.user_id);
+            authorMatch = !!strategy.user_id && followingIds.includes(strategy.user_id);
         }
 
         return nameMatch && winRateMatch && dateMatch && authorMatch;
     }) ?? [];
 
-    const renderContent = () => {
-        if (isLoading || isLoadingFollowing) {
-            return (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 col-span-3">
-                    {[...Array(3)].map((_, i) => (
-                        <Card key={i}>
-                            <CardHeader>
-                                <Skeleton className="h-6 w-3/4" />
-                                <Skeleton className="h-4 w-1/2" />
-                            </CardHeader>
-                            <CardContent>
-                                <Skeleton className="h-10 w-full" />
-                            </CardContent>
-                        </Card>
-                    ))}
-                </div>
-            );
-        }
-
-        if (error) {
-            return <p className="text-destructive col-span-3">Error loading strategies: {error.message}</p>;
-        }
-
-        if (filteredStrategies.length === 0) {
-            if (searchTerm || dateRange || winRateRange[0] > 0 || winRateRange[1] < 100 || authorFilter !== 'all') {
-                return (
-                    <div className="text-center py-10 border-2 border-dashed rounded-lg col-span-3">
-                        <h2 className="text-xl font-semibold">No Strategies Found</h2>
-                        <p className="text-muted-foreground mt-2">
-                            Try adjusting your search or filter criteria.
-                        </p>
-                    </div>
-                );
-            }
-            return (
-                <div className="text-center py-10 border-2 border-dashed rounded-lg col-span-3">
-                    <h2 className="text-xl font-semibold">No Strategies Yet</h2>
-                    <p className="text-muted-foreground mt-2">Click the button to create your first trading strategy.</p>
-                    <Button className="mt-4" onClick={handleNewStrategy}>
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        Create Strategy
-                    </Button>
-                </div>
-            );
-        }
-
-        return (
-            <>
-                {filteredStrategies.map((strategy) => {
-                    const imageUrl = strategy.image_path ? supabase.storage.from('strategy_images').getPublicUrl(strategy.image_path).data.publicUrl : null;
-                    const isOwnStrategy = strategy.user_id === user?.id;
-                    const canFollow = !isOwnStrategy && strategy.profile?.id;
-                    const isFollowing = canFollow && followingIds?.includes(strategy.profile!.id);
-
-                    return (
-                    <Card key={strategy.id} className="flex flex-col">
-                        {imageUrl && (
-                            <div className="aspect-video w-full border-b">
-                                <img src={imageUrl} alt={strategy.name} className="w-full h-full object-cover" />
-                            </div>
-                        )}
-                        <CardHeader>
-                             <div className="flex justify-between items-start gap-2">
-                                <div className="flex-grow space-y-1.5 overflow-hidden">
-                                    <div className="flex items-center gap-2">
-                                        {strategy.is_public ? <Globe className="h-4 w-4 text-muted-foreground flex-shrink-0" title="Public"/> : <Lock className="h-4 w-4 text-muted-foreground flex-shrink-0" title="Private"/>}
-                                        <CardTitle className="truncate" title={strategy.name}>{strategy.name}</CardTitle>
-                                    </div>
-                                    <CardDescription className="flex items-center gap-2">
-                                        {strategy.win_rate && (
-                                          <Badge variant="outline" className="border-green-500 bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">
-                                            {strategy.win_rate}% Win Rate
-                                          </Badge>
-                                        )}
-                                    </CardDescription>
-                                </div>
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="flex-shrink-0">
-                                            <MoreHorizontal className="h-4 w-4" />
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                        <DropdownMenuItem onClick={() => navigate(`/strategies/${strategy.id}`)}>
-                                            <Eye className="mr-2 h-4 w-4" />
-                                            <span>View Details</span>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuSeparator />
-                                        {isOwnStrategy ? (
-                                          <>
-                                            <DropdownMenuItem onClick={() => handleEdit(strategy)}>
-                                                <Edit className="mr-2 h-4 w-4" />
-                                                <span>Edit</span>
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem onClick={() => handleDelete(strategy)} className="text-destructive focus:text-destructive">
-                                                <Trash2 className="mr-2 h-4 w-4" />
-                                                <span>Delete</span>
-                                            </DropdownMenuItem>
-                                          </>
-                                        ) : (
-                                          strategy.is_public && (
-                                            <DropdownMenuItem onClick={() => handleFork(strategy)} disabled={forkMutation.isPending}>
-                                                <Copy className="mr-2 h-4 w-4" />
-                                                <span>{forkMutation.isPending ? 'Forking...' : 'Fork'}</span>
-                                            </DropdownMenuItem>
-                                          )
-                                        )}
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                            </div>
-                        </CardHeader>
-                        <CardContent className="flex-grow">
-                            <p className="text-sm text-muted-foreground line-clamp-3">
-                                {strategy.content_markdown || "No content."}
-                            </p>
-                        </CardContent>
-                        {canFollow && (
-                          <CardFooter>
-                              <div className="flex items-center justify-between w-full">
-                                <div className="flex items-center gap-2">
-                                  <Avatar className="h-8 w-8">
-                                    <AvatarImage src={strategy.profile?.avatar_url || undefined} alt={strategy.profile?.username || 'author'} />
-                                    <AvatarFallback>{strategy.profile?.username?.charAt(0).toUpperCase()}</AvatarFallback>
-                                  </Avatar>
-                                  <span className="text-sm font-medium">{strategy.profile?.username}</span>
-                                </div>
-                                <Button 
-                                  variant={isFollowing ? 'secondary' : 'outline'} 
-                                  size="sm" 
-                                  onClick={() => handleFollowToggle(strategy.profile!.id, !!isFollowing)}
-                                  disabled={followMutation.isPending || unfollowMutation.isPending}
-                                >
-                                  {isFollowing ? 'Unfollow' : 'Follow'}
-                                </Button>
-                              </div>
-                          </CardFooter>
-                        )}
-                    </Card>
-                )})}
-            </>
-        );
-    }
+    const isFiltering = searchTerm !== "" || winRateRange[0] !== 0 || winRateRange[1] !== 100 || dateRange !== undefined || authorFilter !== "all";
 
     return (
         <div className="w-full">
@@ -300,9 +137,22 @@ export default function Strategies() {
                 </aside>
 
                 <main className="md:col-span-3">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {renderContent()}
-                    </div>
+                    <StrategyGrid 
+                        strategies={filteredStrategies}
+                        isLoading={isLoading || isLoadingFollowing}
+                        error={error}
+                        onEdit={handleEdit}
+                        onDelete={handleDelete}
+                        onFork={handleFork}
+                        handleNewStrategy={handleNewStrategy}
+                        followingIds={followingIds}
+                        isLoadingFollowing={isLoadingFollowing}
+                        forkMutation={forkMutation}
+                        followMutation={followMutation}
+                        unfollowMutation={unfollowMutation}
+                        onFollowToggle={handleFollowToggle}
+                        isFiltering={isFiltering}
+                    />
                 </main>
             </div>
 
@@ -316,29 +166,14 @@ export default function Strategies() {
                 }}
                 strategy={selectedStrategy}
             />
-
-            {selectedStrategy && (
-              <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-                  <AlertDialogContent>
-                      <AlertDialogHeader>
-                      <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                          This action cannot be undone. This will permanently delete the strategy "{selectedStrategy.name}".
-                      </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={confirmDelete}
-                        disabled={deleteMutation.isPending}
-                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                      >
-                          {deleteMutation.isPending ? "Deleting..." : "Delete"}
-                      </AlertDialogAction>
-                      </AlertDialogFooter>
-                  </AlertDialogContent>
-              </AlertDialog>
-            )}
+            
+            <DeleteStrategyDialog
+                open={isDeleteDialogOpen}
+                onOpenChange={setIsDeleteDialogOpen}
+                onConfirm={confirmDelete}
+                isPending={deleteMutation.isPending}
+                strategyName={selectedStrategy?.name}
+            />
         </div>
     );
 };
