@@ -22,6 +22,8 @@ import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { TwelveDataProvider } from "./contexts/TwelveDataProvider";
 import StrategyPage from "./pages/StrategyPage";
 import { useEffect } from "react";
+import Rooms from "./pages/Rooms";
+import RoomPage from "./pages/RoomPage";
 
 const queryClient = new QueryClient();
 
@@ -63,6 +65,8 @@ const App = () => {
                   <Route path="/strategies" element={<Strategies />} />
                   <Route path="/strategies/:strategyId" element={<StrategyPage />} />
                   <Route path="/feed" element={<Feed />} />
+                  <Route path="/rooms" element={<Rooms />} />
+                  <Route path="/rooms/:roomId" element={<RoomPage />} />
                   <Route path="/analytics" element={<Analytics />} />
                   <Route path="/notifications" element={<Notifications />} />
                   <Route path="/profile" element={<Profile />} />
