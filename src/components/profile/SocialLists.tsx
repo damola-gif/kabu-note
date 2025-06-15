@@ -1,4 +1,3 @@
-
 import { Card, CardContent } from "@/components/ui/card";
 import { Users } from "lucide-react";
 import { useFollowersList, useFollowingList } from "@/hooks/useFollowersLists";
@@ -52,27 +51,14 @@ export function SocialLists({ userId, stats }: SocialListsProps) {
     </Card>
   );
 
-  // Reliable test for valid following data:
-  const resolvedFollowing = Array.isArray(following)
-    ? following.filter(
-        (follow) =>
-          follow &&
-          typeof follow === "object" &&
-          follow.profiles &&
-          typeof follow.profiles === "object"
-      )
-    : [];
+  // Use the same data filtering logic as strategies - ensure we have valid arrays with proper data
+  const validFollowing = Array.isArray(following) ? following.filter(
+    (follow) => follow && typeof follow === "object" && follow.profiles && typeof follow.profiles === "object"
+  ) : [];
 
-  // Reliable test for valid followers data:
-  const resolvedFollowers = Array.isArray(followers)
-    ? followers.filter(
-        (follow) =>
-          follow &&
-          typeof follow === "object" &&
-          follow.profiles &&
-          typeof follow.profiles === "object"
-      )
-    : [];
+  const validFollowers = Array.isArray(followers) ? followers.filter(
+    (follow) => follow && typeof follow === "object" && follow.profiles && typeof follow.profiles === "object"
+  ) : [];
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -83,8 +69,8 @@ export function SocialLists({ userId, stats }: SocialListsProps) {
           <div className="space-y-3 max-h-96 overflow-y-auto">
             {isLoadingFollowers ? (
               <LoadingSkeleton />
-            ) : resolvedFollowers && resolvedFollowers.length > 0 ? (
-              resolvedFollowers.map((follow: any) => (
+            ) : validFollowers.length > 0 ? (
+              validFollowers.map((follow: any) => (
                 <UserListItem
                   key={follow.follower_id}
                   profile={follow.profiles}
@@ -100,7 +86,7 @@ export function SocialLists({ userId, stats }: SocialListsProps) {
       {/* Following as a grid */}
       <div>
         <h3 className="font-semibold mb-4">Following ({stats.followingCount})</h3>
-        <FollowingGrid following={resolvedFollowing} isLoading={isLoadingFollowing} />
+        <FollowingGrid following={validFollowing} isLoading={isLoadingFollowing} />
       </div>
     </div>
   );
