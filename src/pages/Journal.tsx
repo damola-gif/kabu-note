@@ -19,6 +19,9 @@ import { useStrategies, useUpdateStrategy } from "@/hooks/useStrategies";
 import { toast } from "@/hooks/use-toast";
 import { ImageEditor } from "@/components/common/ImageEditor";
 import { StrategyEditorDialog } from "@/components/strategy/StrategyEditorDialog";
+import { JournalTabsHeader } from "@/components/journal/JournalTabsHeader";
+import { JournalEntriesList } from "@/components/journal/JournalEntriesList";
+import { JournalTradesSection } from "@/components/journal/JournalTradesSection";
 
 export default function Journal() {
   const [isNewTradeDialogOpen, setIsNewTradeDialogOpen] = useState(false);
@@ -94,129 +97,6 @@ export default function Journal() {
     );
   };
 
-  // Journal View/Edit
-  const renderJournal = () => {
-    if (strategiesLoading) {
-      return (
-        <div className="flex items-center justify-center py-16">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-400 mx-auto mb-3"></div>
-            <p className={clsx(fadedText)}>Loading your journals...</p>
-          </div>
-        </div>
-      );
-    }
-    if (!ownDraftStrategies.length) {
-      return (
-        <div className={clsx("text-center py-12", cardBg, panelRadius)}>
-          <BookOpen className="mx-auto mb-3 h-8 w-8 text-orange-400" />
-          <h3 className={clsx("text-xl font-extrabold mb-2", strongAccentColor)}>No Journals Yet</h3>
-          <p className={fadedText}>Your personal trading journals will appear here. Create a new one or start from your trades!</p>
-        </div>
-      );
-    }
-    return (
-      <div className="space-y-4">
-        {ownDraftStrategies.map((strategy) => (
-          <div
-            key={strategy.id}
-            className={clsx(
-              cardBg,
-              panelRadius,
-              "p-5 flex flex-col gap-2 relative border border-orange-900/40 hover:shadow-orange-400/10 transition-shadow"
-            )}
-          >
-            <div className="flex items-center justify-between mb-2">
-              <div>
-                <span className={clsx("font-bold text-lg", strongAccentColor)}>
-                  {strategy.name || "Untitled Journal"}
-                </span>
-                {strategy.voting_status === 'pending' && (
-                  <span className="ml-2 px-2 py-1 bg-orange-900/60 text-orange-400 rounded uppercase text-xs font-bold">
-                    In Voting
-                  </span>
-                )}
-                {!strategy.is_public && !strategy.voting_status && (
-                  <span className="ml-2 px-2 py-1 bg-zinc-800 text-orange-300 rounded uppercase text-xs">
-                    Draft
-                  </span>
-                )}
-                {strategy.voting_status === "approved" && (
-                  <span className="ml-2 px-2 py-1 bg-green-900/60 text-green-300 rounded uppercase text-xs font-bold">
-                    Approved
-                  </span>
-                )}
-                {strategy.voting_status === "rejected" && (
-                  <span className="ml-2 px-2 py-1 bg-red-900/60 text-red-300 rounded uppercase text-xs font-bold">
-                    Rejected
-                  </span>
-                )}
-              </div>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm"
-                  className={buttonOutline}
-                  onClick={() => setEditingJournal(strategy.id)}
-                >Edit</Button>
-                {!strategy.is_public && (!strategy.voting_status || strategy.voting_status === 'rejected') && (
-                  <Button
-                    onClick={() => handlePublishStrategy(strategy)}
-                    className={buttonPrimary + " px-4 py-2 text-sm"}
-                    size="sm"
-                  >
-                    <UploadCloud className="h-4 w-4 mr-1" />
-                    Submit for Voting
-                  </Button>
-                )}
-              </div>
-            </div>
-            {/* Image section: preview and editor */}
-            {strategy.image_path && (
-              <div className="mb-2">
-                <ImageEditor
-                  imageUrl={
-                    strategy.image_path.startsWith("http")
-                      ? strategy.image_path
-                      : `https://nprkhqxhvergyikusvbc.supabase.co/storage/v1/object/public/strategy_images/${strategy.image_path}`
-                  }
-                  width={380}
-                  height={220}
-                  onEdit={(dataUrl) => {
-                    // optionally prompt user to save image (not persisted until form submit)
-                    setEditorImageUrl(dataUrl);
-                  }}
-                />
-              </div>
-            )}
-            <div className={clsx("prose prose-invert text-base", fadedText)}>
-              {strategy.content_markdown?.slice(0, 340) || <span className="text-sm text-muted-foreground">No content</span>}
-              {(strategy.content_markdown?.length ?? 0) > 340 && <span>…</span>}
-            </div>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {(strategy.tags || []).map(tag =>
-                <span key={tag} className="bg-orange-800 text-orange-100 px-2 py-1 rounded-full text-xs font-mono">{tag}</span>
-              )}
-            </div>
-            {editingJournal === strategy.id && (
-              <EditTradeDialog
-                open={true}
-                onOpenChange={() => setEditingJournal(null)}
-                trade={undefined}
-                // Optionally, you can pass updated image or annotate/save logic here
-              />
-            )}
-          </div>
-        ))}
-        {/* Fix: Show StrategyEditorDialog for "NEW" Journal creation */}
-        {editingJournal === "NEW" && (
-          <StrategyEditorDialog
-            open={true}
-            onOpenChange={() => setEditingJournal(null)}
-          />
-        )}
-      </div>
-    );
-  };
-
   // Main content tabs: Journals or Trades
   const [tab, setTab] = useState<'journal' | 'trades'>('journal');
 
@@ -225,46 +105,17 @@ export default function Journal() {
       <div className="max-w-5xl mx-auto">
         <div className={clsx("min-h-screen border-x", cardBg, panelRadius, "border-orange-600/30")}>
           {/* Header */}
-          <div className={clsx("sticky top-0 z-20", "bg-[#19141c]/90 border-b border-orange-700/30 backdrop-blur-lg", panelRadius)}>
-            <div className="px-8 py-7 flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-extrabold text-orange-300 drop-shadow-sm tracking-tight">Trading Journal</h1>
-                <p className={clsx("text-base mt-1", fadedText)}>Track, analyze, and own your trading performance</p>
-              </div>
-              <Button 
-                onClick={() => setIsNewTradeDialogOpen(true)}
-                className={clsx(buttonPrimary, "ml-2 px-5 py-2 text-base")}
-                size="lg"
-              >
-                <Plus className="h-5 w-5 mr-2" />
-                New Trade
-              </Button>
-            </div>
-            <div className="flex px-8 pb-3 gap-2">
-              <button
-                onClick={() => setTab('journal')}
-                className={clsx(
-                  "py-2 px-6 rounded-t-lg font-bold focus:outline-none transition border-b-2",
-                  tab === 'journal'
-                    ? "border-orange-500 text-orange-400 bg-orange-900/20"
-                    : "border-transparent text-zinc-500 hover:text-orange-400 hover:bg-orange-900/10"
-                )}
-              >
-                Journals
-              </button>
-              <button
-                onClick={() => setTab('trades')}
-                className={clsx(
-                  "py-2 px-6 rounded-t-lg font-bold focus:outline-none transition border-b-2",
-                  tab === 'trades'
-                    ? "border-orange-500 text-orange-400 bg-orange-900/20"
-                    : "border-transparent text-zinc-500 hover:text-orange-400 hover:bg-orange-900/10"
-                )}
-              >
-                Trades
-              </button>
-            </div>
-          </div>
+          <JournalTabsHeader
+            tab={tab}
+            setTab={setTab}
+            onNewTrade={() => setIsNewTradeDialogOpen(true)}
+            onNewJournal={() => setEditingJournal("NEW")}
+            cardBg={cardBg}
+            panelRadius={panelRadius}
+            fadedText={fadedText}
+            strongAccentColor={strongAccentColor}
+            buttonPrimary={buttonPrimary}
+          />
           {/* Content */}
           <div className="px-8 py-8">
             {!isConnected && hasOpenTrades && (
@@ -293,29 +144,36 @@ export default function Journal() {
                     <BookOpen className="w-4 h-4 mr-1" /> New Journal Entry
                   </Button>
                 </div>
-                {renderJournal()}
+                <JournalEntriesList
+                  ownDraftStrategies={ownDraftStrategies}
+                  strategiesLoading={strategiesLoading}
+                  editingJournal={editingJournal}
+                  setEditingJournal={setEditingJournal}
+                  handlePublishStrategy={handlePublishStrategy}
+                  fadedText={fadedText}
+                  cardBg={cardBg}
+                  panelRadius={panelRadius}
+                  strongAccentColor={strongAccentColor}
+                  buttonOutline={buttonOutline}
+                  buttonPrimary={buttonPrimary}
+                />
               </div>
             )}
             {tab === 'trades' && (
-              <div className={clsx("rounded-2xl border border-orange-900/30 shadow-lg p-2 bg-[#201920]/90", panelRadius)}>
-                <div className="mb-6">
-                  <JournalHeader 
-                    filter={filter}
-                    onFilterChange={setFilter}
-                    onNewTrade={() => setIsNewTradeDialogOpen(true)}
-                    dateRange={dateRange}
-                    onDateRangeChange={setDateRange}
-                  />
-                </div>
-                <TradesTable
-                  trades={filteredTrades}
-                  onEdit={handleEditClick}
-                  onDelete={(tradeId) => deleteMutation.mutate(tradeId)}
-                  onViewDetails={handleViewDetailsClick}
-                  onClose={handleCloseClick}
-                  isDeleting={deleteMutation.isPending}
-                />
-              </div>
+              <JournalTradesSection
+                filter={filter}
+                setFilter={setFilter}
+                dateRange={dateRange}
+                setDateRange={setDateRange}
+                filteredTrades={filteredTrades}
+                deleteMutation={deleteMutation}
+                isDeleting={deleteMutation.isPending}
+                handleEditClick={handleEditClick}
+                handleDelete={(tradeId) => deleteMutation.mutate(tradeId)}
+                handleViewDetailsClick={handleViewDetailsClick}
+                handleCloseClick={handleCloseClick}
+                panelRadius={panelRadius}
+              />
             )}
           </div>
         </div>
