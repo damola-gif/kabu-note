@@ -17,65 +17,105 @@ export const TwelveDataProvider = ({ children }: { children: ReactNode }) => {
   const socket = useRef<WebSocket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const subscriptions = useRef<Map<string, Set<PriceCallback>>>(new Map());
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const reconnectAttempts = useRef(0);
 
-  useEffect(() => {
+  const connectWebSocket = useCallback(() => {
     if (TWELVE_DATA_API_KEY.startsWith('YOUR_') || !TWELVE_DATA_API_KEY) {
       console.warn("Twelve Data API key not set in src/config.ts. Real-time features will be disabled.");
-      toast.warning("Please set your Twelve Data API key in src/config.ts");
       return;
     }
 
-    const ws = new WebSocket(`wss://ws.twelvedata.com/v1/quotes/price?apikey=${TWELVE_DATA_API_KEY}`);
-    socket.current = ws;
+    try {
+      const ws = new WebSocket(`wss://ws.twelvedata.com/v1/quotes/price?apikey=${TWELVE_DATA_API_KEY}`);
+      socket.current = ws;
 
-    ws.onopen = () => {
-      console.log("Twelve Data WebSocket connected");
-      setIsConnected(true);
-      // When we connect, re-subscribe to all symbols we were watching
-      const symbols = Array.from(subscriptions.current.keys());
-      if (symbols.length > 0) {
-        ws.send(JSON.stringify({
-            action: 'subscribe',
-            params: { symbols: symbols.join(',') }
-        }));
-      }
-    };
-
-    ws.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-      if (message.event === 'price' && message.symbol && message.price) {
-        const { symbol, price } = message;
-        const cbs = subscriptions.current.get(symbol);
-        if (cbs) {
-            cbs.forEach(callback => callback(price, symbol));
+      ws.onopen = () => {
+        console.log("Twelve Data WebSocket connected");
+        setIsConnected(true);
+        reconnectAttempts.current = 0;
+        
+        // When we connect, re-subscribe to all symbols we were watching
+        const symbols = Array.from(subscriptions.current.keys());
+        if (symbols.length > 0) {
+          ws.send(JSON.stringify({
+              action: 'subscribe',
+              params: { symbols: symbols.join(',') }
+          }));
         }
-      } else if (message.event === 'heartbeat') {
-        // console.log('Twelve Data heartbeat'); // Can be noisy
-      } else if (message.event === 'subscribe-status') {
-        console.log('Twelve Data subscription status:', message);
-      }
-    };
+      };
 
-    ws.onclose = () => {
-      console.log("Twelve Data WebSocket disconnected.");
-      setIsConnected(false);
-      socket.current = null;
-    };
+      ws.onmessage = (event) => {
+        try {
+          const message = JSON.parse(event.data);
+          
+          if (message.event === 'price' && message.symbol && message.price) {
+            const { symbol, price } = message;
+            const cbs = subscriptions.current.get(symbol);
+            if (cbs) {
+                cbs.forEach(callback => callback(parseFloat(price), symbol));
+            }
+          } else if (message.event === 'heartbeat') {
+            // console.log('Twelve Data heartbeat'); // Can be noisy
+          } else if (message.event === 'subscribe-status') {
+            console.log('Twelve Data subscription status:', message);
+            if (message.status === 'ok') {
+              setIsConnected(true);
+            }
+          } else if (message.event === 'error') {
+            console.error('Twelve Data API error:', message);
+            if (message.code === 401) {
+              toast.error("Invalid Twelve Data API key. Please check your configuration.");
+            } else if (message.code === 429) {
+              toast.error("Twelve Data API rate limit exceeded. Real-time data temporarily unavailable.");
+            }
+          }
+        } catch (error) {
+          console.error('Error parsing WebSocket message:', error);
+        }
+      };
 
-    ws.onerror = (error) => {
-      console.error("Twelve Data WebSocket error:", error);
-      toast.error("Could not connect to live price feed. Check your API key and network.");
+      ws.onclose = (event) => {
+        console.log("Twelve Data WebSocket disconnected. Code:", event.code, "Reason:", event.reason);
+        setIsConnected(false);
+        socket.current = null;
+        
+        // Auto-reconnect with exponential backoff (max 3 attempts)
+        if (reconnectAttempts.current < 3) {
+          const delay = Math.pow(2, reconnectAttempts.current) * 1000; // 1s, 2s, 4s
+          reconnectAttempts.current++;
+          
+          reconnectTimeoutRef.current = setTimeout(() => {
+            console.log(`Attempting to reconnect to Twelve Data (attempt ${reconnectAttempts.current})`);
+            connectWebSocket();
+          }, delay);
+        }
+      };
+
+      ws.onerror = (error) => {
+        console.error("Twelve Data WebSocket error:", error);
+        setIsConnected(false);
+      };
+      
+    } catch (error) {
+      console.error("Failed to create WebSocket connection:", error);
       setIsConnected(false);
-      ws.close();
-    };
+    }
+  }, []);
+
+  useEffect(() => {
+    connectWebSocket();
     
     return () => {
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+      }
       if (socket.current) {
         socket.current.close();
         socket.current = null;
       }
     };
-  }, []);
+  }, [connectWebSocket]);
 
   const subscribe = useCallback((symbol: string, callback: PriceCallback) => {
     const upperSymbol = symbol.toUpperCase();

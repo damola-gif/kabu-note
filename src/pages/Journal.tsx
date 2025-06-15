@@ -48,6 +48,9 @@ export default function Journal() {
       return sideMatch && dateMatch;
     }) ?? [];
 
+  // Check if there are any open trades that would benefit from live data
+  const hasOpenTrades = filteredTrades.some(trade => !trade.closed_at);
+
   const handleEditClick = (trade: Tables<'trades'>) => {
     setSelectedTrade(trade);
     setIsEditTradeDialogOpen(true);
@@ -90,12 +93,12 @@ export default function Journal() {
 
   return (
     <>
-      {!isConnected && (
+      {!isConnected && hasOpenTrades && (
         <Alert variant="destructive" className="mb-4">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Live Feed Disconnected</AlertTitle>
           <AlertDescription>
-            Could not connect to the real-time price feed from Twelve Data. Live data will not be updated. This might be due to an issue with your API key or network connection.
+            Could not connect to the real-time price feed from Twelve Data. Live P&L updates for open trades will not be available. This might be due to an API key issue or network connection problem.
           </AlertDescription>
         </Alert>
       )}
