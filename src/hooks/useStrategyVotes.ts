@@ -1,4 +1,3 @@
-
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -48,6 +47,33 @@ export function useUserVote(strategyId: string) {
   });
 }
 
+// Hook to get user's votes for a list of strategies
+export function useUserVotesForStrategies(strategyIds: string[]) {
+    const { user } = useSession();
+    
+    return useQuery({
+        queryKey: ['userVotes', strategyIds, user?.id],
+        queryFn: async (): Promise<{ [key: string]: StrategyVote }> => {
+            if (!user || strategyIds.length === 0) return {};
+            
+            const { data, error } = await supabase
+                .from('strategy_votes')
+                .select('*')
+                .in('strategy_id', strategyIds)
+                .eq('voter_id', user.id);
+            
+            if (error) throw error;
+
+            const votesByStrategyId: { [key: string]: StrategyVote } = {};
+            data.forEach(vote => {
+                votesByStrategyId[vote.strategy_id] = vote;
+            });
+            return votesByStrategyId;
+        },
+        enabled: !!user && strategyIds.length > 0,
+    });
+}
+
 // Hook to submit a vote
 export function useSubmitVote() {
   const { user } = useSession();
@@ -77,12 +103,13 @@ export function useSubmitVote() {
       if (error) throw error;
       return data;
     },
-    onSuccess: (_, { strategyId, voteType }) => {
+    onSuccess: (data, { strategyId, voteType }) => {
       queryClient.invalidateQueries({ queryKey: ['strategyVotes', strategyId] });
-      queryClient.invalidateQueries({ queryKey: ['userVote', strategyId] });
-      queryClient.invalidateQueries({ queryKey: ['strategies'] });
+      queryClient.invalidateQueries({ queryKey: ['userVote', strategyId, user?.id] });
+      // Invalidate the list of following strategies to update vote counts
+      queryClient.invalidateQueries({ queryKey: ['followingStrategies'] });
       queryClient.invalidateQueries({ queryKey: ['strategy', strategyId] });
-      toast.success(`Vote ${voteType === 'approve' ? 'approved' : 'rejected'} successfully!`);
+      toast.success(`Vote cast successfully!`);
     },
     onError: (error) => {
       toast.error(`Error submitting vote: ${error.message}`);
