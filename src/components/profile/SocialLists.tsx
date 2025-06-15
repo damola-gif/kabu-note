@@ -60,20 +60,59 @@ export function SocialLists({ userId, stats }: SocialListsProps) {
     (follow) => follow && typeof follow === "object" && follow.profiles && typeof follow.profiles === "object"
   ) : [];
 
-  // DEBUGGING: Show raw data in UI (remove this later)
+  // ENHANCED DEBUGGING: show structure and problems with data
   const DebugBlock = () => (
-    <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded">
-      <div>
+    <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded text-xs">
+      <div className="mb-2">
         <strong>DEBUG: followers ({Array.isArray(followers) ? followers.length : 0})</strong>
-        <pre style={{ overflowX: "auto", fontSize: 12, background: "#fffde7", padding: 8 }}>
+        <pre style={{ overflowX: "auto", background: "#fffde7", padding: 8 }}>
           {JSON.stringify(followers, null, 2)}
         </pre>
+        {Array.isArray(followers) && followers.length > 0 && (
+          <div className="mt-2">
+            <strong>Followers Entry Keys:</strong>
+            <ul>
+              {followers.map((f, idx) => (
+                <li key={idx} className="mb-1">
+                  {f && typeof f === "object"
+                    ? Object.keys(f).join(", ")
+                    : "not an object"}
+                  {(!f?.profiles || typeof f.profiles !== "object") && (
+                    <span className="text-red-500 ml-2">profiles missing</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
       <div>
         <strong>DEBUG: following ({Array.isArray(following) ? following.length : 0})</strong>
-        <pre style={{ overflowX: "auto", fontSize: 12, background: "#fffde7", padding: 8 }}>
+        <pre style={{ overflowX: "auto", background: "#fffde7", padding: 8 }}>
           {JSON.stringify(following, null, 2)}
         </pre>
+        {Array.isArray(following) && following.length > 0 && (
+          <div className="mt-2">
+            <strong>Following Entry Keys:</strong>
+            <ul>
+              {following.map((f, idx) => (
+                <li key={idx} className="mb-1">
+                  {f && typeof f === "object"
+                    ? Object.keys(f).join(", ")
+                    : "not an object"}
+                  {(!f?.profiles || typeof f.profiles !== "object") && (
+                    <span className="text-red-500 ml-2">profiles missing</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+      <div className="mt-2">
+        <strong>Expected:</strong> Each entry should have a <code>profiles</code> object.<br />
+        <strong>Valid Following Count:</strong> {validFollowing.length}<br />
+        <strong>Valid Followers Count:</strong> {validFollowers.length}
       </div>
     </div>
   );
@@ -103,7 +142,6 @@ export function SocialLists({ userId, stats }: SocialListsProps) {
             </div>
           </CardContent>
         </Card>
-
         {/* Following as a grid */}
         <div>
           <h3 className="font-semibold mb-4">Following ({stats.followingCount})</h3>
