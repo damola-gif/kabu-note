@@ -42,14 +42,14 @@ export function UserListItem({ profile }: UserListItemProps) {
 
   return (
     <Card
-      className="relative w-full max-w-lg mx-auto p-0 flex items-center border border-gray-200 dark:border-border rounded-2xl shadow hover:shadow-lg transition-shadow duration-200 min-h-[84px] bg-white dark:bg-card"
+      className="w-full max-w-full sm:max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto p-0 flex items-center border border-gray-200 dark:border-border rounded-2xl shadow hover:shadow-lg transition-shadow duration-200 min-h-[84px] bg-white dark:bg-card"
       onClick={handleProfileClick}
       tabIndex={0}
       role="button"
     >
-      <CardContent className="flex w-full items-center px-6 py-4 min-h-0">
+      <CardContent className="flex w-full items-center px-6 py-4 min-h-0 gap-5">
         {/* Avatar */}
-        <Avatar className="h-14 w-14 mr-5 ring-2 ring-orange-400/40 bg-orange-50 text-orange-600 shadow-sm">
+        <Avatar className="h-14 w-14 ring-2 ring-orange-400/40 bg-orange-50 text-orange-600 shadow-sm flex-shrink-0">
           <AvatarImage src={profile.avatar_url || ''} alt={profile.username} />
           <AvatarFallback className="bg-orange-100 text-orange-800 font-bold text-lg">
             {profile.full_name?.charAt(0).toUpperCase() ||
@@ -76,9 +76,10 @@ export function UserListItem({ profile }: UserListItemProps) {
               handleFollowToggle();
             }}
             disabled={followMutation.isPending || unfollowMutation.isPending}
-            className="ml-6 min-w-[101px] h-[40px] border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:border-orange-400 hover:bg-orange-50 transition-colors shadow-none"
+            className="ml-6 flex-shrink-0 px-5 h-[40px] border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:border-orange-400 hover:bg-orange-50 transition-colors shadow-none"
             style={{
-              boxShadow: "none"
+              boxShadow: "none",
+              minWidth: 0,
             }}
           >
             {followMutation.isPending || unfollowMutation.isPending
