@@ -9,13 +9,12 @@ import { StrategyFormValues } from "@/components/strategy/strategy.schemas";
 export function useStrategies() {
   const { user } = useSession();
   return useQuery({
-    queryKey: ["strategies", user?.id],
+    queryKey: ["strategies"],
     queryFn: async () => {
       if (!user) return [];
       const { data, error } = await supabase
         .from("strategies")
         .select("*")
-        .eq("user_id", user.id)
         .order("created_at", { ascending: false });
       if (error) throw new Error(error.message);
       return data;

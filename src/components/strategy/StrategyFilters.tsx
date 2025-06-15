@@ -8,14 +8,13 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
-import { Slider } from "@/components/ui/slider"
-import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
-import { Separator } from "@/components/ui/separator"
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 
 interface StrategyFiltersProps {
     searchTerm: string;
@@ -24,6 +23,8 @@ interface StrategyFiltersProps {
     onWinRateChange: (range: [number, number]) => void;
     dateRange: DateRange | undefined;
     onDateChange: (range: DateRange | undefined) => void;
+    authorFilter: string;
+    onAuthorFilterChange: (filter: string) => void;
     className?: string;
 }
 
@@ -34,6 +35,8 @@ export function StrategyFilters({
     onWinRateChange,
     dateRange,
     onDateChange,
+    authorFilter,
+    onAuthorFilterChange,
     className,
 }: StrategyFiltersProps) {
 
@@ -49,6 +52,22 @@ export function StrategyFilters({
                 onChange={(e) => onSearchTermChange(e.target.value)}
                 className="mt-1"
             />
+        </div>
+
+        <Separator />
+
+        <div>
+            <Label>Author</Label>
+            <Select value={authorFilter} onValueChange={onAuthorFilterChange}>
+                <SelectTrigger className="w-full mt-1">
+                    <SelectValue placeholder="Filter by author" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">All Strategies</SelectItem>
+                    <SelectItem value="me">My Strategies</SelectItem>
+                    <SelectItem value="following">Following</SelectItem>
+                </SelectContent>
+            </Select>
         </div>
 
         <Separator />

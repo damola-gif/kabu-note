@@ -28,6 +28,8 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { DateRange } from 'react-day-picker';
 import { StrategyFilters } from '@/components/strategy/StrategyFilters';
+import { useSession } from '@/contexts/SessionProvider';
+import { useFollowing } from '@/hooks/useProfile';
 
 export default function Strategies() {
     const [isEditorOpen, setIsEditorOpen] = useState(false);
@@ -36,7 +38,11 @@ export default function Strategies() {
     const [searchTerm, setSearchTerm] = useState("");
     const [winRateRange, setWinRateRange] = useState<[number, number]>([0, 100]);
     const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+    const [authorFilter, setAuthorFilter] = useState("all");
+    
     const { data: strategies, isLoading, error } = useStrategies();
+    const { user } = useSession();
+    const { data: followingIds, isLoading: isLoadingFollowing } = useFollowing();
     const deleteMutation = useDeleteStrategy();
     const navigate = useNavigate();
 
@@ -89,11 +95,18 @@ export default function Strategies() {
             dateMatch = false;
         }
 
-        return nameMatch && winRateMatch && dateMatch;
+        let authorMatch = true;
+        if (authorFilter === 'me') {
+            authorMatch = strategy.user_id === user?.id;
+        } else if (authorFilter === 'following') {
+            authorMatch = followingIds?.includes(strategy.user_id) ?? false;
+        }
+
+        return nameMatch && winRateMatch && dateMatch && authorMatch;
     }) ?? [];
 
     const renderContent = () => {
-        if (isLoading) {
+        if (isLoading || isLoadingFollowing) {
             return (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 col-span-3">
                     {[...Array(3)].map((_, i) => (
@@ -116,7 +129,7 @@ export default function Strategies() {
         }
 
         if (filteredStrategies.length === 0) {
-            if (searchTerm || dateRange || winRateRange[0] > 0 || winRateRange[1] < 100) {
+            if (searchTerm || dateRange || winRateRange[0] > 0 || winRateRange[1] < 100 || authorFilter !== 'all') {
                 return (
                     <div className="text-center py-10 border-2 border-dashed rounded-lg col-span-3">
                         <h2 className="text-xl font-semibold">No Strategies Found</h2>
@@ -216,6 +229,8 @@ export default function Strategies() {
                         onWinRateChange={setWinRateRange}
                         dateRange={dateRange}
                         onDateChange={setDateRange}
+                        authorFilter={authorFilter}
+                        onAuthorFilterChange={setAuthorFilter}
                      />
                    </div>
                 </aside>
