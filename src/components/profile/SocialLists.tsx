@@ -1,4 +1,3 @@
-
 import { Card, CardContent } from "@/components/ui/card";
 import { Users } from "lucide-react";
 import { useFollowersList, useFollowingList } from "@/hooks/useFollowersLists";
@@ -17,7 +16,7 @@ export function SocialLists({ userId, stats }: SocialListsProps) {
   const { data: followers, isLoading: isLoadingFollowers } = useFollowersList(userId);
   const { data: following, isLoading: isLoadingFollowing } = useFollowingList(userId);
 
-  console.log("SocialLists - userId:", userId);
+  // DEBUGGING: Log what we get
   console.log("SocialLists - followers:", followers);
   console.log("SocialLists - following:", following);
 
@@ -51,6 +50,17 @@ export function SocialLists({ userId, stats }: SocialListsProps) {
     </Card>
   );
 
+  // Reliable test for valid following data:
+  const resolvedFollowing = Array.isArray(following)
+    ? following.filter(
+        (follow) =>
+          follow &&
+          typeof follow === "object" &&
+          follow.profiles &&
+          typeof follow.profiles === "object"
+      )
+    : [];
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {/* Followers */}
@@ -81,8 +91,8 @@ export function SocialLists({ userId, stats }: SocialListsProps) {
           <div className="space-y-3 max-h-96 overflow-y-auto">
             {isLoadingFollowing ? (
               <LoadingSkeleton />
-            ) : following && following.length > 0 ? (
-              following.map((follow: any) => (
+            ) : resolvedFollowing.length > 0 ? (
+              resolvedFollowing.map((follow: any) => (
                 <UserListItem
                   key={follow.following_id}
                   profile={follow.profiles}
