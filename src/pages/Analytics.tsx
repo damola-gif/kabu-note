@@ -1,268 +1,301 @@
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { StatCard } from '@/components/dashboard/StatCard';
-import { PerformanceChart } from '@/components/dashboard/PerformanceChart';
-import { useStrategies } from '@/hooks/useStrategies';
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Badge } from '@/components/ui/badge';
 import { useTrades } from '@/hooks/useTrades';
-import { useSession } from '@/contexts/SessionProvider';
-import { TrendingUp, TrendingDown, DollarSign, Target, BarChart3, Users } from 'lucide-react';
-import { Loader2 } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
+import { CalendarIcon, TrendingUp, TrendingDown, DollarSign, Target, Activity } from 'lucide-react';
+import { format, startOfMonth, endOfMonth, parseISO } from 'date-fns';
+import { cn } from '@/lib/utils';
+
+interface PerformanceChartProps {
+  trades: any[];
+}
 
 export default function Analytics() {
-  const { user } = useSession();
-  const { data: strategiesData, isLoading: strategiesLoading } = useStrategies();
-  const { data: trades, isLoading: tradesLoading } = useTrades();
+  const [date, setDate] = useState<Date>(new Date());
+  const { data: allTrades = [], isLoading } = useTrades();
 
-  if (strategiesLoading || tradesLoading) {
+  // Filter trades for the selected month
+  const filteredTrades = allTrades.filter(trade => {
+    if (!trade.closed_at) return false;
+    const tradeDate = parseISO(trade.closed_at);
+    return tradeDate >= startOfMonth(date) && tradeDate <= endOfMonth(date);
+  });
+
+  // Calculate analytics
+  const totalTrades = filteredTrades.length;
+  const winningTrades = filteredTrades.filter(trade => (trade.pnl || 0) > 0);
+  const losingTrades = filteredTrades.filter(trade => (trade.pnl || 0) < 0);
+  const winRate = totalTrades > 0 ? (winningTrades.length / totalTrades) * 100 : 0;
+  
+  const totalPnL = filteredTrades.reduce((sum, trade) => sum + (trade.pnl || 0), 0);
+  const avgWin = winningTrades.length > 0 ? winningTrades.reduce((sum, trade) => sum + (trade.pnl || 0), 0) / winningTrades.length : 0;
+  const avgLoss = losingTrades.length > 0 ? Math.abs(losingTrades.reduce((sum, trade) => sum + (trade.pnl || 0), 0) / losingTrades.length) : 0;
+  const profitFactor = avgLoss > 0 ? avgWin / avgLoss : 0;
+
+  // Prepare chart data
+  const dailyPnL = filteredTrades.reduce((acc: any[], trade) => {
+    if (!trade.closed_at) return acc;
+    const date = format(parseISO(trade.closed_at), 'MMM dd');
+    const existing = acc.find(item => item.date === date);
+    if (existing) {
+      existing.pnl += trade.pnl || 0;
+    } else {
+      acc.push({ date, pnl: trade.pnl || 0 });
+    }
+    return acc;
+  }, []);
+
+  // Calculate cumulative PnL
+  let cumulativePnL = 0;
+  const cumulativeData = dailyPnL.map(item => {
+    cumulativePnL += item.pnl;
+    return { ...item, cumulative: cumulativePnL };
+  });
+
+  // Symbol performance
+  const symbolPerformance = filteredTrades.reduce((acc: any[], trade) => {
+    const existing = acc.find(item => item.symbol === trade.symbol);
+    if (existing) {
+      existing.pnl += trade.pnl || 0;
+      existing.trades += 1;
+    } else {
+      acc.push({ symbol: trade.symbol, pnl: trade.pnl || 0, trades: 1 });
+    }
+    return acc;
+  }, []);
+
+  // Side distribution
+  const sideData = [
+    { name: 'Long', value: filteredTrades.filter(t => t.side === 'long').length, color: '#22c55e' },
+    { name: 'Short', value: filteredTrades.filter(t => t.side === 'short').length, color: '#ef4444' }
+  ];
+
+  const PerformanceChart = ({ trades }: PerformanceChartProps) => (
+    <ResponsiveContainer width="100%" height={300}>
+      <LineChart data={cumulativeData}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="date" />
+        <YAxis />
+        <Tooltip formatter={(value: any) => [`$${value.toFixed(2)}`, 'Cumulative P&L']} />
+        <Line type="monotone" dataKey="cumulative" stroke="#8884d8" strokeWidth={2} />
+      </LineChart>
+    </ResponsiveContainer>
+  );
+
+  if (isLoading) {
     return (
-      <div className="flex justify-center py-8">
-        <Loader2 className="h-6 w-6 animate-spin" />
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
       </div>
     );
   }
 
-  // Safely handle strategies data - it could be InfiniteData or array
-  const strategies = strategiesData?.pages ? 
-    strategiesData.pages.flatMap(page => page) : 
-    (Array.isArray(strategiesData) ? strategiesData : []);
-
-  // Filter user's strategies
-  const userStrategies = strategies.filter(strategy => strategy.user_id === user?.id);
-  const publishedStrategies = userStrategies.filter(s => s.is_public);
-
-  // Calculate performance metrics
-  const totalTrades = trades?.length || 0;
-  const winningTrades = trades?.filter(trade => 
-    trade.exit_price && trade.entry_price && 
-    ((trade.position_type === 'long' && trade.exit_price > trade.entry_price) ||
-     (trade.position_type === 'short' && trade.exit_price < trade.entry_price))
-  ).length || 0;
-  
-  const winRate = totalTrades > 0 ? ((winningTrades / totalTrades) * 100).toFixed(1) : '0';
-  
-  const totalPnL = trades?.reduce((acc, trade) => {
-    if (!trade.exit_price || !trade.entry_price) return acc;
-    const pnl = trade.position_type === 'long' 
-      ? (trade.exit_price - trade.entry_price) * trade.quantity
-      : (trade.entry_price - trade.exit_price) * trade.quantity;
-    return acc + pnl;
-  }, 0) || 0;
-
-  const avgPnL = totalTrades > 0 ? (totalPnL / totalTrades).toFixed(2) : '0';
-
-  // Calculate total likes across all strategies
-  const totalLikes = userStrategies.reduce((acc, strategy) => acc + (strategy.likes_count || 0), 0);
-
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="container mx-auto p-6 space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Analytics</h1>
-          <p className="text-muted-foreground">Track your trading performance and strategy metrics</p>
+          <h1 className="text-3xl font-bold">Trading Analytics</h1>
+          <p className="text-muted-foreground">
+            Performance insights for {format(date, 'MMMM yyyy')}
+          </p>
         </div>
+        
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" className={cn("w-[240px] justify-start text-left font-normal")}>
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {format(date, 'MMMM yyyy')}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="end">
+            <Calendar
+              mode="single"
+              selected={date}
+              onSelect={(newDate) => newDate && setDate(newDate)}
+              initialFocus
+            />
+          </PopoverContent>
+        </Popover>
       </div>
 
-      {/* Overview Stats */}
+      {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          title="Total Strategies"
-          value={userStrategies.length.toString()}
-          icon={Target}
-        />
-        <StatCard
-          title="Published Strategies"
-          value={publishedStrategies.length.toString()}
-          icon={TrendingUp}
-        />
-        <StatCard
-          title="Total Likes"
-          value={totalLikes.toString()}
-          icon={Users}
-        />
-        <StatCard
-          title="Win Rate"
-          value={`${winRate}%`}
-          icon={BarChart3}
-        />
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total P&L</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className={`text-2xl font-bold ${totalPnL >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              ${totalPnL.toFixed(2)}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Win Rate</CardTitle>
+            <Target className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{winRate.toFixed(1)}%</div>
+            <p className="text-xs text-muted-foreground">
+              {winningTrades.length} wins / {totalTrades} trades
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Profit Factor</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{profitFactor.toFixed(2)}</div>
+            <p className="text-xs text-muted-foreground">
+              Avg Win: ${avgWin.toFixed(2)} / Avg Loss: ${avgLoss.toFixed(2)}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Trades</CardTitle>
+            <Activity className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalTrades}</div>
+            <p className="text-xs text-muted-foreground">
+              {winningTrades.length} wins, {losingTrades.length} losses
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Main Analytics Tabs */}
-      <Tabs defaultValue="performance" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+      <Tabs defaultValue="performance" className="space-y-4">
+        <TabsList>
           <TabsTrigger value="performance">Performance</TabsTrigger>
-          <TabsTrigger value="strategies">Strategies</TabsTrigger>
-          <TabsTrigger value="trading">Trading</TabsTrigger>
+          <TabsTrigger value="symbols">By Symbol</TabsTrigger>
+          <TabsTrigger value="distribution">Distribution</TabsTrigger>
+          <TabsTrigger value="trades">Trade History</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="performance" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Trading Performance</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium">Total Trades</span>
-                    <span className="text-lg font-bold">{totalTrades}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium">Winning Trades</span>
-                    <span className="text-lg font-bold text-green-600">{winningTrades}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium">Losing Trades</span>
-                    <span className="text-lg font-bold text-red-600">{totalTrades - winningTrades}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium">Win Rate</span>
-                    <span className="text-lg font-bold">{winRate}%</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium">Avg P&L per Trade</span>
-                    <span className={`text-lg font-bold ${parseFloat(avgPnL) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      ${avgPnL}
-                    </span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Strategy Metrics</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium">Total Strategies</span>
-                    <span className="text-lg font-bold">{userStrategies.length}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium">Published</span>
-                    <span className="text-lg font-bold text-green-600">{publishedStrategies.length}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium">Draft</span>
-                    <span className="text-lg font-bold text-yellow-600">{userStrategies.length - publishedStrategies.length}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium">Total Likes</span>
-                    <span className="text-lg font-bold">{totalLikes}</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {totalTrades > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Performance Chart</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <PerformanceChart />
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
-
-        <TabsContent value="strategies" className="space-y-6">
+        <TabsContent value="performance" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Strategy Performance</CardTitle>
+              <CardTitle>Cumulative P&L</CardTitle>
+              <CardDescription>Your trading performance over time</CardDescription>
             </CardHeader>
             <CardContent>
-              {userStrategies.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Target className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>No strategies created yet</p>
-                  <p className="text-sm">Create your first strategy to see analytics here</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {userStrategies.slice(0, 5).map((strategy) => (
-                    <div key={strategy.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div>
-                        <h4 className="font-medium">{strategy.name}</h4>
-                        <p className="text-sm text-muted-foreground">
-                          Created {new Date(strategy.created_at).toLocaleDateString()}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <div className="flex items-center space-x-4">
-                          <div className="text-center">
-                            <div className="text-sm font-medium">{strategy.likes_count || 0}</div>
-                            <div className="text-xs text-muted-foreground">Likes</div>
-                          </div>
-                          <div className="text-center">
-                            <div className="text-sm font-medium">{strategy.comments_count || 0}</div>
-                            <div className="text-xs text-muted-foreground">Comments</div>
-                          </div>
-                          <div className="text-center">
-                            <div className={`text-sm font-medium ${strategy.is_public ? 'text-green-600' : 'text-yellow-600'}`}>
-                              {strategy.is_public ? 'Published' : 'Draft'}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <PerformanceChart trades={filteredTrades} />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Daily P&L</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={dailyPnL}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" />
+                  <YAxis />
+                  <Tooltip formatter={(value: any) => [`$${value.toFixed(2)}`, 'Daily P&L']} />
+                  <Bar dataKey="pnl" fill={(entry: any) => entry.pnl >= 0 ? '#22c55e' : '#ef4444'} />
+                </BarChart>
+              </ResponsiveContainer>
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="trading" className="space-y-6">
+        <TabsContent value="symbols" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Performance by Symbol</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {symbolPerformance.map((symbol) => (
+                  <div key={symbol.symbol} className="flex items-center justify-between p-2 border rounded">
+                    <div>
+                      <span className="font-medium">{symbol.symbol}</span>
+                      <span className="text-sm text-muted-foreground ml-2">({symbol.trades} trades)</span>
+                    </div>
+                    <Badge variant={symbol.pnl >= 0 ? 'default' : 'destructive'}>
+                      ${symbol.pnl.toFixed(2)}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="distribution" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Long vs Short</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={200}>
+                  <PieChart>
+                    <Pie
+                      data={sideData}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      dataKey="value"
+                      label={({ name, value }) => `${name}: ${value}`}
+                    >
+                      {sideData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="trades" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>Recent Trades</CardTitle>
             </CardHeader>
             <CardContent>
-              {!trades || trades.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <DollarSign className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>No trades recorded yet</p>
-                  <p className="text-sm">Start trading to see your performance analytics</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {trades.slice(0, 10).map((trade) => (
-                    <div key={trade.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div>
-                        <h4 className="font-medium">{trade.symbol}</h4>
-                        <p className="text-sm text-muted-foreground">
-                          {new Date(trade.entry_date).toLocaleDateString()}
-                        </p>
+              <div className="space-y-2">
+                {filteredTrades.slice(0, 10).map((trade) => (
+                  <div key={trade.id} className="flex items-center justify-between p-3 border rounded">
+                    <div className="flex items-center space-x-4">
+                      <Badge variant={trade.side === 'long' ? 'default' : 'secondary'}>
+                        {trade.side.toUpperCase()}
+                      </Badge>
+                      <span className="font-medium">{trade.symbol}</span>
+                      <span className="text-sm text-muted-foreground">
+                        {format(parseISO(trade.opened_at), 'MMM dd, HH:mm')}
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <div className={`font-medium ${(trade.pnl || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        ${(trade.pnl || 0).toFixed(2)}
                       </div>
-                      <div className="text-right">
-                        <div className="flex items-center space-x-4">
-                          <div className="text-center">
-                            <div className="text-sm font-medium">{trade.position_type}</div>
-                            <div className="text-xs text-muted-foreground">Position</div>
-                          </div>
-                          <div className="text-center">
-                            <div className="text-sm font-medium">{trade.quantity}</div>
-                            <div className="text-xs text-muted-foreground">Quantity</div>
-                          </div>
-                          <div className="text-center">
-                            <div className="text-sm font-medium">${trade.entry_price}</div>
-                            <div className="text-xs text-muted-foreground">Entry</div>
-                          </div>
-                          {trade.exit_price && (
-                            <div className="text-center">
-                              <div className="text-sm font-medium">${trade.exit_price}</div>
-                              <div className="text-xs text-muted-foreground">Exit</div>
-                            </div>
-                          )}
-                        </div>
+                      <div className="text-sm text-muted-foreground">
+                        Size: {trade.size}
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

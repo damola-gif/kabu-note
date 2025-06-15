@@ -66,73 +66,10 @@ export function usePosts() {
       }
 
       console.log('Fetched posts:', data);
-
-      // Fetch reposts with original post and user data
-      const { data: reposts, error: repostsError } = await supabase
-        .from('reposts')
-        .select(`
-          *,
-          profiles:user_id (
-            username,
-            avatar_url
-          )
-        `)
-        .order('created_at', { ascending: false });
-
-      if (repostsError) {
-        console.error('Error fetching reposts:', repostsError);
-        // Continue without reposts if there's an error
-      }
-
-      // Process reposts if available
-      let repostObjects: any[] = [];
-      if (reposts && reposts.length > 0) {
-        const originalPostIds = reposts.map(r => r.original_post_id);
-        
-        if (originalPostIds.length > 0) {
-          const { data: originalPosts } = await supabase
-            .from('posts')
-            .select(`
-              *,
-              profiles:user_id (
-                username,
-                avatar_url
-              )
-            `)
-            .in('id', originalPostIds);
-
-          const origMap: Record<string, any> = {};
-          if (originalPosts) {
-            originalPosts.forEach(p => {
-              origMap[p.id] = p;
-            });
-          }
-
-          repostObjects = reposts.map(repost => ({
-            __repost: true,
-            repost,
-            post: origMap[repost.original_post_id],
-            repost_user_profile: repost.profiles,
-          }));
-        }
-      }
-
-      // Merge and sort posts and reposts
-      const postsWithProfiles = data.map(post => ({
-        ...post,
-        __repost: false,
-      }));
-
-      const merged = [...postsWithProfiles, ...repostObjects].sort((a, b) => {
-        const aTime = a.__repost ? a.repost.created_at : a.created_at;
-        const bTime = b.__repost ? b.repost.created_at : b.created_at;
-        return new Date(bTime).getTime() - new Date(aTime).getTime();
-      });
-
-      return merged;
+      return data || [];
     },
     refetchOnWindowFocus: true,
-    refetchInterval: 30000, // Refetch every 30 seconds as fallback
+    refetchInterval: 5000, // Refetch every 5 seconds to ensure real-time updates
   });
 
   // Set up real-time subscriptions
@@ -150,18 +87,6 @@ export function usePosts() {
         },
         (payload) => {
           console.log('Posts change detected:', payload);
-          queryClient.invalidateQueries({ queryKey: ['posts'] });
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'reposts',
-        },
-        (payload) => {
-          console.log('Reposts change detected:', payload);
           queryClient.invalidateQueries({ queryKey: ['posts'] });
         }
       )

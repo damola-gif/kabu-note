@@ -14,7 +14,7 @@ export default function Feed() {
   const [sortBy, setSortBy] = useState<'latest' | 'trending' | 'liked' | 'following'>('latest');
   const [activeHashtag, setActiveHashtag] = useState<string>('');
 
-  const { data: posts, isLoading: postsLoading } = usePosts();
+  const { data: posts, isLoading: postsLoading, refetch } = usePosts();
 
   const handleHashtagSearch = (hashtag: string) => {
     setActiveHashtag(hashtag);

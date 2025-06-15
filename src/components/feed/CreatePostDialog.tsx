@@ -112,8 +112,12 @@ export function CreatePostDialog() {
       setMediaFile(null);
       setPostType('text');
       setOpen(false);
+      
+      // Show success message
+      toast.success('Post created successfully!');
     } catch (error) {
       console.error('Error creating post:', error);
+      toast.error('Failed to create post. Please try again.');
     } finally {
       setIsUploading(false);
     }
