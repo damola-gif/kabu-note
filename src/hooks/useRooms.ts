@@ -31,18 +31,27 @@ export type RoomWithCreator = CommunityRoom & {
   room_members: { count: number }[];
 };
 
-// Hook to get public rooms
+// Function to generate a random invite code
+const generateInviteCode = (): string => {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let result = '';
+  for (let i = 0; i < 8; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+};
+
+// Hook to get rooms the user has access to (public + their private/invite-only rooms)
 export const usePublicRooms = () => {
   return useQuery<RoomWithCreator[], Error>({
     queryKey: ['publicRooms'],
     queryFn: async () => {
       const { data, error } = await (supabase.from('community_rooms') as any)
         .select('*, profiles:creator_id(username, avatar_url), room_members(count)')
-        .eq('privacy_level', 'public')
         .order('created_at', { ascending: false });
       
       if (error) {
-        console.error('Error fetching public rooms:', error);
+        console.error('Error fetching rooms:', error);
         throw error;
       }
       return data as RoomWithCreator[];
@@ -59,8 +68,11 @@ export const useCreateRoom = () => {
     mutationFn: async (roomData: NewRoom) => {
       if (!user) throw new Error('User must be logged in to create a room');
       
+      // Generate invite code for invite-only rooms
+      const invite_code = roomData.privacy_level === 'invite_only' ? generateInviteCode() : null;
+      
       const { data, error } = await (supabase.from('community_rooms') as any)
-        .insert([{ ...roomData, creator_id: user.id }])
+        .insert([{ ...roomData, creator_id: user.id, invite_code }])
         .select()
         .single();
       

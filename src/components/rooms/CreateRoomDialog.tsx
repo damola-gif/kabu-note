@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -128,8 +129,8 @@ export const CreateRoomDialog = () => {
                     </FormControl>
                     <SelectContent>
                       <SelectItem value="public">Public - Anyone can join</SelectItem>
-                      <SelectItem value="private" disabled>Private - (Coming Soon)</SelectItem>
-                      <SelectItem value="invite_only" disabled>Invite Only - (Coming Soon)</SelectItem>
+                      <SelectItem value="private">Private - Hidden from public view</SelectItem>
+                      <SelectItem value="invite_only">Invite Only - Join by invitation</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
