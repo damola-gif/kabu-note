@@ -4,8 +4,15 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { TrendingUp, Users, BookOpen } from 'lucide-react';
+import { useFollowing } from '@/hooks/useProfile';
+import { useStrategyActions } from '@/hooks/useStrategyActions';
+import { useSession } from '@/contexts/SessionProvider';
 
 export function FeedSidebar() {
+  const { user } = useSession();
+  const { data: followingIds = [] } = useFollowing();
+  const { handleFollowToggle } = useStrategyActions();
+
   // Mock data - in real app, these would come from API calls
   const trendingTags = ['#SPY', '#Bitcoin', '#Swing', '#Scalping', '#Options'];
   const topTraders = [
@@ -42,21 +49,34 @@ export function FeedSidebar() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {topTraders.map((trader) => (
-            <div key={trader.id} className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={trader.avatar} />
-                  <AvatarFallback>{trader.username[0].toUpperCase()}</AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="text-sm font-medium">{trader.username}</p>
-                  <p className="text-xs text-muted-foreground">{trader.followers} followers</p>
+          {topTraders.map((trader) => {
+            const isFollowing = followingIds.includes(trader.id);
+            const isOwnProfile = user?.id === trader.id;
+            
+            return (
+              <div key={trader.id} className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={trader.avatar} />
+                    <AvatarFallback>{trader.username[0].toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="text-sm font-medium">{trader.username}</p>
+                    <p className="text-xs text-muted-foreground">{trader.followers} followers</p>
+                  </div>
                 </div>
+                {!isOwnProfile && user && (
+                  <Button 
+                    variant={isFollowing ? "secondary" : "outline"} 
+                    size="sm"
+                    onClick={() => handleFollowToggle(trader.id, isFollowing)}
+                  >
+                    {isFollowing ? 'Following' : 'Follow'}
+                  </Button>
+                )}
               </div>
-              <Button variant="outline" size="sm">Follow</Button>
-            </div>
-          ))}
+            );
+          })}
         </CardContent>
       </Card>
 

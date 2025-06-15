@@ -6,10 +6,10 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { StrategyWithProfile } from '@/hooks/useStrategies';
 import { formatDistanceToNow } from 'date-fns';
-import { useState } from 'react';
 import { useSession } from '@/contexts/SessionProvider';
 import { useLikedStrategyIds, useBookmarkedStrategyIds } from '@/hooks/useStrategies';
 import { useStrategyActions } from '@/hooks/useStrategyActions';
+import { useFollowing } from '@/hooks/useProfile';
 
 interface FeedCardProps {
   strategy: StrategyWithProfile;
@@ -19,11 +19,13 @@ export function FeedCard({ strategy }: FeedCardProps) {
   const { user } = useSession();
   const { data: likedIds = [] } = useLikedStrategyIds();
   const { data: bookmarkedIds = [] } = useBookmarkedStrategyIds();
-  const { handleLikeToggle, handleBookmarkToggle } = useStrategyActions();
+  const { data: followingIds = [] } = useFollowing();
+  const { handleLikeToggle, handleBookmarkToggle, handleFollowToggle } = useStrategyActions();
   
   const isLiked = likedIds.includes(strategy.id);
   const isBookmarked = bookmarkedIds.includes(strategy.id);
   const isOwnStrategy = user?.id === strategy.user_id;
+  const isFollowing = followingIds.includes(strategy.user_id);
 
   const handleViewStrategy = () => {
     window.open(`/strategies/${strategy.id}`, '_blank');
@@ -51,10 +53,14 @@ export function FeedCard({ strategy }: FeedCardProps) {
             </div>
           </div>
           
-          {!isOwnStrategy && (
-            <Button variant="outline" size="sm">
+          {!isOwnStrategy && user && (
+            <Button 
+              variant={isFollowing ? "secondary" : "outline"} 
+              size="sm"
+              onClick={() => handleFollowToggle(strategy.user_id, isFollowing)}
+            >
               <Users className="mr-1 h-3 w-3" />
-              Follow
+              {isFollowing ? 'Following' : 'Follow'}
             </Button>
           )}
         </div>
@@ -108,12 +114,13 @@ export function FeedCard({ strategy }: FeedCardProps) {
               size="sm"
               onClick={() => handleLikeToggle(strategy.id, isLiked)}
               className={isLiked ? 'text-red-500' : ''}
+              disabled={!user}
             >
               <Heart className={`mr-1 h-4 w-4 ${isLiked ? 'fill-current' : ''}`} />
               {strategy.likes_count || 0}
             </Button>
             
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" disabled={!user}>
               <MessageSquare className="mr-1 h-4 w-4" />
               {strategy.comments_count || 0}
             </Button>
@@ -123,6 +130,7 @@ export function FeedCard({ strategy }: FeedCardProps) {
               size="sm"
               onClick={() => handleBookmarkToggle(strategy.id, isBookmarked)}
               className={isBookmarked ? 'text-blue-500' : ''}
+              disabled={!user}
             >
               <Bookmark className={`h-4 w-4 ${isBookmarked ? 'fill-current' : ''}`} />
             </Button>
