@@ -1,69 +1,123 @@
-
-import { Home, List, TrendingUp, Settings, Newspaper } from "lucide-react";
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from "@/components/ui/sidebar";
-import { Link, useLocation } from "react-router-dom";
+  Home,
+  LayoutDashboard,
+  ListChecks,
+  BarChartBig,
+  User,
+  Settings,
+  Feed,
+} from "lucide-react";
+import { NavLink, useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { useSession } from "@/contexts/SessionProvider";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
-const items = [
+interface SidebarItemProps {
+  icon: React.ReactNode;
+  label: string;
+  route: string;
+}
+
+const sidebarItems: SidebarItemProps[] = [
   {
-    title: "Dashboard",
-    url: "/dashboard",
-    icon: Home,
+    icon: <LayoutDashboard className="h-4 w-4" />,
+    label: "Dashboard",
+    route: "/dashboard",
   },
   {
-    title: "Journal",
-    url: "/journal",
-    icon: List,
+    icon: <ListChecks className="h-4 w-4" />,
+    label: "Journal",
+    route: "/journal",
   },
   {
-    title: "Strategies",
-    url: "/strategies",
-    icon: TrendingUp,
+    icon: <Feed className="h-4 w-4" />,
+    label: "Feed",
+    route: "/feed",
   },
   {
-    title: "Feed",
-    url: "/feed",
-    icon: Newspaper,
+    icon: <Home className="h-4 w-4" />,
+    label: "Strategies",
+    route: "/strategies",
   },
   {
-    title: "Settings",
-    url: "/settings",
-    icon: Settings,
+    icon: <BarChartBig className="h-4 w-4" />,
+    label: "Analytics",
+    route: "/analytics",
   },
 ];
 
 export function AppSidebar() {
-  const { pathname } = useLocation();
+  const { user } = useSession();
+  const [profile, setProfile] = useState<any>(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const getProfile = async () => {
+      if (user) {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", user.id)
+          .single();
+
+        if (error) {
+          console.error("Error fetching profile:", error);
+        } else {
+          setProfile(data);
+        }
+      }
+    };
+
+    getProfile();
+  }, [user]);
+
+  const handleProfileClick = () => {
+    if (profile?.username) {
+      navigate(`/u/${profile.username}`);
+    } else {
+      // If no username yet, go to settings to set it up
+      navigate('/settings');
+      toast.info("Please set up your username in settings first");
+    }
+  };
 
   return (
-    <Sidebar>
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>KabuTrade</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {items.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={pathname === item.url}>
-                    <Link to={item.url} className="flex items-center gap-2">
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-    </Sidebar>
+    <div className="flex flex-col h-full bg-gray-50 border-r py-4">
+      <div className="px-4 mb-4">
+        <Button variant="ghost" className="font-bold w-full justify-start">
+          KabuTrade
+        </Button>
+      </div>
+      <div className="space-y-1">
+        {sidebarItems.map((item) => (
+          <NavLink
+            key={item.label}
+            to={item.route}
+            className={({ isActive }) =>
+              `flex items-center px-4 py-2 rounded-md hover:bg-gray-200 ${
+                isActive ? "bg-gray-200 font-medium" : "text-gray-600"
+              }`
+            }
+          >
+            {item.icon}
+            <span className="ml-2">{item.label}</span>
+          </NavLink>
+        ))}
+      </div>
+      <div className="mt-auto px-4">
+        <Button variant="secondary" className="w-full justify-start mb-2" onClick={handleProfileClick}>
+          <User className="h-4 w-4 mr-2" />
+          Profile
+        </Button>
+        <NavLink to="/settings">
+          <Button variant="ghost" className="w-full justify-start">
+            <Settings className="h-4 w-4 mr-2" />
+            Settings
+          </Button>
+        </NavLink>
+      </div>
+    </div>
   );
 }

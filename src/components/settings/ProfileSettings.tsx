@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useSession } from "@/contexts/SessionProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 const timezones = [
   { value: "UTC", label: "UTC (Coordinated Universal Time)" },
@@ -23,6 +24,7 @@ const timezones = [
 
 export function ProfileSettings() {
   const { user } = useSession();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [formData, setFormData] = useState({
@@ -110,6 +112,14 @@ export function ProfileSettings() {
     toast.info("Photo upload feature coming soon!");
   };
 
+  const handleViewProfile = () => {
+    if (formData.username) {
+      navigate(`/u/${formData.username}`);
+    } else {
+      toast.error("Please save your username first");
+    }
+  };
+
   if (isLoadingProfile) {
     return <div className="flex justify-center py-8">Loading profile...</div>;
   }
@@ -167,6 +177,7 @@ export function ProfileSettings() {
             placeholder="Choose a username"
             required
           />
+          <p className="text-xs text-gray-500">This will be used in your profile URL: /u/{formData.username || 'username'}</p>
         </div>
 
         <div className="space-y-2">
@@ -186,8 +197,8 @@ export function ProfileSettings() {
         </div>
       </div>
 
-      {/* Save Button */}
-      <div className="pt-4">
+      {/* Action Buttons */}
+      <div className="pt-4 flex gap-4">
         <Button 
           onClick={handleSave} 
           disabled={isLoading || !formData.fullName.trim() || !formData.username.trim()}
@@ -195,6 +206,15 @@ export function ProfileSettings() {
         >
           {isLoading ? "Saving..." : "Save Changes"}
         </Button>
+        
+        {formData.username && (
+          <Button 
+            onClick={handleViewProfile}
+            variant="outline"
+          >
+            View Profile
+          </Button>
+        )}
       </div>
     </div>
   );

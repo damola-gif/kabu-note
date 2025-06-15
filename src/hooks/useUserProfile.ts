@@ -8,6 +8,8 @@ export function useUserProfile(username: string) {
     queryFn: async () => {
       if (!username) return null;
       
+      console.log("Fetching profile for username:", username);
+      
       const { data: profile, error } = await supabase
         .from('profiles')
         .select('*')
@@ -15,12 +17,14 @@ export function useUserProfile(username: string) {
         .single();
 
       if (error) {
+        console.log("Profile fetch error:", error);
         if (error.code === 'PGRST116') {
           return null; // User not found
         }
         throw error;
       }
 
+      console.log("Profile found:", profile);
       return profile;
     },
     enabled: !!username,
