@@ -23,6 +23,25 @@ export function ProfilePhotoSection({ fullName, userEmail, avatarUrl, onAvatarUp
     fileInputRef.current?.click();
   };
 
+  const uploadMedia = async (file: File): Promise<string> => {
+    if (!user) throw new Error('User not authenticated');
+
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+
+    const { data, error } = await supabase.storage
+      .from('post-media')
+      .upload(fileName, file);
+
+    if (error) throw error;
+
+    const { data: urlData } = supabase.storage
+      .from('post-media')
+      .getPublicUrl(data.path);
+
+    return urlData.publicUrl;
+  };
+
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file || !user) {
@@ -42,36 +61,12 @@ export function ProfilePhotoSection({ fullName, userEmail, avatarUrl, onAvatarUp
       return;
     }
 
-    console.log('Starting file upload for user:', user.id);
+    console.log('Starting profile photo upload for user:', user.id);
     setIsUploading(true);
     try {
-      // Create a unique filename
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/avatar-${Date.now()}.${fileExt}`;
-
-      console.log('Uploading file:', fileName);
-
-      // Upload to Supabase storage
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(fileName, file, { 
-          upsert: true,
-          cacheControl: '3600'
-        });
-
-      if (uploadError) {
-        console.error('Upload error:', uploadError);
-        throw uploadError;
-      }
-
-      console.log('Upload successful:', uploadData);
-
-      // Get the public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(fileName);
-
-      console.log('Public URL:', publicUrl);
+      // Upload using the same method as feed posts
+      const publicUrl = await uploadMedia(file);
+      console.log('Upload successful, public URL:', publicUrl);
 
       // Update the user's profile with the new avatar URL
       const { error: updateError } = await supabase
