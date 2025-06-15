@@ -1,3 +1,4 @@
+
 import { StrategyWithProfile } from '@/hooks/useStrategies';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -25,6 +26,8 @@ interface StrategyGridProps {
     isFiltering: boolean;
     likedStrategyIds?: string[];
     onLikeToggle: (strategyId: string, isLiked: boolean) => void;
+    bookmarkedStrategyIds?: string[];
+    onBookmarkToggle: (strategyId: string, isBookmarked: boolean) => void;
 }
 
 export function StrategyGrid({
@@ -43,7 +46,9 @@ export function StrategyGrid({
     onFollowToggle,
     isFiltering,
     likedStrategyIds,
-    onLikeToggle
+    onLikeToggle,
+    bookmarkedStrategyIds,
+    onBookmarkToggle
 }: StrategyGridProps) {
     const { user } = useSession();
 
@@ -97,9 +102,10 @@ export function StrategyGrid({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {strategies.map((strategy) => {
                 const isOwnStrategy = strategy.user_id === user?.id;
-                const canFollow = !!(!isOwnStrategy && strategy.profile?.id);
+                const canFollow = !isOwnStrategy && !!strategy.profile?.id;
                 const isFollowing = !!(canFollow && followingIds?.includes(strategy.profile!.id));
                 const isLiked = !!likedStrategyIds?.includes(strategy.id);
+                const isBookmarked = !!bookmarkedStrategyIds?.includes(strategy.id);
 
                 return (
                     <StrategyCard
@@ -109,11 +115,13 @@ export function StrategyGrid({
                         canFollow={canFollow}
                         isFollowing={isFollowing}
                         isLiked={isLiked}
+                        isBookmarked={isBookmarked}
                         onEdit={onEdit}
                         onDelete={onDelete}
                         onFork={onFork}
                         onFollowToggle={onFollowToggle}
                         onLikeToggle={onLikeToggle}
+                        onBookmarkToggle={onBookmarkToggle}
                         forkMutation={forkMutation}
                         followMutation={followMutation}
                         unfollowMutation={unfollowMutation}

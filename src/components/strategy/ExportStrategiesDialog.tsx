@@ -52,9 +52,11 @@ export function ExportStrategiesDialog({ open, onOpenChange, strategies }: Expor
             content_markdown: strategy.content_markdown,
             win_rate: strategy.win_rate,
             is_public: strategy.is_public,
+            tags: strategy.tags || [],
             created_at: strategy.created_at,
             likes_count: strategy.likes_count,
             comments_count: strategy.comments_count,
+            bookmarks_count: strategy.bookmarks_count || 0,
         }));
 
         const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
@@ -62,14 +64,16 @@ export function ExportStrategiesDialog({ open, onOpenChange, strategies }: Expor
     };
 
     const exportAsCSV = () => {
-        const headers = ['Name', 'Win Rate (%)', 'Visibility', 'Created Date', 'Likes', 'Comments', 'Content Preview'];
+        const headers = ['Name', 'Win Rate (%)', 'Visibility', 'Tags', 'Created Date', 'Likes', 'Comments', 'Bookmarks', 'Content Preview'];
         const rows = filteredStrategies.map(strategy => [
             strategy.name,
             strategy.win_rate || 0,
             strategy.is_public ? 'Public' : 'Private',
+            (strategy.tags || []).join('; '),
             strategy.created_at ? new Date(strategy.created_at).toLocaleDateString() : '',
             strategy.likes_count || 0,
             strategy.comments_count || 0,
+            strategy.bookmarks_count || 0,
             (strategy.content_markdown || '').substring(0, 100).replace(/\n/g, ' ') + '...'
         ]);
 
@@ -131,7 +135,7 @@ export function ExportStrategiesDialog({ open, onOpenChange, strategies }: Expor
                                 <Checkbox 
                                     id="include-public" 
                                     checked={includePublic}
-                                    onCheckedChange={setIncludePublic}
+                                    onCheckedChange={(checked) => setIncludePublic(checked === true)}
                                 />
                                 <Label htmlFor="include-public">Include public strategies</Label>
                             </div>
@@ -139,7 +143,7 @@ export function ExportStrategiesDialog({ open, onOpenChange, strategies }: Expor
                                 <Checkbox 
                                     id="include-private" 
                                     checked={includePrivate}
-                                    onCheckedChange={setIncludePrivate}
+                                    onCheckedChange={(checked) => setIncludePrivate(checked === true)}
                                 />
                                 <Label htmlFor="include-private">Include private strategies</Label>
                             </div>

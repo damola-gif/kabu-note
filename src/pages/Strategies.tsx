@@ -1,6 +1,6 @@
 
 import { useState, useMemo } from 'react';
-import { useStrategies, useDeleteStrategy, useForkStrategy, useLikedStrategyIds, useToggleLike } from '@/hooks/useStrategies';
+import { useStrategies, useDeleteStrategy, useForkStrategy, useLikedStrategyIds, useToggleLike, useBookmarkedStrategyIds, useToggleBookmark } from '@/hooks/useStrategies';
 import { Button } from '@/components/ui/button';
 import { StrategyEditorDialog } from '@/components/strategy/StrategyEditorDialog';
 import { PlusCircle, Loader2, Upload, Download } from 'lucide-react';
@@ -28,7 +28,9 @@ export default function Strategies() {
     
     const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, error } = useStrategies();
     const { data: likedStrategyIds } = useLikedStrategyIds();
+    const { data: bookmarkedStrategyIds } = useBookmarkedStrategyIds();
     const toggleLikeMutation = useToggleLike();
+    const toggleBookmarkMutation = useToggleBookmark();
 
     const { user } = useSession();
     const { data: followingIds, isLoading: isLoadingFollowing } = useFollowing();
@@ -89,8 +91,15 @@ export default function Strategies() {
         toggleLikeMutation.mutate({ strategyId, isLiked });
     };
 
+    const handleBookmarkToggle = (strategyId: string, isBookmarked: boolean) => {
+        toggleBookmarkMutation.mutate({ strategyId, isBookmarked });
+    };
+
     const filteredStrategies = useMemo(() => allStrategies.filter((strategy) => {
-        const nameMatch = strategy.name.toLowerCase().includes(searchTerm.toLowerCase());
+        // Search term match
+        const searchMatch = searchTerm === "" || 
+            strategy.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (strategy.content_markdown && strategy.content_markdown.toLowerCase().includes(searchTerm.toLowerCase()));
 
         const winRate = (strategy.win_rate ?? 0) as number;
         const winRateMatch = winRate >= winRateRange[0] && winRate <= winRateRange[1];
@@ -118,16 +127,17 @@ export default function Strategies() {
             authorMatch = strategy.user_id === user?.id;
         } else if (authorFilter === 'following') {
             if (isLoadingFollowing || !followingIds) {
-                return nameMatch && winRateMatch && dateMatch;
+                return searchMatch && winRateMatch && dateMatch;
             }
             authorMatch = !!strategy.profile?.id && followingIds.includes(strategy.profile.id);
         }
 
-        // TODO: Add tag filtering when tags are implemented
-        // const tagMatch = selectedTags.length === 0 || selectedTags.some(tag => strategy.tags?.includes(tag));
+        // Tag filtering
+        const tagMatch = selectedTags.length === 0 || 
+            (strategy.tags && selectedTags.some(tag => strategy.tags?.includes(tag)));
 
-        return nameMatch && winRateMatch && dateMatch && authorMatch;
-    }), [allStrategies, searchTerm, winRateRange, dateRange, authorFilter, user?.id, followingIds, isLoadingFollowing, selectedTags]);
+        return searchMatch && winRateMatch && dateMatch && authorMatch && tagMatch;
+    }), [allStrategies, searchTerm, winRateRange, dateRange, authorFilter, selectedTags, user?.id, followingIds, isLoadingFollowing]);
 
     const isFiltering = searchTerm !== "" || winRateRange[0] !== 0 || winRateRange[1] !== 100 || dateRange !== undefined || authorFilter !== "all" || selectedTags.length > 0;
 
@@ -191,6 +201,8 @@ export default function Strategies() {
                         isFiltering={isFiltering}
                         likedStrategyIds={likedStrategyIds}
                         onLikeToggle={handleLikeToggle}
+                        bookmarkedStrategyIds={bookmarkedStrategyIds}
+                        onBookmarkToggle={handleBookmarkToggle}
                     />
                     {hasNextPage && !isFiltering && (
                         <div className="mt-6 text-center">

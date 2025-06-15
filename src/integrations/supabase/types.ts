@@ -27,6 +27,50 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean | null
+          message: string
+          related_strategy_id: string | null
+          related_user_id: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          message: string
+          related_strategy_id?: string | null
+          related_user_id?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          related_strategy_id?: string | null
+          related_user_id?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_related_strategy_id_fkey"
+            columns: ["related_strategy_id"]
+            isOneToOne: false
+            referencedRelation: "strategies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -53,45 +97,83 @@ export type Database = {
       }
       strategies: {
         Row: {
+          bookmarks_count: number
           comments_count: number
           content_markdown: string | null
           created_at: string | null
           id: string
           image_path: string | null
+          is_draft: boolean | null
           is_public: boolean | null
+          last_saved_at: string | null
           likes_count: number
           name: string
+          tags: string[] | null
           updated_at: string | null
           user_id: string
           win_rate: number | null
         }
         Insert: {
+          bookmarks_count?: number
           comments_count?: number
           content_markdown?: string | null
           created_at?: string | null
           id?: string
           image_path?: string | null
+          is_draft?: boolean | null
           is_public?: boolean | null
+          last_saved_at?: string | null
           likes_count?: number
           name: string
+          tags?: string[] | null
           updated_at?: string | null
           user_id: string
           win_rate?: number | null
         }
         Update: {
+          bookmarks_count?: number
           comments_count?: number
           content_markdown?: string | null
           created_at?: string | null
           id?: string
           image_path?: string | null
+          is_draft?: boolean | null
           is_public?: boolean | null
+          last_saved_at?: string | null
           likes_count?: number
           name?: string
+          tags?: string[] | null
           updated_at?: string | null
           user_id?: string
           win_rate?: number | null
         }
         Relationships: []
+      }
+      strategy_bookmarks: {
+        Row: {
+          created_at: string
+          strategy_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          strategy_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          strategy_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "strategy_bookmarks_strategy_id_fkey"
+            columns: ["strategy_id"]
+            isOneToOne: false
+            referencedRelation: "strategies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       strategy_comments: {
         Row: {
@@ -121,6 +203,47 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "strategy_comments_strategy_id_fkey"
+            columns: ["strategy_id"]
+            isOneToOne: false
+            referencedRelation: "strategies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      strategy_drafts: {
+        Row: {
+          auto_saved_at: string
+          content_markdown: string | null
+          id: string
+          name: string
+          strategy_id: string | null
+          tags: string[] | null
+          user_id: string
+          win_rate: number | null
+        }
+        Insert: {
+          auto_saved_at?: string
+          content_markdown?: string | null
+          id?: string
+          name: string
+          strategy_id?: string | null
+          tags?: string[] | null
+          user_id: string
+          win_rate?: number | null
+        }
+        Update: {
+          auto_saved_at?: string
+          content_markdown?: string | null
+          id?: string
+          name?: string
+          strategy_id?: string | null
+          tags?: string[] | null
+          user_id?: string
+          win_rate?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "strategy_drafts_strategy_id_fkey"
             columns: ["strategy_id"]
             isOneToOne: false
             referencedRelation: "strategies"
@@ -213,7 +336,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_notification: {
+        Args: {
+          target_user_id: string
+          notification_type: string
+          notification_title: string
+          notification_message: string
+          strategy_id?: string
+          source_user_id?: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       trade_side: "long" | "short"

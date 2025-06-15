@@ -88,6 +88,53 @@ export function useLikedStrategyIds() {
     });
 }
 
+// Hook to get IDs of strategies bookmarked by the current user
+export function useBookmarkedStrategyIds() {
+    const { user } = useSession();
+    return useQuery({
+        queryKey: ['bookmarkedStrategyIds', user?.id],
+        queryFn: async () => {
+            if (!user) return [];
+            const { data, error } = await supabase
+                .from('strategy_bookmarks')
+                .select('strategy_id')
+                .eq('user_id', user.id);
+            if (error) throw error;
+            return data.map(bookmark => bookmark.strategy_id);
+        },
+        enabled: !!user,
+    });
+}
+
+// Hook to toggle bookmark on a strategy
+export function useToggleBookmark() {
+    const { user } = useSession();
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({ strategyId, isBookmarked }: { strategyId: string; isBookmarked: boolean }) => {
+            if (!user) throw new Error("You must be logged in to bookmark a strategy.");
+
+            if (isBookmarked) {
+                const { error } = await supabase.from('strategy_bookmarks').delete().match({ strategy_id: strategyId, user_id: user.id });
+                if (error) throw error;
+            } else {
+                const { error } = await supabase.from('strategy_bookmarks').insert({ strategy_id: strategyId, user_id: user.id });
+                if (error) throw error;
+            }
+        },
+        onSuccess: (_, { strategyId, isBookmarked }) => {
+            queryClient.invalidateQueries({ queryKey: ['strategies'] });
+            queryClient.invalidateQueries({ queryKey: ['bookmarkedStrategyIds', user?.id] });
+            queryClient.invalidateQueries({ queryKey: ['strategy', strategyId] });
+            toast.success(isBookmarked ? "Removed from bookmarks" : "Added to bookmarks");
+        },
+        onError: (error) => {
+            toast.error(error.message);
+        }
+    });
+}
+
 // Hook to toggle like on a strategy
 export function useToggleLike() {
     const { user } = useSession();
@@ -168,9 +215,11 @@ export function useCreateStrategy() {
         name: newStrategy.name,
         content_markdown: newStrategy.content_markdown,
         is_public: newStrategy.is_public,
+        is_draft: !newStrategy.is_public,
         user_id: user.id,
         image_path: imagePath,
         win_rate: newStrategy.win_rate,
+        tags: newStrategy.tags || [],
       };
       const { data, error } = await supabase.from("strategies").insert(dataToInsert).select().single();
       if (error) throw error;
@@ -224,8 +273,11 @@ export function useUpdateStrategy() {
         name: values.name,
         content_markdown: values.content_markdown,
         is_public: values.is_public,
+        is_draft: !values.is_public,
         image_path: finalImagePath,
         win_rate: values.win_rate,
+        tags: values.tags || [],
+        last_saved_at: new Date().toISOString(),
       };
 
       const { error } = await supabase
@@ -280,8 +332,10 @@ export function useForkStrategy() {
         name: `Fork of ${strategyToFork.name}`,
         content_markdown: strategyToFork.content_markdown,
         is_public: false, // Forks are private by default
+        is_draft: true,
         user_id: user.id,
         win_rate: strategyToFork.win_rate,
+        tags: strategyToFork.tags || [],
         image_path: null, // Don't copy image
       };
       
@@ -295,6 +349,30 @@ export function useForkStrategy() {
     },
     onError: (error) => {
       toast.error(`Error forking strategy: ${error.message}`);
+    },
+  });
+}
+
+// Hook to get all unique tags from strategies
+export function useStrategyTags() {
+  return useQuery({
+    queryKey: ['strategyTags'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('strategies')
+        .select('tags')
+        .not('tags', 'is', null);
+      
+      if (error) throw error;
+      
+      const allTags = new Set<string>();
+      data.forEach(strategy => {
+        if (strategy.tags) {
+          strategy.tags.forEach(tag => allTags.add(tag));
+        }
+      });
+      
+      return Array.from(allTags).sort();
     },
   });
 }

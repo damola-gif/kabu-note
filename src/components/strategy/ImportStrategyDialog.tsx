@@ -52,6 +52,7 @@ export function ImportStrategyDialog({ open, onOpenChange }: ImportStrategyDialo
                 content_markdown: strategyData.content_markdown,
                 is_public: false, // Import as private by default
                 win_rate: strategyData.win_rate || 0,
+                tags: strategyData.tags || [],
                 image_file: undefined,
                 image_path: undefined,
             });
@@ -114,7 +115,8 @@ export function ImportStrategyDialog({ open, onOpenChange }: ImportStrategyDialo
 {`{
   "name": "Strategy Name",
   "content_markdown": "# Strategy Rules...",
-  "win_rate": 75
+  "win_rate": 75,
+  "tags": ["breakout", "momentum"]
 }`}
                             </pre>
                         </div>
