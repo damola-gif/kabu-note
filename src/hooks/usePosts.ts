@@ -158,3 +158,28 @@ export function useTogglePostLike() {
     },
   });
 }
+
+export function useDeletePost() {
+  const { user } = useSession();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (postId: string) => {
+      if (!user) throw new Error("User not authenticated");
+      const { error } = await supabase
+        .from('posts')
+        .delete()
+        .eq('id', postId)
+        .eq('user_id', user.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['posts'] });
+      toast.success('Post deleted successfully!');
+    },
+    onError: (error) => {
+      console.error('Error deleting post:', error);
+      toast.error('Failed to delete post. Please try again.');
+    },
+  });
+}

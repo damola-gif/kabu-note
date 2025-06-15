@@ -1,4 +1,3 @@
-
 import { Heart, MessageSquare, Share, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -8,6 +7,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { useSession } from '@/contexts/SessionProvider';
 import { usePostLikes, useTogglePostLike } from '@/hooks/usePosts';
 import { useNavigate } from 'react-router-dom';
+import { useDeletePost } from '@/hooks/usePosts';
 
 interface PostCardProps {
   post: Post;
@@ -18,7 +18,9 @@ export function PostCard({ post }: PostCardProps) {
   const navigate = useNavigate();
   const { data: likedPostIds = [] } = usePostLikes();
   const toggleLike = useTogglePostLike();
-  
+  const deletePost = useDeletePost();
+  const isPostOwner = user?.id === post.user_id;
+
   const isLiked = likedPostIds.includes(post.id);
 
   const handleLikeToggle = () => {
@@ -129,6 +131,29 @@ export function PostCard({ post }: PostCardProps) {
               <span className="text-muted-foreground text-sm">
                 {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
               </span>
+              {/* Delete Button (only owner) */}
+              {isPostOwner && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="ml-auto shrink-0"
+                  onClick={() => deletePost.mutate(post.id)}
+                  disabled={deletePost.isPending}
+                  aria-label="Delete post"
+                >
+                  <span className="sr-only">Delete</span>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4 text-destructive"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </Button>
+              )}
             </div>
 
             {/* Post Content */}

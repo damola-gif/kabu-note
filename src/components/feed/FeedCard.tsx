@@ -1,4 +1,3 @@
-
 import { Heart, MessageSquare, Bookmark, Users, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -12,6 +11,7 @@ import { useFollowing } from '@/hooks/useProfile';
 import { CommentSection } from '@/components/comments/CommentSection';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useDeleteStrategy } from '@/hooks/useStrategiesCRUD';
 
 interface FeedCardProps {
   strategy: StrategyWithProfile;
@@ -25,6 +25,8 @@ export function FeedCard({ strategy }: FeedCardProps) {
   const { data: followingIds = [] } = useFollowing();
   const { handleLikeToggle, handleBookmarkToggle, handleFollowToggle } = useStrategyActions();
   const [showComments, setShowComments] = useState(false);
+  const deleteStrategy = useDeleteStrategy();
+  const isOwnStrategy = user?.id === strategy.user_id;
   
   const isLiked = likedIds.includes(strategy.id);
   const isBookmarked = bookmarkedIds.includes(strategy.id);
@@ -73,15 +75,27 @@ export function FeedCard({ strategy }: FeedCardProps) {
                   {formatDistanceToNow(new Date(strategy.created_at), { addSuffix: true })}
                 </span>
               </div>
-              
-              {!isOwnStrategy && user && (
-                <Button 
-                  variant={isFollowing ? "secondary" : "outline"} 
-                  size="sm"
-                  onClick={() => handleFollowToggle(strategy.user_id, isFollowing)}
-                  className="h-7 px-3 text-xs"
+              {/* Delete Button (only for own strategy) */}
+              {isOwnStrategy && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="ml-auto shrink-0"
+                  onClick={() => deleteStrategy.mutate(strategy.id)}
+                  disabled={deleteStrategy.isPending}
+                  aria-label="Delete strategy"
                 >
-                  {isFollowing ? 'Following' : 'Follow'}
+                  <span className="sr-only">Delete</span>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4 text-destructive"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
                 </Button>
               )}
             </div>
