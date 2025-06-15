@@ -28,11 +28,11 @@ export const RoomCard = ({ room }: RoomCardProps) => {
       <CardFooter className="flex justify-between items-center">
         <div className="flex items-center gap-2">
           <Avatar className="h-6 w-6">
-            <AvatarImage src={room.creator_id?.avatar_url || ''} />
-            <AvatarFallback>{room.creator_id?.username?.charAt(0).toUpperCase()}</AvatarFallback>
+            <AvatarImage src={room.profiles?.avatar_url || ''} />
+            <AvatarFallback>{room.profiles?.username?.charAt(0).toUpperCase()}</AvatarFallback>
           </Avatar>
           <span className="text-sm text-muted-foreground">
-            by {room.creator_id?.username || '...'}
+            by {room.profiles?.username || '...'}
           </span>
         </div>
         <Button asChild size="sm">
