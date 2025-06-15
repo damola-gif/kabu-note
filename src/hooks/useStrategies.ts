@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient, useInfiniteQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useSession } from "@/contexts/SessionProvider";
@@ -9,43 +9,81 @@ export type StrategyWithProfile = Tables<'strategies'> & {
   profile?: Pick<Tables<'profiles'>, 'id' | 'username' | 'avatar_url'> | null;
 };
 
-// Hook to fetch strategies based on RLS
+const STRATEGIES_PER_PAGE = 9;
+
+// Hook to fetch strategies with pagination
 export function useStrategies() {
   const { user } = useSession();
-  return useQuery({
+  
+  return useInfiniteQuery({
     queryKey: ["strategies"],
-    queryFn: async (): Promise<StrategyWithProfile[]> => {
+    queryFn: async ({ pageParam = 0 }): Promise<StrategyWithProfile[]> => {
+      const from = pageParam * STRATEGIES_PER_PAGE;
+      const to = from + STRATEGIES_PER_PAGE - 1;
+
       const { data: strategies, error } = await supabase
         .from("strategies")
-        .select("*")
-        .order("created_at", { ascending: false });
+        .select("*, profile:profiles(id, username, avatar_url)")
+        .order("created_at", { ascending: false })
+        .range(from, to);
+
       if (error) throw new Error(error.message);
-      if (!strategies) return [];
-
-      const userIds = Array.from(new Set(strategies.map(s => s.user_id).filter(Boolean)));
-      if(userIds.length === 0) {
-        return strategies.map(s => ({...s, profile: null}));
+      return strategies || [];
+    },
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) => {
+      if (lastPage.length < STRATEGIES_PER_PAGE) {
+        return undefined; // No more pages
       }
-
-      const { data: profiles, error: profileError } = await supabase
-        .from("profiles")
-        .select("id, username, avatar_url")
-        .in('id', userIds);
-
-      if (profileError) {
-        console.error("Error fetching profiles:", profileError.message);
-        return strategies.map(s => ({...s, profile: null}));
-      }
-
-      const profileMap = new Map(profiles?.map(p => [p.id, p]));
-
-      return strategies.map(strategy => ({
-        ...strategy,
-        profile: profileMap.get(strategy.user_id)
-      }));
+      return allPages.length;
     },
     enabled: !!user,
   });
+}
+
+// Hook to get IDs of strategies liked by the current user
+export function useLikedStrategyIds() {
+    const { user } = useSession();
+    return useQuery({
+        queryKey: ['likedStrategyIds', user?.id],
+        queryFn: async () => {
+            if (!user) return [];
+            const { data, error } = await supabase
+                .from('strategy_likes')
+                .select('strategy_id')
+                .eq('user_id', user.id);
+            if (error) throw error;
+            return data.map(like => like.strategy_id);
+        },
+        enabled: !!user,
+    });
+}
+
+// Hook to toggle like on a strategy
+export function useToggleLike() {
+    const { user } = useSession();
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({ strategyId, isLiked }: { strategyId: string; isLiked: boolean }) => {
+            if (!user) throw new Error("You must be logged in to like a strategy.");
+
+            if (isLiked) {
+                const { error } = await supabase.from('strategy_likes').delete().match({ strategy_id: strategyId, user_id: user.id });
+                if (error) throw error;
+            } else {
+                const { error } = await supabase.from('strategy_likes').insert({ strategy_id: strategyId, user_id: user.id });
+                if (error) throw error;
+            }
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['strategies'] });
+            queryClient.invalidateQueries({ queryKey: ['likedStrategyIds', user?.id] });
+        },
+        onError: (error) => {
+            toast.error(error.message);
+        }
+    });
 }
 
 // Hook to fetch a single strategy by its ID

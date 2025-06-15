@@ -1,4 +1,3 @@
-
 import { StrategyWithProfile } from '@/hooks/useStrategies';
 import { Tables } from '@/integrations/supabase/types';
 import { supabase } from '@/integrations/supabase/client';
@@ -7,19 +6,22 @@ import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { MoreHorizontal, Eye, Edit, Trash2, Copy, Globe, Lock } from 'lucide-react';
+import { MoreHorizontal, Eye, Edit, Trash2, Copy, Globe, Lock, ThumbsUp, MessageCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { UseMutationResult } from '@tanstack/react-query';
+import { cn } from '@/lib/utils';
 
 interface StrategyCardProps {
     strategy: StrategyWithProfile;
     isOwnStrategy: boolean;
     canFollow: boolean;
     isFollowing?: boolean;
+    isLiked: boolean;
     onEdit: (strategy: Tables<'strategies'>) => void;
     onDelete: (strategy: Tables<'strategies'>) => void;
     onFork: (strategy: Tables<'strategies'>) => void;
     onFollowToggle: (profileId: string, isCurrentlyFollowing: boolean) => void;
+    onLikeToggle: (strategyId: string, isLiked: boolean) => void;
     forkMutation: UseMutationResult<any, Error, Tables<'strategies'>, unknown>;
     followMutation: UseMutationResult<void, Error, string, unknown>;
     unfollowMutation: UseMutationResult<void, Error, string, unknown>;
@@ -30,10 +32,12 @@ export function StrategyCard({
     isOwnStrategy,
     canFollow,
     isFollowing,
+    isLiked,
     onEdit,
     onDelete,
     onFork,
     onFollowToggle,
+    onLikeToggle,
     forkMutation,
     followMutation,
     unfollowMutation
@@ -105,8 +109,18 @@ export function StrategyCard({
                     {strategy.content_markdown || "No content."}
                 </p>
             </CardContent>
-            {canFollow && (
-                <CardFooter>
+            <CardFooter className={cn("flex flex-col items-start gap-4", canFollow && "pt-4")}>
+                <div className="flex items-center gap-4 text-muted-foreground">
+                    <Button variant="ghost" size="icon" className="h-8 w-8 gap-1" onClick={() => onLikeToggle(strategy.id, isLiked)}>
+                         <ThumbsUp className={cn("h-4 w-4", isLiked && "fill-current text-primary")} />
+                         <span className="text-sm">{strategy.likes_count ?? 0}</span>
+                    </Button>
+                     <div className="flex items-center gap-1">
+                         <MessageCircle className="h-4 w-4" />
+                         <span className="text-sm">{strategy.comments_count ?? 0}</span>
+                     </div>
+                </div>
+                {canFollow && (
                     <div className="flex items-center justify-between w-full">
                         <div className="flex items-center gap-2">
                             <Avatar className="h-8 w-8">
@@ -124,8 +138,8 @@ export function StrategyCard({
                             {isFollowing ? 'Unfollow' : 'Follow'}
                         </Button>
                     </div>
-                </CardFooter>
-            )}
+                )}
+            </CardFooter>
         </Card>
     )
 }

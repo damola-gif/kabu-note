@@ -1,9 +1,8 @@
-
-import { useState } from 'react';
-import { useStrategies, useDeleteStrategy, useForkStrategy, StrategyWithProfile } from '@/hooks/useStrategies';
+import { useState, useMemo } from 'react';
+import { useStrategies, useDeleteStrategy, useForkStrategy, useLikedStrategyIds, useToggleLike } from '@/hooks/useStrategies';
 import { Button } from '@/components/ui/button';
 import { StrategyEditorDialog } from '@/components/strategy/StrategyEditorDialog';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, Loader2 } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
 import { DateRange } from 'react-day-picker';
 import { StrategyFilters } from '@/components/strategy/StrategyFilters';
@@ -21,13 +20,18 @@ export default function Strategies() {
     const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
     const [authorFilter, setAuthorFilter] = useState("all");
     
-    const { data: strategies, isLoading, error } = useStrategies();
+    const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, error } = useStrategies();
+    const { data: likedStrategyIds } = useLikedStrategyIds();
+    const toggleLikeMutation = useToggleLike();
+
     const { user } = useSession();
     const { data: followingIds, isLoading: isLoadingFollowing } = useFollowing();
     const deleteMutation = useDeleteStrategy();
     const forkMutation = useForkStrategy();
     const followMutation = useFollowUser();
     const unfollowMutation = useUnfollowUser();
+
+    const allStrategies = useMemo(() => data?.pages.flat() ?? [], [data]);
 
     const handleNewStrategy = () => {
         setSelectedStrategy(undefined);
@@ -66,8 +70,12 @@ export default function Strategies() {
             followMutation.mutate(profileId);
         }
     };
+    
+    const handleLikeToggle = (strategyId: string, isLiked: boolean) => {
+        toggleLikeMutation.mutate({ strategyId, isLiked });
+    };
 
-    const filteredStrategies = strategies?.filter((strategy: StrategyWithProfile) => {
+    const filteredStrategies = useMemo(() => allStrategies.filter((strategy) => {
         const nameMatch = strategy.name.toLowerCase().includes(searchTerm.toLowerCase());
 
         const winRate = (strategy.win_rate ?? 0) as number;
@@ -96,13 +104,15 @@ export default function Strategies() {
             authorMatch = strategy.user_id === user?.id;
         } else if (authorFilter === 'following') {
             if (isLoadingFollowing || !followingIds) {
-                return false;
+                // Return current match state if following data is not yet available
+                // this prevents flicker or showing no results while loading.
+                return nameMatch && winRateMatch && dateMatch;
             }
-            authorMatch = !!strategy.user_id && followingIds.includes(strategy.user_id);
+            authorMatch = !!strategy.profile?.id && followingIds.includes(strategy.profile.id);
         }
 
         return nameMatch && winRateMatch && dateMatch && authorMatch;
-    }) ?? [];
+    }), [allStrategies, searchTerm, winRateRange, dateRange, authorFilter, user?.id, followingIds, isLoadingFollowing]);
 
     const isFiltering = searchTerm !== "" || winRateRange[0] !== 0 || winRateRange[1] !== 100 || dateRange !== undefined || authorFilter !== "all";
 
@@ -139,7 +149,7 @@ export default function Strategies() {
                 <main className="md:col-span-3">
                     <StrategyGrid 
                         strategies={filteredStrategies}
-                        isLoading={isLoading || isLoadingFollowing}
+                        isLoading={isLoading}
                         error={error}
                         onEdit={handleEdit}
                         onDelete={handleDelete}
@@ -152,7 +162,26 @@ export default function Strategies() {
                         unfollowMutation={unfollowMutation}
                         onFollowToggle={handleFollowToggle}
                         isFiltering={isFiltering}
+                        likedStrategyIds={likedStrategyIds}
+                        onLikeToggle={handleLikeToggle}
                     />
+                    {hasNextPage && (
+                        <div className="mt-6 text-center">
+                            <Button
+                                onClick={() => fetchNextPage()}
+                                disabled={isFetchingNextPage}
+                            >
+                                {isFetchingNextPage ? (
+                                    <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        Loading...
+                                    </>
+                                ) : (
+                                    'Load More'
+                                )}
+                            </Button>
+                        </div>
+                    )}
                 </main>
             </div>
 

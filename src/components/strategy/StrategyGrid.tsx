@@ -1,4 +1,3 @@
-
 import { StrategyWithProfile } from '@/hooks/useStrategies';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -24,6 +23,8 @@ interface StrategyGridProps {
     unfollowMutation: UseMutationResult<void, Error, string, unknown>;
     onFollowToggle: (profileId: string, isCurrentlyFollowing: boolean) => void;
     isFiltering: boolean;
+    likedStrategyIds?: string[];
+    onLikeToggle: (strategyId: string, isLiked: boolean) => void;
 }
 
 export function StrategyGrid({
@@ -40,14 +41,16 @@ export function StrategyGrid({
     followMutation,
     unfollowMutation,
     onFollowToggle,
-    isFiltering
+    isFiltering,
+    likedStrategyIds,
+    onLikeToggle
 }: StrategyGridProps) {
     const { user } = useSession();
 
-    if (isLoading || isLoadingFollowing) {
+    if (isLoading && strategies.length === 0) {
         return (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {[...Array(3)].map((_, i) => (
+                {[...Array(6)].map((_, i) => (
                     <Card key={i}>
                         <CardHeader>
                             <Skeleton className="h-6 w-3/4" />
@@ -55,6 +58,7 @@ export function StrategyGrid({
                         </CardHeader>
                         <CardContent>
                             <Skeleton className="h-10 w-full" />
+                            <Skeleton className="h-8 w-full mt-4" />
                         </CardContent>
                     </Card>
                 ))}
@@ -95,6 +99,8 @@ export function StrategyGrid({
                 const isOwnStrategy = strategy.user_id === user?.id;
                 const canFollow = !isOwnStrategy && strategy.profile?.id;
                 const isFollowing = canFollow && followingIds?.includes(strategy.profile!.id);
+                const isLiked = !!likedStrategyIds?.includes(strategy.id);
+
                 return (
                     <StrategyCard
                         key={strategy.id}
@@ -102,10 +108,12 @@ export function StrategyGrid({
                         isOwnStrategy={isOwnStrategy}
                         canFollow={canFollow}
                         isFollowing={isFollowing}
+                        isLiked={isLiked}
                         onEdit={onEdit}
                         onDelete={onDelete}
                         onFork={onFork}
                         onFollowToggle={onFollowToggle}
+                        onLikeToggle={onLikeToggle}
                         forkMutation={forkMutation}
                         followMutation={followMutation}
                         unfollowMutation={unfollowMutation}
