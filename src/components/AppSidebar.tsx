@@ -1,4 +1,3 @@
-
 import {
   Home,
   LayoutDashboard,
@@ -78,14 +77,24 @@ export function AppSidebar() {
 
   const handleProfileClick = () => {
     console.log("Profile click - profile data:", profile);
-    if (profile?.username) {
-      console.log("Navigating to:", `/u/${profile.username}`);
-      navigate(`/u/${profile.username}`);
-    } else {
-      console.log("No username found, redirecting to settings");
+
+    const trimmedUsername = typeof profile?.username === "string"
+      ? profile.username.trim()
+      : "";
+    // Invalid conditions: missing, empty, still "profile"
+    if (
+      !trimmedUsername ||
+      trimmedUsername.length < 3 ||
+      trimmedUsername.toLowerCase() === "profile"
+    ) {
+      console.log("No valid username found, redirecting to settings (username value:", trimmedUsername, ")");
       navigate('/settings');
-      toast.info("Please set up your username in settings first");
+      toast.info("Please set up your username in Settings first. A valid username is required to view your profile.");
+      return;
     }
+
+    console.log("Navigating to:", `/u/${trimmedUsername}`);
+    navigate(`/u/${trimmedUsername}`);
   };
 
   return (

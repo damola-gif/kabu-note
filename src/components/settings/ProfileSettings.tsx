@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -113,11 +112,15 @@ export function ProfileSettings() {
   };
 
   const handleViewProfile = () => {
-    if (formData.username) {
-      navigate(`/u/${formData.username}`);
-    } else {
-      toast.error("Please save your username first");
+    const trimmedUsername =
+      typeof formData.username === "string"
+        ? formData.username.trim()
+        : "";
+    if (!trimmedUsername || trimmedUsername.length < 3 || trimmedUsername.toLowerCase() === "profile") {
+      toast.error("Please save a valid username (at least 3 characters and not 'profile') in settings first.");
+      return;
     }
+    navigate(`/u/${trimmedUsername}`);
   };
 
   if (isLoadingProfile) {
