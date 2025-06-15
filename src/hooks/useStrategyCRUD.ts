@@ -139,6 +139,26 @@ export function useDeleteStrategy() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
+      // 1. Fetch image_path for the strategy
+      const { data: strategy, error: fetchErr } = await supabase
+        .from("strategies")
+        .select("image_path")
+        .eq("id", id)
+        .maybeSingle();
+
+      if (fetchErr) throw fetchErr;
+
+      // 2. Delete associated image if exists
+      if (strategy?.image_path) {
+        try {
+          await supabase.storage.from('strategy_images').remove([strategy.image_path]);
+        } catch (err) {
+          // Continue even if image removal fails (still delete strategy)
+          console.warn('Error deleting strategy image:', err);
+        }
+      }
+
+      // 3. Delete the strategy itself
       const { error } = await supabase.from("strategies").delete().eq("id", id);
       if (error) throw error;
     },

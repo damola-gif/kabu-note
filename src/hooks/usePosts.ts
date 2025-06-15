@@ -247,6 +247,39 @@ export function useDeletePost() {
   return useMutation({
     mutationFn: async (postId: string) => {
       if (!user) throw new Error("User not authenticated");
+      // 1. Fetch the post's media_url if present
+      const { data: post, error: fetchErr } = await supabase
+        .from('posts')
+        .select('media_url')
+        .eq('id', postId)
+        .maybeSingle();
+
+      if (fetchErr) throw fetchErr;
+
+      // 2. Delete the media file from storage (if exists)
+      if (post?.media_url) {
+        // Expect URLs like 'https://.../object/buckets/post_media/objects/userid/filename.jpg'
+        // Only delete if media_url starts with "https://" and derive the file path
+        try {
+          // POST_MEDIA_BUCKET is 'post_media'
+          const urlParts = post.media_url.split('/object/buckets/post_media/objects/');
+          if (urlParts.length === 2) {
+            const filePath = decodeURIComponent(urlParts[1]);
+            await supabase.storage.from('post_media').remove([filePath]);
+          } else {
+            // fallback: Try to extract after final "/" for simple bucket upload
+            const match = post.media_url.match(/post_media\/(.+)$/);
+            if (match) {
+              await supabase.storage.from('post_media').remove([match[1]]);
+            }
+          }
+        } catch (err) {
+          // Continue even if media removal fails (still delete post)
+          console.warn('Error deleting post image:', err);
+        }
+      }
+
+      // 3. Delete post itself
       const { error } = await supabase
         .from('posts')
         .delete()
