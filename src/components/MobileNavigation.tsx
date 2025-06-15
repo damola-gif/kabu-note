@@ -1,5 +1,5 @@
 
-import { Home, Settings, Newspaper, TrendingUp } from "lucide-react";
+import { Home, Settings, Newspaper } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
@@ -8,11 +8,6 @@ const mobileNavItems = [
     title: "Dashboard",
     url: "/dashboard",
     icon: Home,
-  },
-  {
-    title: "Strategies",
-    url: "/strategies",
-    icon: TrendingUp,
   },
   {
     title: "Feed",
