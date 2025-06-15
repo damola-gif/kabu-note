@@ -10,6 +10,8 @@ import { useSession } from '@/contexts/SessionProvider';
 import { useLikedStrategyIds, useBookmarkedStrategyIds } from '@/hooks/useStrategies';
 import { useStrategyActions } from '@/hooks/useStrategyActions';
 import { useFollowing } from '@/hooks/useProfile';
+import { CommentSection } from '@/components/comments/CommentSection';
+import { useState } from 'react';
 
 interface FeedCardProps {
   strategy: StrategyWithProfile;
@@ -21,6 +23,7 @@ export function FeedCard({ strategy }: FeedCardProps) {
   const { data: bookmarkedIds = [] } = useBookmarkedStrategyIds();
   const { data: followingIds = [] } = useFollowing();
   const { handleLikeToggle, handleBookmarkToggle, handleFollowToggle } = useStrategyActions();
+  const [showComments, setShowComments] = useState(false);
   
   const isLiked = likedIds.includes(strategy.id);
   const isBookmarked = bookmarkedIds.includes(strategy.id);
@@ -120,7 +123,12 @@ export function FeedCard({ strategy }: FeedCardProps) {
               {strategy.likes_count || 0}
             </Button>
             
-            <Button variant="ghost" size="sm" disabled={!user}>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setShowComments(!showComments)}
+              disabled={!user}
+            >
               <MessageSquare className="mr-1 h-4 w-4" />
               {strategy.comments_count || 0}
             </Button>
@@ -140,6 +148,13 @@ export function FeedCard({ strategy }: FeedCardProps) {
             View Full Strategy
           </Button>
         </div>
+
+        {/* Comments Section */}
+        {showComments && (
+          <div className="mt-4 pt-4 border-t">
+            <CommentSection strategyId={strategy.id} />
+          </div>
+        )}
       </CardContent>
     </Card>
   );

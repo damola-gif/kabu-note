@@ -347,6 +347,23 @@ export type Database = {
         }
         Returns: undefined
       }
+      search_strategies_by_hashtag: {
+        Args: { hashtag_query: string }
+        Returns: {
+          id: string
+          name: string
+          content_markdown: string
+          tags: string[]
+          user_id: string
+          created_at: string
+          is_public: boolean
+          win_rate: number
+          likes_count: number
+          comments_count: number
+          bookmarks_count: number
+          image_path: string
+        }[]
+      }
     }
     Enums: {
       trade_side: "long" | "short"

@@ -1,4 +1,3 @@
-
 import { useMutation, useQuery, useQueryClient, useInfiniteQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -11,6 +10,49 @@ export type StrategyWithProfile = Tables<'strategies'> & {
 };
 
 const STRATEGIES_PER_PAGE = 9;
+
+// Hook to search strategies by hashtag
+export function useHashtagSearch(hashtag: string) {
+  return useQuery({
+    queryKey: ['hashtagSearch', hashtag],
+    queryFn: async (): Promise<StrategyWithProfile[]> => {
+      if (!hashtag) return [];
+
+      const { data: strategies, error } = await supabase
+        .rpc('search_strategies_by_hashtag', { hashtag_query: hashtag });
+
+      if (error) throw error;
+      if (!strategies) return [];
+
+      // Get unique user IDs from the fetched strategies
+      const userIds = [...new Set(strategies.map(s => s.user_id).filter(Boolean))];
+      
+      if (userIds.length === 0) {
+        return strategies.map(s => ({ ...s, profile: null }));
+      }
+
+      // Fetch profiles for those user IDs
+      const { data: profiles, error: profilesError } = await supabase
+        .from("profiles")
+        .select("id, username, avatar_url")
+        .in("id", userIds);
+
+      if (profilesError) {
+        console.error("Error fetching profiles:", profilesError.message);
+        return strategies.map(s => ({ ...s, profile: null }));
+      }
+
+      // Map profiles to strategies
+      const profilesById = new Map(profiles.map(p => [p.id, p]));
+
+      return strategies.map(strategy => ({
+        ...strategy,
+        profile: strategy.user_id ? profilesById.get(strategy.user_id) ?? null : null,
+      }));
+    },
+    enabled: !!hashtag,
+  });
+}
 
 // Hook to fetch strategies with pagination
 export function useStrategies() {
