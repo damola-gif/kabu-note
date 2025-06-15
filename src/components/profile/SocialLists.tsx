@@ -1,3 +1,4 @@
+
 import { Card, CardContent } from "@/components/ui/card";
 import { Users } from "lucide-react";
 import { useFollowersList, useFollowingList } from "@/hooks/useFollowersLists";
@@ -62,6 +63,17 @@ export function SocialLists({ userId, stats }: SocialListsProps) {
       )
     : [];
 
+  // Reliable test for valid followers data:
+  const resolvedFollowers = Array.isArray(followers)
+    ? followers.filter(
+        (follow) =>
+          follow &&
+          typeof follow === "object" &&
+          follow.profiles &&
+          typeof follow.profiles === "object"
+      )
+    : [];
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {/* Followers - keep original vertical list */}
@@ -71,8 +83,8 @@ export function SocialLists({ userId, stats }: SocialListsProps) {
           <div className="space-y-3 max-h-96 overflow-y-auto">
             {isLoadingFollowers ? (
               <LoadingSkeleton />
-            ) : followers && followers.length > 0 ? (
-              followers.map((follow: any) => (
+            ) : resolvedFollowers && resolvedFollowers.length > 0 ? (
+              resolvedFollowers.map((follow: any) => (
                 <UserListItem
                   key={follow.follower_id}
                   profile={follow.profiles}
