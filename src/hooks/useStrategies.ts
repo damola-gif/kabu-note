@@ -5,21 +5,21 @@ import { useSession } from "@/contexts/SessionProvider";
 import { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { StrategyFormValues } from "@/components/strategy/strategy.schemas";
 
-// Hook to fetch all strategies for the logged-in user
+// Hook to fetch strategies based on RLS
 export function useStrategies() {
   const { user } = useSession();
   return useQuery({
     queryKey: ["strategies"],
     queryFn: async () => {
-      if (!user) return [];
+      // We removed the user_id filter here. RLS will handle showing the correct strategies.
       const { data, error } = await supabase
         .from("strategies")
         .select("*")
         .order("created_at", { ascending: false });
       if (error) throw new Error(error.message);
-      return data;
+      return data ?? [];
     },
-    enabled: !!user,
+    enabled: !!user, // Query is enabled only when the user is logged in
   });
 }
 

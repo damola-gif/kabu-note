@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useStrategies, useDeleteStrategy } from '@/hooks/useStrategies';
 import { Button } from '@/components/ui/button';
@@ -99,7 +100,13 @@ export default function Strategies() {
         if (authorFilter === 'me') {
             authorMatch = strategy.user_id === user?.id;
         } else if (authorFilter === 'following') {
-            authorMatch = followingIds?.includes(strategy.user_id) ?? false;
+            if (isLoadingFollowing || !followingIds) {
+                // While following list is loading, we can't determine a match yet.
+                // Depending on desired UX, you could return false or treat as loading.
+                // For simplicity, we'll assume no match until the list is loaded.
+                return false;
+            }
+            authorMatch = followingIds.includes(strategy.user_id);
         }
 
         return nameMatch && winRateMatch && dateMatch && authorMatch;
