@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -8,7 +7,7 @@ export function useUserProfile(username: string) {
     queryFn: async () => {
       if (!username) return null;
       
-      console.log("Fetching profile for username:", username);
+      // console.log("Fetching profile for username:", username);
       
       const { data: profile, error } = await supabase
         .from('profiles')
@@ -17,14 +16,14 @@ export function useUserProfile(username: string) {
         .single();
 
       if (error) {
-        console.log("Profile fetch error:", error);
+        // console.log("Profile fetch error:", error);
         if (error.code === 'PGRST116') {
           return null; // User not found
         }
         throw error;
       }
 
-      console.log("Profile found:", profile);
+      // console.log("Profile found:", profile);
       return profile;
     },
     enabled: !!username,
@@ -37,7 +36,7 @@ export function useUserStats(userId: string) {
     queryFn: async () => {
       if (!userId) return null;
 
-      console.log("Fetching user stats for:", userId);
+      // console.log("Fetching user stats for:", userId);
 
       // Get follower count
       const { count: followersCount, error: followersError } = await supabase
@@ -97,7 +96,7 @@ export function useUserStats(userId: string) {
         avgWinRate: avgWinRate ? Math.round(avgWinRate * 100) / 100 : null,
       };
 
-      console.log("User stats result:", result);
+      // console.log("User stats result:", result);
       
       return result;
     },
@@ -111,7 +110,7 @@ export function useUserStrategies(userId: string) {
     queryFn: async () => {
       if (!userId) return [];
 
-      console.log("Fetching user strategies for:", userId);
+      // console.log("Fetching user strategies for:", userId);
 
       const { data: strategies, error } = await supabase
         .from('strategies')
@@ -122,7 +121,7 @@ export function useUserStrategies(userId: string) {
 
       if (error) throw error;
 
-      console.log("User strategies result:", strategies);
+      // console.log("User strategies result:", strategies);
 
       return strategies || [];
     },

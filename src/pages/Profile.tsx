@@ -32,7 +32,7 @@ export default function Profile() {
             .single();
           
           if (error) {
-            console.error('Error fetching user profile:', error);
+            // console.error('Error fetching user profile:', error);
             return;
           }
           
@@ -40,7 +40,7 @@ export default function Profile() {
             navigate(`/u/${profile.username}`, { replace: true });
           }
         } catch (error) {
-          console.error('Error fetching user profile:', error);
+          // console.error('Error fetching user profile:', error);
         }
       };
       
@@ -48,17 +48,17 @@ export default function Profile() {
     }
   }, [username, user, navigate, queryClient]);
   
-  console.log("Profile page - URL username:", username);
-  console.log("Profile page - current user:", user?.id);
+  // console.log("Profile page - URL username:", username);
+  // console.log("Profile page - current user:", user?.id);
   
   const { data: profile, isLoading: isProfileLoading, error: profileError } = useUserProfile(username || '');
   const { data: stats, isLoading: isStatsLoading } = useUserStats(profile?.id || '');
   const { data: strategies, isLoading: isStrategiesLoading } = useUserStrategies(profile?.id || '');
   const { data: followingIds } = useFollowing();
   
-  console.log("Profile data:", profile);
-  console.log("Profile error:", profileError);
-  console.log("Is loading:", isProfileLoading);
+  // console.log("Profile data:", profile);
+  // console.log("Profile error:", profileError);
+  // console.log("Is loading:", isProfileLoading);
   
   const followMutation = useFollowUser();
   const unfollowMutation = useUnfollowUser();
@@ -68,7 +68,7 @@ export default function Profile() {
   
   const handleFollowToggle = () => {
     if (!profile?.id) {
-      console.error('Profile ID is missing');
+      // console.error('Profile ID is missing');
       return;
     }
     
@@ -79,7 +79,7 @@ export default function Profile() {
           queryClient.invalidateQueries({ queryKey: ["userStats", profile.id] });
         },
         onError: (error) => {
-          console.error('Error unfollowing user:', error);
+          // console.error('Error unfollowing user:', error);
         }
       });
     } else {
@@ -89,7 +89,7 @@ export default function Profile() {
           queryClient.invalidateQueries({ queryKey: ["userStats", profile.id] });
         },
         onError: (error) => {
-          console.error('Error following user:', error);
+          // console.error('Error following user:', error);
         }
       });
     }
