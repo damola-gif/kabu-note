@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useSession } from '@/contexts/SessionProvider';
@@ -85,5 +84,26 @@ export const useCreateRoom = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['publicRooms'] });
     },
+  });
+};
+
+// Hook to get details for a single room
+export const useRoomDetails = (roomId: string) => {
+  return useQuery<CommunityRoom, Error>({
+    queryKey: ['roomDetails', roomId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('community_rooms')
+        .select('*')
+        .eq('id', roomId)
+        .single();
+
+      if (error) {
+        console.error('Error fetching room details:', error);
+        throw error;
+      }
+      return data as CommunityRoom;
+    },
+    enabled: !!roomId,
   });
 };
