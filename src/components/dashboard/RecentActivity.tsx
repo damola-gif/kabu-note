@@ -71,26 +71,26 @@ export function RecentActivity({ strategies }: RecentActivityProps) {
 
   return (
     <div className="stat-card">
-      <h3 className="text-lg font-light text-foreground mb-6">Your Activity</h3>
+      <h3 className="text-lg font-light text-foreground mb-4 sm:mb-6">Your Activity</h3>
       
       {recentActivities.length > 0 ? (
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {recentActivities.map((activity) => {
             const IconComponent = activity.icon;
             return (
               <div 
                 key={activity.id} 
-                className={`flex items-start space-x-3 p-3 rounded-lg hover:bg-muted/50 transition-colors ${
+                className={`flex items-start space-x-3 p-2 sm:p-3 rounded-lg hover:bg-muted/50 transition-colors ${
                   activity.clickable ? 'cursor-pointer' : ''
                 }`}
                 onClick={activity.clickable ? activity.onClick : undefined}
               >
-                <div className="p-2 bg-primary/10 rounded-lg">
-                  <IconComponent className={`h-4 w-4 ${activity.iconColor}`} />
+                <div className="p-1.5 sm:p-2 bg-primary/10 rounded-lg flex-shrink-0">
+                  <IconComponent className={`h-3 w-3 sm:h-4 sm:w-4 ${activity.iconColor}`} />
                 </div>
                 
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-foreground leading-relaxed">
+                  <p className="text-xs sm:text-sm text-foreground leading-relaxed break-words">
                     {activity.message}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
@@ -102,10 +102,10 @@ export function RecentActivity({ strategies }: RecentActivityProps) {
           })}
         </div>
       ) : (
-        <div className="text-center py-8">
-          <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <p className="text-muted-foreground mb-2">No recent activity</p>
-          <p className="text-sm text-muted-foreground">
+        <div className="text-center py-6 sm:py-8">
+          <BookOpen className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground mx-auto mb-3 sm:mb-4" />
+          <p className="text-muted-foreground mb-2 text-sm sm:text-base">No recent activity</p>
+          <p className="text-xs sm:text-sm text-muted-foreground px-2">
             Start creating strategies and trading to see your activity here
           </p>
         </div>

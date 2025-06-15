@@ -6,6 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useSession } from "@/contexts/SessionProvider";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const currencies = [
@@ -35,20 +36,28 @@ export function TradingPreferences() {
     currency: "USD",
     defaultTimeframe: "1d",
     tradeAlertsEnabled: true,
-    alertSoundEnabled: true
+    alertSoundEnabled: true,
+    riskManagement: true,
+    autoCalculatePosition: false
   });
 
   // Load preferences from localStorage on component mount
   useEffect(() => {
-    const savedPreferences = localStorage.getItem(`trading_preferences_${user?.id}`);
-    if (savedPreferences) {
+    const loadPreferences = async () => {
+      if (!user) return;
+
       try {
-        const parsed = JSON.parse(savedPreferences);
-        setPreferences(parsed);
+        const savedPreferences = localStorage.getItem(`trading_preferences_${user.id}`);
+        if (savedPreferences) {
+          const parsed = JSON.parse(savedPreferences);
+          setPreferences(parsed);
+        }
       } catch (error) {
-        console.error('Error parsing saved preferences:', error);
+        console.error('Error loading preferences:', error);
       }
-    }
+    };
+
+    loadPreferences();
   }, [user?.id]);
 
   const handleSave = async () => {
@@ -59,7 +68,7 @@ export function TradingPreferences() {
 
     setIsLoading(true);
     try {
-      // Save to localStorage (in a real app, you'd save to a database)
+      // Save to localStorage
       localStorage.setItem(`trading_preferences_${user.id}`, JSON.stringify(preferences));
       
       // Simulate API call delay
@@ -84,9 +93,9 @@ export function TradingPreferences() {
   return (
     <div className="space-y-6">
       {/* Currency Settings */}
-      <Card className="landing-card">
+      <Card>
         <CardHeader>
-          <CardTitle className="font-light">Currency Settings</CardTitle>
+          <CardTitle className="font-medium">Currency Settings</CardTitle>
           <CardDescription>
             Choose your preferred currency for displaying values
           </CardDescription>
@@ -114,9 +123,9 @@ export function TradingPreferences() {
       </Card>
 
       {/* Chart Settings */}
-      <Card className="landing-card">
+      <Card>
         <CardHeader>
-          <CardTitle className="font-light">Chart Settings</CardTitle>
+          <CardTitle className="font-medium">Chart Settings</CardTitle>
           <CardDescription>
             Configure your default chart preferences
           </CardDescription>
@@ -144,9 +153,9 @@ export function TradingPreferences() {
       </Card>
 
       {/* Alert Settings */}
-      <Card className="landing-card">
+      <Card>
         <CardHeader>
-          <CardTitle className="font-light">Trade Alerts</CardTitle>
+          <CardTitle className="font-medium">Trade Alerts</CardTitle>
           <CardDescription>
             Configure notifications for your trades
           </CardDescription>
@@ -180,14 +189,45 @@ export function TradingPreferences() {
               disabled={!preferences.tradeAlertsEnabled}
             />
           </div>
+        </CardContent>
+      </Card>
 
-          {preferences.tradeAlertsEnabled && (
-            <div className="mt-4 p-3 bg-green-50 dark:bg-green-950 rounded-lg">
-              <p className="text-sm text-green-800 dark:text-green-200">
-                Trade alerts are enabled. You'll receive notifications when your trades reach target levels.
+      {/* Risk Management */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="font-medium">Risk Management</CardTitle>
+          <CardDescription>
+            Configure risk management settings
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <Label htmlFor="riskManagement">Enable Risk Warnings</Label>
+              <p className="text-sm text-muted-foreground">
+                Show warnings for high-risk trades
               </p>
             </div>
-          )}
+            <Switch
+              id="riskManagement"
+              checked={preferences.riskManagement}
+              onCheckedChange={(checked) => updatePreference('riskManagement', checked)}
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div>
+              <Label htmlFor="autoPosition">Auto Position Sizing</Label>
+              <p className="text-sm text-muted-foreground">
+                Automatically calculate position sizes
+              </p>
+            </div>
+            <Switch
+              id="autoPosition"
+              checked={preferences.autoCalculatePosition}
+              onCheckedChange={(checked) => updatePreference('autoCalculatePosition', checked)}
+            />
+          </div>
         </CardContent>
       </Card>
 
@@ -196,7 +236,6 @@ export function TradingPreferences() {
         <Button 
           onClick={handleSave} 
           disabled={isLoading}
-          className="btn-landing-primary"
         >
           {isLoading ? "Saving..." : "Save Preferences"}
         </Button>

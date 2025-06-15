@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/contexts/SessionProvider";
 import { toast } from "sonner";
@@ -59,7 +58,6 @@ export function SecuritySettings() {
   const handleTwoFactorToggle = async (enabled: boolean) => {
     try {
       if (enabled) {
-        // For now, just show a message about 2FA setup
         toast.info("2FA setup will be implemented in a future update");
         setTwoFactorEnabled(false);
       } else {
@@ -72,8 +70,7 @@ export function SecuritySettings() {
     }
   };
 
-  const isPasswordFormValid = passwordData.currentPassword && 
-                              passwordData.newPassword && 
+  const isPasswordFormValid = passwordData.newPassword && 
                               passwordData.confirmPassword &&
                               passwordData.newPassword === passwordData.confirmPassword &&
                               passwordData.newPassword.length >= 6;
@@ -81,25 +78,14 @@ export function SecuritySettings() {
   return (
     <div className="space-y-6">
       {/* Change Password */}
-      <Card className="landing-card">
+      <Card>
         <CardHeader>
-          <CardTitle className="font-light">Change Password</CardTitle>
+          <CardTitle className="font-medium">Change Password</CardTitle>
           <CardDescription>
             Update your password to keep your account secure
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="currentPassword">Current Password</Label>
-            <Input
-              id="currentPassword"
-              type="password"
-              value={passwordData.currentPassword}
-              onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
-              placeholder="Enter current password"
-            />
-          </div>
-
           <div className="space-y-2">
             <Label htmlFor="newPassword">New Password</Label>
             <Input
@@ -129,7 +115,6 @@ export function SecuritySettings() {
           <Button 
             onClick={handlePasswordChange}
             disabled={isLoading || !isPasswordFormValid}
-            className="btn-landing-primary"
           >
             {isLoading ? "Updating..." : "Update Password"}
           </Button>
@@ -137,9 +122,9 @@ export function SecuritySettings() {
       </Card>
 
       {/* Two-Factor Authentication */}
-      <Card className="landing-card">
+      <Card>
         <CardHeader>
-          <CardTitle className="font-light">Two-Factor Authentication</CardTitle>
+          <CardTitle className="font-medium">Two-Factor Authentication</CardTitle>
           <CardDescription>
             Add an extra layer of security to your account
           </CardDescription>
@@ -168,27 +153,28 @@ export function SecuritySettings() {
         </CardContent>
       </Card>
 
-      {/* Connected Logins */}
-      <Card className="landing-card">
+      {/* Session Management */}
+      <Card>
         <CardHeader>
-          <CardTitle className="font-light">Connected Accounts</CardTitle>
+          <CardTitle className="font-medium">Active Sessions</CardTitle>
           <CardDescription>
-            Manage your connected social accounts
+            Manage your active login sessions
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between p-4 border rounded-lg">
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-red-500 rounded flex items-center justify-center">
-                <span className="text-white text-sm font-bold">G</span>
-              </div>
-              <div>
-                <p className="font-medium">Google</p>
-                <p className="text-sm text-muted-foreground">Not connected</p>
-              </div>
+            <div>
+              <p className="font-medium">Current Session</p>
+              <p className="text-sm text-muted-foreground">
+                {user?.email} • Active now
+              </p>
             </div>
-            <Button variant="outline" size="sm" onClick={() => toast.info("Google OAuth coming soon!")}>
-              Connect
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => supabase.auth.signOut()}
+            >
+              Sign Out
             </Button>
           </div>
         </CardContent>

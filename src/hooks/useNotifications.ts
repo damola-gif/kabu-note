@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useSession } from '@/contexts/SessionProvider';
@@ -31,19 +30,35 @@ export function useNotifications() {
 
       const { data, error } = await supabase
         .from('notifications')
-        .select(`
-          *,
-          profiles:related_user_id(username, avatar_url)
-        `)
+        .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      return (data || []).map(notification => ({
-        ...notification,
-        profiles: notification.profiles || null
-      })) as Notification[];
+      // Fetch related profile data separately
+      const notificationsWithProfiles = await Promise.all(
+        (data || []).map(async (notification) => {
+          if (notification.related_user_id) {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('username, avatar_url')
+              .eq('id', notification.related_user_id)
+              .maybeSingle();
+            
+            return {
+              ...notification,
+              profiles: profile || null
+            };
+          }
+          return {
+            ...notification,
+            profiles: null
+          };
+        })
+      );
+
+      return notificationsWithProfiles as Notification[];
     },
     enabled: !!user,
   });
