@@ -3,6 +3,7 @@ import { Users } from "lucide-react";
 import { useFollowersList, useFollowingList } from "@/hooks/useFollowersLists";
 import { UserListItem } from "./UserListItem";
 import { Skeleton } from "@/components/ui/skeleton";
+import { FollowingGrid } from "./FollowingGrid";
 
 interface SocialListsProps {
   userId: string;
@@ -63,7 +64,7 @@ export function SocialLists({ userId, stats }: SocialListsProps) {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {/* Followers */}
+      {/* Followers - keep original vertical list */}
       <Card className="landing-card">
         <CardContent className="pt-6">
           <h3 className="font-semibold mb-4">Followers ({stats.followersCount})</h3>
@@ -83,27 +84,12 @@ export function SocialLists({ userId, stats }: SocialListsProps) {
           </div>
         </CardContent>
       </Card>
-      
-      {/* Following */}
-      <Card className="landing-card">
-        <CardContent className="pt-6">
-          <h3 className="font-semibold mb-4">Following ({stats.followingCount})</h3>
-          <div className="space-y-3 max-h-96 overflow-y-auto">
-            {isLoadingFollowing ? (
-              <LoadingSkeleton />
-            ) : resolvedFollowing.length > 0 ? (
-              resolvedFollowing.map((follow: any) => (
-                <UserListItem
-                  key={follow.following_id}
-                  profile={follow.profiles}
-                />
-              ))
-            ) : (
-              <EmptyState title="Not following anyone yet" />
-            )}
-          </div>
-        </CardContent>
-      </Card>
+
+      {/* Following as a grid */}
+      <div>
+        <h3 className="font-semibold mb-4">Following ({stats.followingCount})</h3>
+        <FollowingGrid following={resolvedFollowing} isLoading={isLoadingFollowing} />
+      </div>
     </div>
   );
 }
