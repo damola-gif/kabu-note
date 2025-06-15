@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { NewTradeDialog } from "@/components/trade/NewTradeDialog";
 import { EditTradeDialog } from "@/components/trade/EditTradeDialog";
@@ -140,14 +139,14 @@ export default function Journal() {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto">
-        <div className="border-x border-border min-h-screen bg-white">
+        <div className="border-x border-border min-h-screen bg-card">
           {/* Header */}
-          <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-border">
+          <div className="sticky top-0 z-10 bg-card/80 backdrop-blur-md border-b border-border">
             <div className="px-6 py-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h1 className="text-xl font-bold text-gray-900">Trading Journal</h1>
-                  <p className="text-sm text-gray-600 mt-1">Track and analyze your trading performance</p>
+                  <h1 className="text-xl font-bold text-foreground">Trading Journal</h1>
+                  <p className="text-sm text-muted-foreground mt-1">Track and analyze your trading performance</p>
                 </div>
                 <Button 
                   onClick={() => setIsNewTradeDialogOpen(true)}
@@ -184,7 +183,7 @@ export default function Journal() {
             </div>
             
             {/* Trades Content */}
-            <div className="bg-white rounded-lg border border-gray-200">
+            <div className="bg-card rounded-lg border border-border">
               {renderContent()}
             </div>
           </div>

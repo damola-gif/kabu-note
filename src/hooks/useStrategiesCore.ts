@@ -1,4 +1,3 @@
-
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/contexts/SessionProvider";
@@ -148,5 +147,49 @@ export function useStrategy(id: string) {
       return { ...strategy, profile: profile };
     },
     enabled: !!id,
+  });
+}
+
+// Hook to fetch all public strategies, paginated (for feed)
+export function usePublicStrategies() {
+  return useInfiniteQuery({
+    queryKey: ["publicStrategies"],
+    queryFn: async ({ pageParam = 0 }): Promise<StrategyWithProfile[]> => {
+      const from = pageParam * STRATEGIES_PER_PAGE;
+      const to = from + STRATEGIES_PER_PAGE - 1;
+
+      const { data: strategies, error } = await supabase
+        .from("strategies")
+        .select("*")
+        .eq("is_public", true)
+        .order("created_at", { ascending: false })
+        .range(from, to);
+
+      if (error) throw error;
+      if (!strategies) return [];
+
+      // Get unique user IDs from the fetched strategies
+      const userIds = [...new Set(strategies.map(s => s.user_id).filter(Boolean))];
+      let profiles: any[] = [];
+      if (userIds.length > 0) {
+        const { data, error: profilesError } = await supabase
+          .from("profiles")
+          .select("id, username, avatar_url")
+          .in("id", userIds);
+        if (!profilesError && data) profiles = data;
+      }
+      const profilesById = new Map(profiles.map(p => [p.id, p]));
+      return strategies.map(strategy => ({
+        ...strategy,
+        profile: strategy.user_id ? profilesById.get(strategy.user_id) ?? null : null,
+      }));
+    },
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) => {
+      if (lastPage.length < STRATEGIES_PER_PAGE) {
+        return undefined;
+      }
+      return allPages.length;
+    },
   });
 }

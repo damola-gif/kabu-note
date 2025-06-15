@@ -1,6 +1,5 @@
-
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { useStrategies, useHashtagSearch } from '@/hooks/useStrategies';
+import { usePublicStrategies, useStrategies, useHashtagSearch } from '@/hooks/useStrategies';
 import { FeedCard } from './FeedCard';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
@@ -12,16 +11,21 @@ interface FeedContentProps {
 }
 
 export function FeedContent({ searchTerm, sortBy, activeHashtag }: FeedContentProps) {
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useStrategies();
+  // Use public strategies for the feed strategies tab
+  const { data: publicData, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading: isPublicLoading } = usePublicStrategies();
+  const { data: userData, ...userStrategyRest } = useStrategies();
   const { data: hashtagResults, isLoading: isHashtagLoading } = useHashtagSearch(activeHashtag || '');
 
-  const currentIsLoading = activeHashtag ? isHashtagLoading : isLoading;
-  
-  let strategies = [];
+  let strategies: any[] = [];
+  let isLoading = false;
+
+  // In “Strategies” feed tab, use public strategies
   if (activeHashtag) {
     strategies = hashtagResults || [];
+    isLoading = isHashtagLoading;
   } else {
-    strategies = data?.pages.flatMap(page => page) || [];
+    strategies = publicData?.pages.flatMap(page => page) || [];
+    isLoading = isPublicLoading;
   }
 
   // Apply search filter if there's a search term
@@ -32,7 +36,7 @@ export function FeedContent({ searchTerm, sortBy, activeHashtag }: FeedContentPr
     );
   }
 
-  if (currentIsLoading) {
+  if (isLoading) {
     return (
       <div className="flex justify-center py-8">
         <Loader2 className="h-6 w-6 animate-spin" />

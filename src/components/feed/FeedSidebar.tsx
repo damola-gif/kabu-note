@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -9,6 +8,26 @@ import { useStrategyActions } from '@/hooks/useStrategyActions';
 import { useSession } from '@/contexts/SessionProvider';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+
+function useLeaderboard() {
+  // Fetch most approved strategies this week
+  return useQuery({
+    queryKey: ['leaderboard-week'],
+    queryFn: async () => {
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 7);
+      const { data, error } = await supabase
+        .from('strategies')
+        .select('*')
+        .eq('is_public', true)
+        .gte('created_at', weekAgo.toISOString())
+        .order('approval_votes', { ascending: false })
+        .limit(5);
+      if (error) throw error;
+      return data || [];
+    }
+  });
+}
 
 export function FeedSidebar() {
   const { user } = useSession();
@@ -71,6 +90,8 @@ export function FeedSidebar() {
 
   // Mock data for trending tags - could be fetched from database later
   const trendingTags = ['#SPY', '#Bitcoin', '#Swing', '#Scalping', '#Options'];
+
+  const { data: leaderboard, isLoading } = useLeaderboard();
 
   return (
     <div className="space-y-6">
@@ -150,6 +171,29 @@ export function FeedSidebar() {
           </Button>
         </CardContent>
       </Card>
+
+      <div className="bg-white dark:bg-card rounded-xl shadow border border-border p-4">
+        <div className="text-base font-bold mb-3">🏆 Top Strategies of the Week</div>
+        {isLoading ? (
+          <div className="text-muted-foreground text-sm">Loading...</div>
+        ) : leaderboard?.length ? (
+          <ol className="list-decimal ml-5 space-y-1">
+            {leaderboard.map((s, idx) => (
+              <li key={s.id} className="flex justify-between items-center">
+                <span 
+                  className="font-medium cursor-pointer text-blue-600 hover:underline"
+                  onClick={() => window.open(`/strategies/${s.id}`, "_blank")}
+                >
+                  {s.name}
+                </span>
+                <span className="text-xs text-muted-foreground ml-2">{s.approval_votes} votes</span>
+              </li>
+            ))}
+          </ol>
+        ) : (
+          <div className="text-muted-foreground text-sm">No strategies found.</div>
+        )}
+      </div>
     </div>
   );
 }
