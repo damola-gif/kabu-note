@@ -1,3 +1,4 @@
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -41,31 +42,35 @@ export function UserListItem({ profile }: UserListItemProps) {
   };
 
   return (
-    <Card>
-      <CardContent className="pt-4">
-        <div className="flex items-center justify-between">
+    <Card className="hover:shadow-md transition-shadow duration-200">
+      <CardContent className="p-6">
+        <div className="flex items-center gap-4">
           <div
-            className="flex items-center gap-3 cursor-pointer flex-1"
+            className="cursor-pointer"
             onClick={handleProfileClick}
           >
-            <Avatar className="h-10 w-10">
+            <Avatar className="h-12 w-12 ring-2 ring-orange-500/20 hover:ring-orange-400/40 transition-all duration-200">
               <AvatarImage src={profile.avatar_url || ''} alt={profile.username} />
-              <AvatarFallback className="bg-primary/10 text-primary">
+              <AvatarFallback className="bg-orange-950/40 text-orange-200 text-lg font-semibold">
                 {profile.full_name?.charAt(0).toUpperCase() ||
                   profile.username?.charAt(0).toUpperCase() ||
                   'U'}
               </AvatarFallback>
             </Avatar>
-            <div className="flex-1 min-w-0">
-              <p className="font-medium truncate">
-                {profile.full_name || profile.username}
+          </div>
+          
+          <div
+            className="flex-1 min-w-0 cursor-pointer"
+            onClick={handleProfileClick}
+          >
+            <p className="font-semibold text-base text-orange-100 truncate hover:text-orange-300 transition-colors">
+              {profile.full_name || profile.username}
+            </p>
+            {profile.full_name && (
+              <p className="text-sm text-orange-300/70 truncate mt-1">
+                @{profile.username}
               </p>
-              {profile.full_name && (
-                <p className="text-sm text-muted-foreground truncate">
-                  @{profile.username}
-                </p>
-              )}
-            </div>
+            )}
           </div>
           
           {!isOwnProfile && (
@@ -74,6 +79,7 @@ export function UserListItem({ profile }: UserListItemProps) {
               variant={isFollowing ? 'outline' : 'default'}
               onClick={handleFollowToggle}
               disabled={followMutation.isPending || unfollowMutation.isPending}
+              className="shrink-0 min-w-[80px]"
             >
               {followMutation.isPending || unfollowMutation.isPending
                 ? '...'
