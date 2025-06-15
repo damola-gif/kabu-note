@@ -1,10 +1,7 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { useSession } from "@/contexts/SessionProvider";
-import { useFollowing, useFollowUser, useUnfollowUser } from "@/hooks/useProfile";
 
 interface UserProfile {
   id: string;
@@ -19,22 +16,6 @@ interface UserListItemProps {
 
 export function UserListItem({ profile }: UserListItemProps) {
   const navigate = useNavigate();
-  const { user } = useSession();
-  const { data: followingIds } = useFollowing();
-  const followMutation = useFollowUser();
-  const unfollowMutation = useUnfollowUser();
-
-  const isOwnProfile = user?.id === profile.id;
-  const isFollowing = !!(profile.id && followingIds?.includes(profile.id));
-
-  const handleFollowToggle = () => {
-    if (!profile.id) return;
-    if (isFollowing) {
-      unfollowMutation.mutate(profile.id);
-    } else {
-      followMutation.mutate(profile.id);
-    }
-  };
 
   const handleProfileClick = () => {
     navigate(`/u/${profile.username}`);
@@ -66,28 +47,6 @@ export function UserListItem({ profile }: UserListItemProps) {
             @{profile.username}
           </span>
         </div>
-        {/* Unfollow / Follow button */}
-        {!isOwnProfile && (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleFollowToggle();
-            }}
-            disabled={followMutation.isPending || unfollowMutation.isPending}
-            className="flex-shrink-0 px-6 h-[40px] border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:border-orange-400 hover:bg-orange-50 transition-colors shadow-none min-w-[100px]"
-            style={{
-              boxShadow: "none",
-            }}
-          >
-            {followMutation.isPending || unfollowMutation.isPending
-              ? "..."
-              : isFollowing
-              ? "Unfollow"
-              : "Follow"}
-          </Button>
-        )}
       </CardContent>
     </Card>
   );
