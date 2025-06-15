@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from "react";
 import { NewTradeDialog } from "@/components/trade/NewTradeDialog";
 import { EditTradeDialog } from "@/components/trade/EditTradeDialog";
@@ -19,6 +18,7 @@ import { useSession } from "@/contexts/SessionProvider";
 import { useStrategies, useUpdateStrategy } from "@/hooks/useStrategies";
 import { toast } from "@/hooks/use-toast";
 import { ImageEditor } from "@/components/common/ImageEditor";
+import { StrategyEditorDialog } from "@/components/strategy/StrategyEditorDialog";
 
 export default function Journal() {
   const [isNewTradeDialogOpen, setIsNewTradeDialogOpen] = useState(false);
@@ -206,6 +206,13 @@ export default function Journal() {
             )}
           </div>
         ))}
+        {/* Fix: Show StrategyEditorDialog for "NEW" Journal creation */}
+        {editingJournal === "NEW" && (
+          <StrategyEditorDialog
+            open={true}
+            onOpenChange={() => setEditingJournal(null)}
+          />
+        )}
       </div>
     );
   };
