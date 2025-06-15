@@ -1,3 +1,4 @@
+
 import { useState, useMemo } from 'react';
 import { useStrategies, useDeleteStrategy, useForkStrategy, useLikedStrategyIds, useToggleLike } from '@/hooks/useStrategies';
 import { Button } from '@/components/ui/button';
@@ -104,8 +105,6 @@ export default function Strategies() {
             authorMatch = strategy.user_id === user?.id;
         } else if (authorFilter === 'following') {
             if (isLoadingFollowing || !followingIds) {
-                // Return current match state if following data is not yet available
-                // this prevents flicker or showing no results while loading.
                 return nameMatch && winRateMatch && dateMatch;
             }
             authorMatch = !!strategy.profile?.id && followingIds.includes(strategy.profile.id);
@@ -165,7 +164,7 @@ export default function Strategies() {
                         likedStrategyIds={likedStrategyIds}
                         onLikeToggle={handleLikeToggle}
                     />
-                    {hasNextPage && (
+                    {hasNextPage && !isFiltering && (
                         <div className="mt-6 text-center">
                             <Button
                                 onClick={() => fetchNextPage()}

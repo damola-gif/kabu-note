@@ -53,39 +53,106 @@ export type Database = {
       }
       strategies: {
         Row: {
+          comments_count: number
           content_markdown: string | null
           created_at: string | null
           id: string
           image_path: string | null
           is_public: boolean | null
+          likes_count: number
           name: string
           updated_at: string | null
           user_id: string
           win_rate: number | null
         }
         Insert: {
+          comments_count?: number
           content_markdown?: string | null
           created_at?: string | null
           id?: string
           image_path?: string | null
           is_public?: boolean | null
+          likes_count?: number
           name: string
           updated_at?: string | null
           user_id: string
           win_rate?: number | null
         }
         Update: {
+          comments_count?: number
           content_markdown?: string | null
           created_at?: string | null
           id?: string
           image_path?: string | null
           is_public?: boolean | null
+          likes_count?: number
           name?: string
           updated_at?: string | null
           user_id?: string
           win_rate?: number | null
         }
         Relationships: []
+      }
+      strategy_comments: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          strategy_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          strategy_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          strategy_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "strategy_comments_strategy_id_fkey"
+            columns: ["strategy_id"]
+            isOneToOne: false
+            referencedRelation: "strategies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      strategy_likes: {
+        Row: {
+          created_at: string
+          strategy_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          strategy_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          strategy_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "strategy_likes_strategy_id_fkey"
+            columns: ["strategy_id"]
+            isOneToOne: false
+            referencedRelation: "strategies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       trades: {
         Row: {

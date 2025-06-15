@@ -1,3 +1,4 @@
+
 import { StrategyWithProfile } from '@/hooks/useStrategies';
 import { Tables } from '@/integrations/supabase/types';
 import { supabase } from '@/integrations/supabase/client';
@@ -15,7 +16,7 @@ interface StrategyCardProps {
     strategy: StrategyWithProfile;
     isOwnStrategy: boolean;
     canFollow: boolean;
-    isFollowing?: boolean;
+    isFollowing: boolean;
     isLiked: boolean;
     onEdit: (strategy: Tables<'strategies'>) => void;
     onDelete: (strategy: Tables<'strategies'>) => void;
@@ -109,19 +110,19 @@ export function StrategyCard({
                     {strategy.content_markdown || "No content."}
                 </p>
             </CardContent>
-            <CardFooter className={cn("flex flex-col items-start gap-4", canFollow && "pt-4")}>
-                <div className="flex items-center gap-4 text-muted-foreground">
-                    <Button variant="ghost" size="icon" className="h-8 w-8 gap-1" onClick={() => onLikeToggle(strategy.id, isLiked)}>
-                         <ThumbsUp className={cn("h-4 w-4", isLiked && "fill-current text-primary")} />
-                         <span className="text-sm">{strategy.likes_count ?? 0}</span>
+            <CardFooter className={cn("flex flex-col items-start gap-4 pt-4")}>
+                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <Button variant="ghost" size="sm" className="flex items-center gap-1 px-2" onClick={() => onLikeToggle(strategy.id, isLiked)}>
+                         <ThumbsUp className={cn("h-4 w-4", isLiked && "fill-blue-500 text-blue-500")} />
+                         <span>{strategy.likes_count ?? 0}</span>
                     </Button>
                      <div className="flex items-center gap-1">
                          <MessageCircle className="h-4 w-4" />
-                         <span className="text-sm">{strategy.comments_count ?? 0}</span>
+                         <span>{strategy.comments_count ?? 0}</span>
                      </div>
                 </div>
                 {canFollow && (
-                    <div className="flex items-center justify-between w-full">
+                    <div className="flex items-center justify-between w-full pt-4 border-t">
                         <div className="flex items-center gap-2">
                             <Avatar className="h-8 w-8">
                                 <AvatarImage src={strategy.profile?.avatar_url || undefined} alt={strategy.profile?.username || 'author'} />

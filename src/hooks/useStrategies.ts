@@ -1,3 +1,4 @@
+
 import { useMutation, useQuery, useQueryClient, useInfiniteQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -76,9 +77,11 @@ export function useToggleLike() {
                 if (error) throw error;
             }
         },
-        onSuccess: () => {
+        onSuccess: (_, { strategyId, isLiked }) => {
             queryClient.invalidateQueries({ queryKey: ['strategies'] });
             queryClient.invalidateQueries({ queryKey: ['likedStrategyIds', user?.id] });
+            queryClient.invalidateQueries({ queryKey: ['strategy', strategyId] });
+            toast.success(isLiked ? "Unliked strategy" : "Liked strategy");
         },
         onError: (error) => {
             toast.error(error.message);
