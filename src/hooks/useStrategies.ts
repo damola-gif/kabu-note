@@ -1,3 +1,4 @@
+
 import { useMutation, useQuery, useQueryClient, useInfiniteQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -18,8 +19,13 @@ export function useHashtagSearch(hashtag: string) {
     queryFn: async (): Promise<StrategyWithProfile[]> => {
       if (!hashtag) return [];
 
+      // Use the regular strategies table with proper filtering instead of the RPC function
       const { data: strategies, error } = await supabase
-        .rpc('search_strategies_by_hashtag', { hashtag_query: hashtag });
+        .from('strategies')
+        .select('*')
+        .eq('is_public', true)
+        .contains('tags', [hashtag])
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
       if (!strategies) return [];
