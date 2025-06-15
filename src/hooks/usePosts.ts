@@ -51,15 +51,16 @@ export function usePosts() {
       if (error) throw error;
 
       // Fetch reposts, join with original post and user
-      const { data: reposts, error: repostsError } = await supabase
-        .from('reposts')
-        .select('*, user_profiles:profiles(username, avatar_url)')
+      const repostsQuery = (supabase.from('reposts' as any) as any)
+        .select('*')
         .order('created_at', { ascending: false });
+      const { data: reposts, error: repostsError } = await repostsQuery;
 
       if (repostsError) throw repostsError;
 
       // Collect all the original_post_ids to fetch
-      const originalPostIds = reposts.map((r) => r.original_post_id);
+      const originalPostIds =
+        (reposts as any[])?.map((r: any) => r.original_post_id) ?? [];
 
       let originalPosts: any[] = [];
       if (originalPostIds.length > 0) {
@@ -72,7 +73,7 @@ export function usePosts() {
 
         // Attach profile info for original posts
         originalPosts = await Promise.all(
-          origPosts.map(async (post) => {
+          origPosts.map(async (post: any) => {
             const { data: profile } = await supabase
               .from('profiles')
               .select('username, avatar_url')
@@ -95,7 +96,7 @@ export function usePosts() {
       // Collect regular posts + "repost" objects
       // For reposts: structure { __repost: true, repost: <repost>, post: <original> }
       const postsWithProfiles = await Promise.all(
-        data.map(async (post) => {
+        data.map(async (post: any) => {
           const { data: profile } = await supabase
             .from('profiles')
             .select('username, avatar_url')
@@ -110,12 +111,25 @@ export function usePosts() {
         })
       );
 
-      const repostObjects = reposts.map((repost) => ({
-        __repost: true,
-        repost,
-        post: origMap[repost.original_post_id],
-        repost_user_profile: repost.user_profiles,
-      }));
+      // Fetch repost user profiles
+      const userIds = [...new Set((reposts as any[] ?? []).map((repost: any) => repost.user_id))];
+      let userProfiles: Record<string, any> = {};
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, username, avatar_url')
+          .in('id', userIds);
+
+        if (profiles) profiles.forEach((p: any) => (userProfiles[p.id] = p));
+      }
+
+      const repostObjects =
+        (reposts as any[] ?? []).map((repost: any) => ({
+          __repost: true,
+          repost,
+          post: origMap[repost.original_post_id],
+          repost_user_profile: userProfiles[repost.user_id] || null,
+        }));
 
       // Merge and sort all posts and reposts by created time (of post or repost)
       const merged = [

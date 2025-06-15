@@ -1,5 +1,4 @@
 
-// Hook: useReposts
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useSession } from '@/contexts/SessionProvider';
@@ -31,7 +30,6 @@ export function useRepostPost() {
     }) => {
       if (!user) throw new Error('User not authenticated');
 
-      // Prevent reposting own post (enforce logic in UI as well)
       const { data: orig } = await supabase
         .from('posts')
         .select('user_id')
@@ -42,9 +40,7 @@ export function useRepostPost() {
         throw new Error("You can't repost your own post.");
       }
 
-      // Check for duplicate repost (only one per post per user)
-      const { data: existing } = await supabase
-        .from('reposts')
+      const { data: existing } = await (supabase.from('reposts' as any) as any)
         .select('id')
         .eq('user_id', user.id)
         .eq('original_post_id', original_post_id)
@@ -54,8 +50,7 @@ export function useRepostPost() {
         throw new Error('You have already reposted this post.');
       }
 
-      const { data, error } = await supabase
-        .from('reposts')
+      const { data, error } = await (supabase.from('reposts' as any) as any)
         .insert({
           user_id: user.id,
           original_post_id,
@@ -71,7 +66,7 @@ export function useRepostPost() {
       queryClient.invalidateQueries({ queryKey: ['posts'] });
       toast.success('Post shared (reposted)!');
     },
-    onError: (err) => {
+    onError: (err: any) => {
       toast.error(
         err?.message || 'Could not share post. Please try again.'
       );
@@ -86,8 +81,7 @@ export function useDeleteRepost() {
   return useMutation({
     mutationFn: async (repostId: string) => {
       if (!user) throw new Error('User not authenticated');
-      const { error } = await supabase
-        .from('reposts')
+      const { error } = await (supabase.from('reposts' as any) as any)
         .delete()
         .eq('user_id', user.id)
         .eq('id', repostId);
@@ -97,7 +91,7 @@ export function useDeleteRepost() {
       queryClient.invalidateQueries({ queryKey: ['posts'] });
       toast.success('Repost deleted!');
     },
-    onError: (err) => {
+    onError: (err: any) => {
       toast.error(
         err?.message || 'Could not remove repost. Please try again.'
       );
@@ -112,13 +106,12 @@ export function useUserRepostedIds() {
     queryKey: ['user-reposted-ids', user?.id],
     queryFn: async () => {
       if (!user) return [];
-      const { data, error } = await supabase
-        .from('reposts')
+      const { data, error } = await (supabase.from('reposts' as any) as any)
         .select('original_post_id')
         .eq('user_id', user.id);
 
       if (error) throw error;
-      return data.map((row) => row.original_post_id);
+      return data.map((row: any) => row.original_post_id);
     },
     enabled: !!user,
   });

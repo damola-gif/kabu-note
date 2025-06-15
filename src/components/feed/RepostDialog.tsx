@@ -32,8 +32,8 @@ export function RepostDialog({ open, onClose, onRepost, loading }: RepostDialogP
         />
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={loading}>Cancel</Button>
-          <Button onClick={handleRepost} loading={loading}>
-            Share
+          <Button onClick={handleRepost} disabled={loading}>
+            {loading ? "Sharing..." : "Share"}
           </Button>
         </DialogFooter>
       </DialogContent>
