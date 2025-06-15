@@ -2,6 +2,20 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
+async function getProfilesByIds(userIds: string[]): Promise<any[]> {
+  if (!userIds.length) return [];
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, username, full_name, avatar_url")
+    .in("id", userIds);
+
+  if (error) {
+    console.error("getProfilesByIds: Error fetching profiles", error);
+    throw error;
+  }
+  return data || [];
+}
+
 export function useFollowersList(userId: string) {
   return useQuery({
     queryKey: ["followersList", userId],
@@ -10,36 +24,37 @@ export function useFollowersList(userId: string) {
         console.log("useFollowersList: No userId provided");
         return [];
       }
-      
-      console.log("useFollowersList: Fetching followers for user:", userId);
-      
-      const { data, error } = await supabase
-        .from('follows')
-        .select(`
-          follower_id,
-          created_at,
-          profiles!inner(
-            id,
-            username,
-            full_name,
-            avatar_url
-          )
-        `)
-        .eq('following_id', userId);
+
+      // 1. Get rows from follows where following_id = userId
+      const { data: follows, error } = await supabase
+        .from("follows")
+        .select("follower_id, created_at")
+        .eq("following_id", userId);
 
       if (error) {
-        console.error("useFollowersList: Error fetching followers:", error);
+        console.error("useFollowersList: Error fetching follows:", error);
         throw error;
       }
-      
-      console.log("useFollowersList: Raw data from database:", data);
-      console.log("useFollowersList: Data length:", data?.length || 0);
-      
-      // Filter out any results where the profile might be missing
-      const filteredData = data?.filter(item => item.profiles) || [];
-      console.log("useFollowersList: Filtered data:", filteredData);
-      
-      return filteredData;
+      if (!follows || follows.length === 0) return [];
+
+      // 2. Find all unique follower_ids
+      const followerIds = Array.from(
+        new Set(follows.map(f => f.follower_id).filter(Boolean))
+      );
+      // 3. Fetch their profiles
+      const profiles = await getProfilesByIds(followerIds);
+
+      // 4. Join results
+      const byId: Record<string, any> = {};
+      profiles.forEach(p => { if (p?.id) byId[p.id] = p; });
+      const result = follows
+        .map(f => ({
+          ...f,
+          profiles: byId[f.follower_id] || null,
+        }))
+        .filter(f => f.profiles);
+
+      return result;
     },
     enabled: !!userId,
   });
@@ -53,36 +68,37 @@ export function useFollowingList(userId: string) {
         console.log("useFollowingList: No userId provided");
         return [];
       }
-      
-      console.log("useFollowingList: Fetching following for user:", userId);
-      
-      const { data, error } = await supabase
-        .from('follows')
-        .select(`
-          following_id,
-          created_at,
-          profiles!inner(
-            id,
-            username,
-            full_name,
-            avatar_url
-          )
-        `)
-        .eq('follower_id', userId);
+
+      // 1. Get rows from follows where follower_id = userId
+      const { data: follows, error } = await supabase
+        .from("follows")
+        .select("following_id, created_at")
+        .eq("follower_id", userId);
 
       if (error) {
-        console.error("useFollowingList: Error fetching following:", error);
+        console.error("useFollowingList: Error fetching follows:", error);
         throw error;
       }
-      
-      console.log("useFollowingList: Raw data from database:", data);
-      console.log("useFollowingList: Data length:", data?.length || 0);
-      
-      // Filter out any results where the profile might be missing
-      const filteredData = data?.filter(item => item.profiles) || [];
-      console.log("useFollowingList: Filtered data:", filteredData);
-      
-      return filteredData;
+      if (!follows || follows.length === 0) return [];
+
+      // 2. Find all unique following_ids
+      const followingIds = Array.from(
+        new Set(follows.map(f => f.following_id).filter(Boolean))
+      );
+      // 3. Fetch their profiles
+      const profiles = await getProfilesByIds(followingIds);
+
+      // 4. Join results
+      const byId: Record<string, any> = {};
+      profiles.forEach(p => { if (p?.id) byId[p.id] = p; });
+      const result = follows
+        .map(f => ({
+          ...f,
+          profiles: byId[f.following_id] || null,
+        }))
+        .filter(f => f.profiles);
+
+      return result;
     },
     enabled: !!userId,
   });
