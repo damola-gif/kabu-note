@@ -17,6 +17,10 @@ export function SocialLists({ userId, stats }: SocialListsProps) {
   const { data: followers, isLoading: isLoadingFollowers } = useFollowersList(userId);
   const { data: following, isLoading: isLoadingFollowing } = useFollowingList(userId);
 
+  console.log("SocialLists - userId:", userId);
+  console.log("SocialLists - followers:", followers);
+  console.log("SocialLists - following:", following);
+
   const LoadingSkeleton = () => (
     <div className="space-y-3">
       {[...Array(3)].map((_, i) => (
