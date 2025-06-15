@@ -21,6 +21,7 @@ export const strategyFormSchema = z.object({
       "Only .jpg, .jpeg, .png, .webp and .gif formats are supported."
     ),
     image_path: z.string().nullable().optional(),
+    win_rate: z.coerce.number().min(0).max(100).default(0),
 });
 
 export type StrategyFormValues = z.infer<typeof strategyFormSchema>;

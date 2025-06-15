@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -7,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { StrategyFormValues } from './strategy.schemas';
 import { StrategyImageUpload } from './StrategyImageUpload';
 import { StrategyDialogFooter } from './StrategyDialogFooter';
+import { Slider } from '@/components/ui/slider';
 
 interface StrategyFormProps {
     form: UseFormReturn<StrategyFormValues>;
@@ -29,6 +29,8 @@ export function StrategyForm({
     onCancel,
     handlePublish
 }: StrategyFormProps) {
+    const winRateValue = form.watch("win_rate");
+
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -53,6 +55,26 @@ export function StrategyForm({
                             <FormLabel>Strategy Content (Markdown)</FormLabel>
                             <FormControl>
                                 <Textarea placeholder="Write your strategy details here..." {...field} rows={15} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                <FormField
+                    control={form.control}
+                    name="win_rate"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Win Rate ({field.value}%)</FormLabel>
+                            <FormControl>
+                                <Slider
+                                    min={0}
+                                    max={100}
+                                    step={1}
+                                    value={[field.value ?? 0]}
+                                    onValueChange={(value) => field.onChange(value[0])}
+                                />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
