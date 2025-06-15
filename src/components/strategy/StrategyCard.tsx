@@ -50,6 +50,21 @@ export function StrategyCard({
     const navigate = useNavigate();
     const imageUrl = strategy.image_path ? supabase.storage.from('strategy_images').getPublicUrl(strategy.image_path).data.publicUrl : null;
 
+    const getVotingStatusBadge = () => {
+        if (!strategy.is_public || !strategy.voting_status) return null;
+        
+        switch (strategy.voting_status) {
+            case 'approved':
+                return <Badge className="bg-green-100 text-green-800 border-green-300 text-xs">✓ Approved</Badge>;
+            case 'rejected':
+                return <Badge className="bg-red-100 text-red-800 border-red-300 text-xs">✗ Rejected</Badge>;
+            case 'pending':
+                return <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300 text-xs">⏳ Voting</Badge>;
+            default:
+                return null;
+        }
+    };
+
     return (
         <Card key={strategy.id} className="flex flex-col">
             {imageUrl && (
@@ -66,12 +81,13 @@ export function StrategyCard({
                             </span>
                             <CardTitle className="truncate" title={strategy.name}>{strategy.name}</CardTitle>
                         </div>
-                        <CardDescription className="flex items-center gap-2">
+                        <CardDescription className="flex items-center gap-2 flex-wrap">
                             {strategy.win_rate && (
                                 <Badge variant="outline" className="border-green-500 bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">
                                     {strategy.win_rate}% Win Rate
                                 </Badge>
                             )}
+                            {getVotingStatusBadge()}
                         </CardDescription>
                     </div>
                     <DropdownMenu>
@@ -108,6 +124,24 @@ export function StrategyCard({
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
+
+                {/* Voting Progress for public strategies */}
+                {strategy.is_public && strategy.voting_status === 'pending' && (
+                    <div className="mt-2 space-y-1">
+                        <div className="flex justify-between text-xs text-gray-600">
+                            <span>Community Votes</span>
+                            <span>{strategy.approval_votes || 0}/{strategy.votes_required || 3}</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-1">
+                            <div 
+                                className="bg-green-500 h-1 rounded-full transition-all duration-300" 
+                                style={{ 
+                                    width: `${Math.min(((strategy.approval_votes || 0) / (strategy.votes_required || 3)) * 100, 100)}%` 
+                                }}
+                            />
+                        </div>
+                    </div>
+                )}
             </CardHeader>
             <CardContent className="flex-grow">
                 <p className="text-sm text-muted-foreground line-clamp-3">

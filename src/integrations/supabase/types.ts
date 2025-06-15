@@ -97,6 +97,7 @@ export type Database = {
       }
       strategies: {
         Row: {
+          approval_votes: number | null
           bookmarks_count: number
           comments_count: number
           content_markdown: string | null
@@ -108,12 +109,16 @@ export type Database = {
           last_saved_at: string | null
           likes_count: number
           name: string
+          rejection_votes: number | null
           tags: string[] | null
           updated_at: string | null
           user_id: string
+          votes_required: number | null
+          voting_status: string | null
           win_rate: number | null
         }
         Insert: {
+          approval_votes?: number | null
           bookmarks_count?: number
           comments_count?: number
           content_markdown?: string | null
@@ -125,12 +130,16 @@ export type Database = {
           last_saved_at?: string | null
           likes_count?: number
           name: string
+          rejection_votes?: number | null
           tags?: string[] | null
           updated_at?: string | null
           user_id: string
+          votes_required?: number | null
+          voting_status?: string | null
           win_rate?: number | null
         }
         Update: {
+          approval_votes?: number | null
           bookmarks_count?: number
           comments_count?: number
           content_markdown?: string | null
@@ -142,9 +151,12 @@ export type Database = {
           last_saved_at?: string | null
           likes_count?: number
           name?: string
+          rejection_votes?: number | null
           tags?: string[] | null
           updated_at?: string | null
           user_id?: string
+          votes_required?: number | null
+          voting_status?: string | null
           win_rate?: number | null
         }
         Relationships: []
@@ -277,6 +289,41 @@ export type Database = {
           },
         ]
       }
+      strategy_votes: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          strategy_id: string
+          vote_type: string
+          voter_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          strategy_id: string
+          vote_type: string
+          voter_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          strategy_id?: string
+          vote_type?: string
+          voter_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "strategy_votes_strategy_id_fkey"
+            columns: ["strategy_id"]
+            isOneToOne: false
+            referencedRelation: "strategies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trades: {
         Row: {
           closed_at: string | null
@@ -336,6 +383,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_publish_strategy: {
+        Args: { strategy_id: string }
+        Returns: boolean
+      }
       create_notification: {
         Args: {
           target_user_id: string

@@ -268,6 +268,11 @@ export function useCreateStrategy() {
         image_path: imagePath,
         win_rate: newStrategy.win_rate,
         tags: newStrategy.tags || [],
+        // Initialize voting fields for new strategies
+        voting_status: newStrategy.is_public ? 'pending' : null,
+        votes_required: 3,
+        approval_votes: 0,
+        rejection_votes: 0,
       };
       const { data, error } = await supabase.from("strategies").insert(dataToInsert).select().single();
       if (error) throw error;
@@ -277,6 +282,8 @@ export function useCreateStrategy() {
       // Only show default toast for drafts, publish flow has its own toast.
       if (!variables.is_public) {
         toast.success("Strategy created successfully");
+      } else {
+        toast.success("Strategy submitted for community voting!");
       }
       queryClient.invalidateQueries({ queryKey: ["strategies", user?.id] });
     },
@@ -328,6 +335,13 @@ export function useUpdateStrategy() {
         last_saved_at: new Date().toISOString(),
       };
 
+      // Reset voting status if publishing for the first time
+      if (values.is_public) {
+        updateData.voting_status = 'pending';
+        updateData.approval_votes = 0;
+        updateData.rejection_votes = 0;
+      }
+
       const { error } = await supabase
         .from("strategies")
         .update(updateData)
@@ -338,6 +352,8 @@ export function useUpdateStrategy() {
       // Only show default toast for drafts, publish flow has its own toast.
       if (!variables.values.is_public) {
         toast.success("Strategy updated successfully!");
+      } else {
+        toast.success("Strategy submitted for community voting!");
       }
       queryClient.invalidateQueries({ queryKey: ["strategies", user?.id] });
       queryClient.invalidateQueries({ queryKey: ["strategy", variables.id] });
