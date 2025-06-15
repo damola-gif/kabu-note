@@ -113,75 +113,75 @@ export default function Dashboard() {
   }
 
   return (
-    <>
-      <div className="space-y-8">
-        {/* Greeting */}
-        <div>
-          <h1 className="text-3xl font-light text-foreground">
-            Welcome back, Trader 👋
-          </h1>
-          <p className="text-muted-foreground mt-2">Here's what's happening with your trades today.</p>
-        </div>
+    <div className="space-y-8 w-full max-w-none">
+      {/* Greeting */}
+      <div className="w-full">
+        <h1 className="text-3xl font-bold text-foreground">
+          Welcome back, Trader 👋
+        </h1>
+        <p className="text-muted-foreground mt-2">Here's what's happening with your trades today.</p>
+      </div>
 
-        {/* Quick Stats Overview */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <StatCard
-            title="Total Trades"
-            value={stats.totalTrades}
-            icon={CheckCircle}
-          />
-          <StatCard
-            title="Win Rate"
-            value={`${stats.winRate.toFixed(0)}%`}
-            icon={TrendingUp}
-            valueClassName={stats.winRate >= 50 ? "text-green-600" : "text-red-600"}
-            trend={{
-              value: stats.winRate >= 50 ? 12 : -8,
-              isPositive: stats.winRate >= 50
-            }}
-          />
-          <StatCard
-            title="Today's P&L"
-            value={`$${stats.todaysPL.toFixed(2)}`}
-            icon={DollarSign}
-            valueClassName={cn(
-              stats.todaysPL > 0 && "text-green-600",
-              stats.todaysPL < 0 && "text-red-600"
-            )}
-            trend={{
-              value: Math.abs(stats.todaysPL * 0.1),
-              isPositive: stats.todaysPL >= 0
-            }}
-          />
-          <StatCard
-            title="Strategies Published"
-            value={stats.strategiesPublished}
-            icon={BookOpen}
-          />
-        </div>
+      {/* Quick Stats Overview */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
+        <StatCard
+          title="Total Trades"
+          value={stats.totalTrades}
+          icon={CheckCircle}
+        />
+        <StatCard
+          title="Win Rate"
+          value={`${stats.winRate.toFixed(0)}%`}
+          icon={TrendingUp}
+          valueClassName={stats.winRate >= 50 ? "text-green-600" : "text-red-600"}
+          trend={{
+            value: stats.winRate >= 50 ? 12 : -8,
+            isPositive: stats.winRate >= 50
+          }}
+        />
+        <StatCard
+          title="Today's P&L"
+          value={`$${stats.todaysPL.toFixed(2)}`}
+          icon={DollarSign}
+          valueClassName={cn(
+            stats.todaysPL > 0 && "text-green-600",
+            stats.todaysPL < 0 && "text-red-600"
+          )}
+          trend={{
+            value: Math.abs(stats.todaysPL * 0.1),
+            isPositive: stats.todaysPL >= 0
+          }}
+        />
+        <StatCard
+          title="Strategies Published"
+          value={stats.strategiesPublished}
+          icon={BookOpen}
+        />
+      </div>
 
-        {/* Performance Chart */}
+      {/* Performance Chart */}
+      <div className="w-full">
         <PerformanceChart trades={trades || []} />
+      </div>
 
-        {/* Two Column Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Left Column */}
-          <div className="space-y-8">
-            <OpenTrades 
-              trades={stats.openTrades}
-              onEdit={handleEditTrade}
-              onClose={handleCloseTrade}
-              onDelete={handleDeleteTrade}
-              onViewDetails={handleViewDetails}
-              isDeleting={deleteTradeMutation.isPending}
-            />
-            <DraftStrategies strategies={strategies} />
-          </div>
-          
-          {/* Right Column */}
-          <div className="space-y-8">
-            <RecentActivity strategies={strategies} />
-          </div>
+      {/* Two Column Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 w-full">
+        {/* Left Column */}
+        <div className="space-y-8">
+          <OpenTrades 
+            trades={stats.openTrades}
+            onEdit={handleEditTrade}
+            onClose={handleCloseTrade}
+            onDelete={handleDeleteTrade}
+            onViewDetails={handleViewDetails}
+            isDeleting={deleteTradeMutation.isPending}
+          />
+          <DraftStrategies strategies={strategies} />
+        </div>
+        
+        {/* Right Column */}
+        <div className="space-y-8">
+          <RecentActivity strategies={strategies} />
         </div>
       </div>
 
@@ -209,6 +209,6 @@ export default function Dashboard() {
           onOpenChange={(open) => !open && setViewingTrade(null)}
         />
       )}
-    </>
+    </div>
   );
 }

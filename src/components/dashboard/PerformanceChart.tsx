@@ -1,6 +1,7 @@
 
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Tables } from "@/integrations/supabase/types";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from "recharts";
@@ -169,31 +170,31 @@ export function PerformanceChart({ trades }: PerformanceChartProps) {
   };
 
   return (
-    <div className="stat-card">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
-        <h3 className="text-lg font-light text-foreground mb-4 sm:mb-0">
-          Performance Summary
-        </h3>
-        
-        <div className="flex flex-wrap gap-2">
-          {chartTypes.map((chart) => (
-            <Button
-              key={chart.id}
-              variant={activeChart === chart.id ? "default" : "outline"}
-              size="sm"
-              onClick={() => setActiveChart(chart.id)}
-              className={cn(
-                "text-xs",
-                activeChart === chart.id ? "btn-landing-primary" : "btn-landing-ghost"
-              )}
-            >
-              {chart.label}
-            </Button>
-          ))}
+    <Card>
+      <CardHeader>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+          <CardTitle className="text-lg font-semibold mb-4 sm:mb-0">
+            Performance Summary
+          </CardTitle>
+          
+          <div className="flex flex-wrap gap-2">
+            {chartTypes.map((chart) => (
+              <Button
+                key={chart.id}
+                variant={activeChart === chart.id ? "default" : "outline"}
+                size="sm"
+                onClick={() => setActiveChart(chart.id)}
+                className="text-xs"
+              >
+                {chart.label}
+              </Button>
+            ))}
+          </div>
         </div>
-      </div>
-      
-      {renderChart()}
-    </div>
+      </CardHeader>
+      <CardContent>
+        {renderChart()}
+      </CardContent>
+    </Card>
   );
 }
