@@ -41,66 +41,71 @@ export default function StrategyPage() {
 
   if (isLoading || sessionLoading) {
     return (
-      <div className="space-y-4 w-full max-w-full overflow-x-hidden">
-        <div className="flex items-center justify-between">
-          <Skeleton className="h-8 w-20" />
-        </div>
-        <Card className="w-full max-w-full">
-          <CardHeader className="pb-3">
-            <Skeleton className="h-6 w-3/4" />
-            <div className="flex flex-wrap gap-2">
-              <Skeleton className="h-5 w-24" />
-              <Skeleton className="h-5 w-16" />
+      <div className="min-h-screen bg-background">
+        <div className="max-w-6xl mx-auto">
+          <div className="border-x border-border min-h-screen">
+            <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-md border-b border-border">
+              <div className="px-4 py-3 flex items-center justify-between">
+                <Skeleton className="h-6 w-20" />
+                <Skeleton className="h-8 w-16" />
+              </div>
             </div>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <Skeleton className="h-3 w-full" />
-            <Skeleton className="h-3 w-5/6" />
-            <Skeleton className="h-3 w-full" />
-            <Skeleton className="h-3 w-4/5" />
-          </CardContent>
-        </Card>
+            <div className="p-4 space-y-4">
+              <Skeleton className="h-8 w-3/4" />
+              <Skeleton className="h-4 w-1/2" />
+              <Skeleton className="h-32 w-full" />
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="space-y-4 w-full max-w-full overflow-x-hidden">
-        <div className="flex items-center justify-between">
-          <Button variant="outline" size="sm" onClick={() => navigate(-1)}>
-            <ArrowLeft className="mr-1 h-4 w-4" />
-            Back
-          </Button>
+      <div className="min-h-screen bg-background">
+        <div className="max-w-6xl mx-auto">
+          <div className="border-x border-border min-h-screen">
+            <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-md border-b border-border">
+              <div className="px-4 py-3">
+                <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back
+                </Button>
+              </div>
+            </div>
+            <div className="p-4">
+              <div className="text-destructive text-center py-6 text-sm">Error: {error.message}</div>
+            </div>
+          </div>
         </div>
-        <Card className="w-full max-w-full">
-          <CardContent className="pt-4">
-            <div className="text-destructive text-center py-6 text-sm">Error: {error.message}</div>
-          </CardContent>
-        </Card>
       </div>
     );
   }
 
   if (!strategy) {
     return (
-      <div className="space-y-4 w-full max-w-full overflow-x-hidden">
-        <div className="flex items-center justify-between">
-          <Button variant="outline" size="sm" onClick={() => navigate(-1)}>
-            <ArrowLeft className="mr-1 h-4 w-4" />
-            Back
-          </Button>
-        </div>
-        <Card className="w-full max-w-full">
-          <CardContent className="pt-4">
-            <div className="text-center py-8">
-              <h2 className="text-lg font-bold">Strategy not found</h2>
-              <p className="text-muted-foreground text-sm mt-2">
-                This strategy may have been deleted, or you might not have permission to view it.
-              </p>
+      <div className="min-h-screen bg-background">
+        <div className="max-w-6xl mx-auto">
+          <div className="border-x border-border min-h-screen">
+            <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-md border-b border-border">
+              <div className="px-4 py-3">
+                <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back
+                </Button>
+              </div>
             </div>
-          </CardContent>
-        </Card>
+            <div className="p-4">
+              <div className="text-center py-8">
+                <h2 className="text-lg font-bold">Strategy not found</h2>
+                <p className="text-muted-foreground text-sm mt-2">
+                  This strategy may have been deleted, or you might not have permission to view it.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -110,91 +115,90 @@ export default function StrategyPage() {
     : null;
 
   return (
-    <div className="space-y-4 w-full max-w-full overflow-x-hidden">
-      {/* Compact Header */}
-      <div className="flex items-center justify-between py-2 px-0">
-        <Button variant="outline" size="sm" onClick={() => navigate(-1)}>
-          <ArrowLeft className="mr-1 h-4 w-4" />
-          Back
-        </Button>
-        <Button variant="outline" size="sm" onClick={handleShare}>
-          <Share2 className="mr-2 h-4 w-4" />
-          Share
-        </Button>
-      </div>
+    <div className="min-h-screen bg-background">
+      <div className="max-w-6xl mx-auto">
+        <div className="border-x border-border min-h-screen">
+          {/* Header */}
+          <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-md border-b border-border">
+            <div className="px-4 py-3 flex items-center justify-between">
+              <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back
+              </Button>
+              <Button variant="ghost" size="sm" onClick={handleShare}>
+                <Share2 className="mr-2 h-4 w-4" />
+                Share
+              </Button>
+            </div>
+          </div>
 
-      {/* Strategy Content Card */}
-      <Card className="w-full max-w-full mx-0">
-        <CardHeader className="pb-3 px-3 sm:px-4">
-          <div className="space-y-3">
-            <div className="flex items-start gap-2">
-              {strategy.is_public ? (
-                <Globe className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-              ) : (
-                <Lock className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-              )}
-              <div className="flex-1 min-w-0">
-                <CardTitle className="text-lg sm:text-xl font-bold leading-tight break-words">
+          {/* Content */}
+          <div className="p-4">
+            {/* Strategy Header */}
+            <div className="border-b border-border pb-4 mb-4">
+              <div className="flex items-start gap-2 mb-3">
+                {strategy.is_public ? (
+                  <Globe className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                ) : (
+                  <Lock className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                )}
+                <h1 className="text-xl font-bold leading-tight break-words">
                   {strategy.name}
-                </CardTitle>
+                </h1>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                <div className="flex items-center gap-1">
+                  <Calendar className="h-3 w-3" />
+                  <span>{format(new Date(strategy.created_at!), "MMM d, yyyy")}</span>
+                </div>
+                {strategy.is_public ? (
+                  <Badge className="text-xs h-5">Public</Badge>
+                ) : (
+                  <Badge variant="secondary" className="text-xs h-5">Draft</Badge>
+                )}
+                {strategy.voting_status && (
+                  <Badge
+                    variant={strategy.voting_status === 'approved' ? 'default' :
+                      strategy.voting_status === 'rejected' ? 'destructive' : 'secondary'}
+                    className="text-xs h-5"
+                  >
+                    {strategy.voting_status}
+                  </Badge>
+                )}
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-              <div className="flex items-center gap-1">
-                <Calendar className="h-3 w-3" />
-                <span>{format(new Date(strategy.created_at!), "MMM d, yyyy")}</span>
+            {/* Strategy Content */}
+            <div className="space-y-4">
+              {/* Strategy Image */}
+              {imageUrl && (
+                <div className="rounded-2xl overflow-hidden border border-border">
+                  <img
+                    src={imageUrl}
+                    alt={strategy.name}
+                    className="w-full max-h-96 object-contain"
+                  />
+                </div>
+              )}
+
+              {/* Markdown Content */}
+              <div className="prose dark:prose-invert max-w-none text-sm leading-relaxed prose-headings:text-base prose-headings:font-semibold prose-headings:mb-2 prose-p:mb-3 prose-li:mb-1 break-words">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {strategy.content_markdown || "No content available."}
+                </ReactMarkdown>
               </div>
-              {strategy.is_public ? (
-                <Badge className="text-xs h-5">Public</Badge>
-              ) : (
-                <Badge variant="secondary" className="text-xs h-5">Draft</Badge>
-              )}
-              {strategy.voting_status && (
-                <Badge
-                  variant={strategy.voting_status === 'approved' ? 'default' :
-                    strategy.voting_status === 'rejected' ? 'destructive' : 'secondary'}
-                  className="text-xs h-5"
-                >
-                  {strategy.voting_status}
-                </Badge>
-              )}
             </div>
+
+            {/* Voting Section */}
+            {strategy.is_public && (
+              <div className="border-t border-border pt-4 mt-6">
+                <StrategyVotingSection strategy={strategy} />
+              </div>
+            )}
           </div>
-        </CardHeader>
-
-        <CardContent className="space-y-4 px-3 sm:px-4 pb-4 w-full max-w-full">
-          {/* Strategy Image */}
-          {imageUrl && (
-            <div className="w-full max-w-full">
-              <img
-                src={imageUrl}
-                alt={strategy.name}
-                className="w-full max-w-full rounded-md max-h-44 sm:max-h-64 object-contain border"
-                style={{ display: 'block', margin: 0, padding: 0 }}
-              />
-            </div>
-          )}
-
-          {/* Markdown Content */}
-          <div className="w-full max-w-full">
-            <div className="prose dark:prose-invert max-w-full text-sm leading-relaxed prose-headings:text-base prose-headings:font-semibold prose-headings:mb-2 prose-p:mb-3 prose-li:mb-1 break-words">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                {strategy.content_markdown || "No content available."}
-              </ReactMarkdown>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Voting Section */}
-      {strategy.is_public && (
-        <Card className="w-full max-w-full mx-0">
-          <CardContent className="pt-4 px-3 sm:px-4 pb-4">
-            <StrategyVotingSection strategy={strategy} />
-          </CardContent>
-        </Card>
-      )}
+        </div>
+      </div>
     </div>
   );
 }

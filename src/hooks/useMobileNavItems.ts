@@ -1,5 +1,5 @@
 
-import { Home, Settings, Newspaper, User } from "lucide-react";
+import { Home, Settings, Newspaper, BookOpen } from "lucide-react";
 
 export const useMobileNavItems = () => {
   return [
@@ -14,9 +14,9 @@ export const useMobileNavItems = () => {
       icon: Newspaper,
     },
     {
-      title: "Profile",
-      url: "/profile", 
-      icon: User,
+      title: "Journal",
+      url: "/journal", 
+      icon: BookOpen,
     },
     {
       title: "Settings",

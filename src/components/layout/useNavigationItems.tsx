@@ -7,8 +7,7 @@ export function useNavigationItems() {
   const baseItems = [
     { name: "Dashboard", path: "/dashboard" },
     { name: "Feed", path: "/feed" },
-    { name: "Profile", path: "/profile" },
-    { name: "Settings", path: "/settings" },
+    { name: "Journal", path: "/journal" },
   ];
 
   // Add Strategies only on desktop
@@ -17,8 +16,7 @@ export function useNavigationItems() {
       baseItems[0], // Dashboard
       { name: "Strategies", path: "/strategies" },
       baseItems[1], // Feed
-      baseItems[2], // Profile
-      baseItems[3], // Settings
+      baseItems[2], // Journal
     ];
   }
 

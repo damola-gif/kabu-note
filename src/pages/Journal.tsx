@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { NewTradeDialog } from "@/components/trade/NewTradeDialog";
 import { EditTradeDialog } from "@/components/trade/EditTradeDialog";
@@ -104,26 +103,41 @@ export default function Journal() {
   };
 
   return (
-    <>
-      {!isConnected && hasOpenTrades && (
-        <Alert variant="destructive" className="mb-4">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Live Feed Disconnected</AlertTitle>
-          <AlertDescription>
-            Could not connect to the real-time price feed from Twelve Data. Live P&L updates for open trades will not be available. This might be due to an API key issue or network connection problem.
-          </AlertDescription>
-        </Alert>
-      )}
-      <JournalHeader 
-        filter={filter}
-        onFilterChange={setFilter}
-        onNewTrade={() => setIsNewTradeDialogOpen(true)}
-        dateRange={dateRange}
-        onDateRangeChange={setDateRange}
-      />
-      
-      <div className="bg-card rounded-lg shadow">
-        {renderContent()}
+    <div className="min-h-screen bg-background">
+      <div className="max-w-6xl mx-auto">
+        <div className="border-x border-border min-h-screen">
+          {/* Header */}
+          <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-md border-b border-border">
+            <div className="px-4 py-3">
+              <h1 className="text-xl font-bold">Journal</h1>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="p-4">
+            {!isConnected && hasOpenTrades && (
+              <Alert variant="destructive" className="mb-4">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Live Feed Disconnected</AlertTitle>
+                <AlertDescription>
+                  Could not connect to the real-time price feed from Twelve Data. Live P&L updates for open trades will not be available. This might be due to an API key issue or network connection problem.
+                </AlertDescription>
+              </Alert>
+            )}
+            
+            <JournalHeader 
+              filter={filter}
+              onFilterChange={setFilter}
+              onNewTrade={() => setIsNewTradeDialogOpen(true)}
+              dateRange={dateRange}
+              onDateRangeChange={setDateRange}
+            />
+            
+            <div className="bg-card rounded-lg shadow border border-border mt-4">
+              {renderContent()}
+            </div>
+          </div>
+        </div>
       </div>
 
       <NewTradeDialog
@@ -151,6 +165,6 @@ export default function Journal() {
             trade={selectedTrade}
         />
       )}
-    </>
+    </div>
   );
 }
