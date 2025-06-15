@@ -71,6 +71,92 @@ export type Database = {
           },
         ]
       }
+      post_likes: {
+        Row: {
+          created_at: string
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      posts: {
+        Row: {
+          comments_count: number | null
+          content: string | null
+          created_at: string
+          hashtags: string[] | null
+          id: string
+          likes_count: number | null
+          link_description: string | null
+          link_image: string | null
+          link_title: string | null
+          link_url: string | null
+          media_type: string | null
+          media_url: string | null
+          post_type: string
+          shares_count: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          comments_count?: number | null
+          content?: string | null
+          created_at?: string
+          hashtags?: string[] | null
+          id?: string
+          likes_count?: number | null
+          link_description?: string | null
+          link_image?: string | null
+          link_title?: string | null
+          link_url?: string | null
+          media_type?: string | null
+          media_url?: string | null
+          post_type: string
+          shares_count?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          comments_count?: number | null
+          content?: string | null
+          created_at?: string
+          hashtags?: string[] | null
+          id?: string
+          likes_count?: number | null
+          link_description?: string | null
+          link_image?: string | null
+          link_title?: string | null
+          link_url?: string | null
+          media_type?: string | null
+          media_url?: string | null
+          post_type?: string
+          shares_count?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
