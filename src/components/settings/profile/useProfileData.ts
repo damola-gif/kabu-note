@@ -14,6 +14,7 @@ export function useProfileData() {
   const { user } = useSession();
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  const [avatarUrl, setAvatarUrl] = useState<string>("");
   const [formData, setFormData] = useState<FormData>({
     fullName: "",
     username: "",
@@ -44,6 +45,7 @@ export function useProfileData() {
             username: profile.username || "",
             timezone: "UTC" // Add timezone to profiles table if needed
           });
+          setAvatarUrl(profile.avatar_url || "");
         }
       } catch (error) {
         console.error('Error loading profile:', error);
@@ -74,6 +76,7 @@ export function useProfileData() {
           id: user.id,
           full_name: formData.fullName.trim(),
           username: formData.username.trim(),
+          avatar_url: avatarUrl,
           updated_at: new Date().toISOString()
         });
 
@@ -101,6 +104,8 @@ export function useProfileData() {
     setFormData,
     isLoading,
     isLoadingProfile,
-    handleSave
+    handleSave,
+    avatarUrl,
+    setAvatarUrl
   };
 }
