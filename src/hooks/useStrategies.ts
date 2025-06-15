@@ -2,24 +2,49 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useSession } from "@/contexts/SessionProvider";
-import { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
+import { TablesInsert, TablesUpdate, Tables } from "@/integrations/supabase/types";
 import { StrategyFormValues } from "@/components/strategy/strategy.schemas";
+
+export type StrategyWithProfile = Tables<'strategies'> & {
+  profile?: Pick<Tables<'profiles'>, 'id' | 'username' | 'avatar_url'> | null;
+};
 
 // Hook to fetch strategies based on RLS
 export function useStrategies() {
   const { user } = useSession();
   return useQuery({
     queryKey: ["strategies"],
-    queryFn: async () => {
-      // We removed the user_id filter here. RLS will handle showing the correct strategies.
-      const { data, error } = await supabase
+    queryFn: async (): Promise<StrategyWithProfile[]> => {
+      const { data: strategies, error } = await supabase
         .from("strategies")
         .select("*")
         .order("created_at", { ascending: false });
       if (error) throw new Error(error.message);
-      return data ?? [];
+      if (!strategies) return [];
+
+      const userIds = Array.from(new Set(strategies.map(s => s.user_id).filter(Boolean)));
+      if(userIds.length === 0) {
+        return strategies.map(s => ({...s, profile: null}));
+      }
+
+      const { data: profiles, error: profileError } = await supabase
+        .from("profiles")
+        .select("id, username, avatar_url")
+        .in('id', userIds);
+
+      if (profileError) {
+        console.error("Error fetching profiles:", profileError.message);
+        return strategies.map(s => ({...s, profile: null}));
+      }
+
+      const profileMap = new Map(profiles?.map(p => [p.id, p]));
+
+      return strategies.map(strategy => ({
+        ...strategy,
+        profile: profileMap.get(strategy.user_id)
+      }));
     },
-    enabled: !!user, // Query is enabled only when the user is logged in
+    enabled: !!user,
   });
 }
 
@@ -169,6 +194,38 @@ export function useDeleteStrategy() {
     },
     onError: (error) => {
       toast.error(`Error deleting strategy: ${error.message}`);
+    },
+  });
+}
+
+// Hook to fork a strategy
+export function useForkStrategy() {
+  const { user } = useSession();
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (strategyToFork: Tables<'strategies'>) => {
+      if (!user) throw new Error("User must be logged in to fork a strategy");
+      
+      const dataToInsert: TablesInsert<'strategies'> = {
+        name: `Fork of ${strategyToFork.name}`,
+        content_markdown: strategyToFork.content_markdown,
+        is_public: false, // Forks are private by default
+        user_id: user.id,
+        win_rate: strategyToFork.win_rate,
+        image_path: null, // Don't copy image
+      };
+      
+      const { data, error } = await supabase.from("strategies").insert(dataToInsert).select().single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      toast.success("Strategy forked successfully! It's now in your drafts.");
+      queryClient.invalidateQueries({ queryKey: ["strategies"] });
+    },
+    onError: (error) => {
+      toast.error(`Error forking strategy: ${error.message}`);
     },
   });
 }

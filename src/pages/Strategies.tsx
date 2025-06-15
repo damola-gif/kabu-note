@@ -1,12 +1,12 @@
 
 import { useState } from 'react';
-import { useStrategies, useDeleteStrategy } from '@/hooks/useStrategies';
+import { useStrategies, useDeleteStrategy, useForkStrategy, StrategyWithProfile } from '@/hooks/useStrategies';
 import { Button } from '@/components/ui/button';
 import { StrategyEditorDialog } from '@/components/strategy/StrategyEditorDialog';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { PlusCircle, MoreHorizontal, Edit, Trash2, Eye } from 'lucide-react';
+import { PlusCircle, MoreHorizontal, Edit, Trash2, Eye, Globe, Lock, Copy } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tables } from '@/integrations/supabase/types';
 import {
@@ -30,7 +30,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { DateRange } from 'react-day-picker';
 import { StrategyFilters } from '@/components/strategy/StrategyFilters';
 import { useSession } from '@/contexts/SessionProvider';
-import { useFollowing } from '@/hooks/useProfile';
+import { useFollowing, useFollowUser, useUnfollowUser } from '@/hooks/useProfile';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export default function Strategies() {
     const [isEditorOpen, setIsEditorOpen] = useState(false);
@@ -45,6 +46,9 @@ export default function Strategies() {
     const { user } = useSession();
     const { data: followingIds, isLoading: isLoadingFollowing } = useFollowing();
     const deleteMutation = useDeleteStrategy();
+    const forkMutation = useForkStrategy();
+    const followMutation = useFollowUser();
+    const unfollowMutation = useUnfollowUser();
     const navigate = useNavigate();
 
     const handleNewStrategy = () => {
@@ -72,7 +76,20 @@ export default function Strategies() {
         });
     };
 
-    const filteredStrategies = strategies?.filter(strategy => {
+    const handleFork = (strategy: Tables<'strategies'>) => {
+        forkMutation.mutate(strategy);
+    };
+
+    const handleFollowToggle = (profileId: string, isCurrentlyFollowing: boolean) => {
+        if (unfollowMutation.isPending || followMutation.isPending) return;
+        if (isCurrentlyFollowing) {
+            unfollowMutation.mutate(profileId);
+        } else {
+            followMutation.mutate(profileId);
+        }
+    };
+
+    const filteredStrategies = strategies?.filter((strategy: StrategyWithProfile) => {
         const nameMatch = strategy.name.toLowerCase().includes(searchTerm.toLowerCase());
 
         const winRate = (strategy.win_rate ?? 0) as number;
@@ -101,9 +118,6 @@ export default function Strategies() {
             authorMatch = strategy.user_id === user?.id;
         } else if (authorFilter === 'following') {
             if (isLoadingFollowing || !followingIds) {
-                // While following list is loading, we can't determine a match yet.
-                // Depending on desired UX, you could return false or treat as loading.
-                // For simplicity, we'll assume no match until the list is loaded.
                 return false;
             }
             authorMatch = followingIds.includes(strategy.user_id);
@@ -162,6 +176,10 @@ export default function Strategies() {
             <>
                 {filteredStrategies.map((strategy) => {
                     const imageUrl = strategy.image_path ? supabase.storage.from('strategy_images').getPublicUrl(strategy.image_path).data.publicUrl : null;
+                    const isOwnStrategy = strategy.user_id === user?.id;
+                    const canFollow = !isOwnStrategy && strategy.profile?.id;
+                    const isFollowing = canFollow && followingIds?.includes(strategy.profile!.id);
+
                     return (
                     <Card key={strategy.id} className="flex flex-col">
                         {imageUrl && (
@@ -171,10 +189,17 @@ export default function Strategies() {
                         )}
                         <CardHeader>
                              <div className="flex justify-between items-start gap-2">
-                                <div className="flex-grow space-y-1 overflow-hidden">
-                                    <CardTitle className="truncate" title={strategy.name}>{strategy.name}</CardTitle>
-                                    <CardDescription>
-                                        {strategy.is_public ? <Badge>Public</Badge> : <Badge variant="secondary">Draft</Badge>}
+                                <div className="flex-grow space-y-1.5 overflow-hidden">
+                                    <div className="flex items-center gap-2">
+                                        {strategy.is_public ? <Globe className="h-4 w-4 text-muted-foreground flex-shrink-0" title="Public"/> : <Lock className="h-4 w-4 text-muted-foreground flex-shrink-0" title="Private"/>}
+                                        <CardTitle className="truncate" title={strategy.name}>{strategy.name}</CardTitle>
+                                    </div>
+                                    <CardDescription className="flex items-center gap-2">
+                                        {strategy.win_rate && (
+                                          <Badge variant="outline" className="border-green-500 bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">
+                                            {strategy.win_rate}% Win Rate
+                                          </Badge>
+                                        )}
                                     </CardDescription>
                                 </div>
                                 <DropdownMenu>
@@ -189,23 +214,55 @@ export default function Strategies() {
                                             <span>View Details</span>
                                         </DropdownMenuItem>
                                         <DropdownMenuSeparator />
-                                        <DropdownMenuItem onClick={() => handleEdit(strategy)}>
-                                            <Edit className="mr-2 h-4 w-4" />
-                                            <span>Edit</span>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => handleDelete(strategy)} className="text-destructive focus:text-destructive">
-                                            <Trash2 className="mr-2 h-4 w-4" />
-                                            <span>Delete</span>
-                                        </DropdownMenuItem>
+                                        {isOwnStrategy ? (
+                                          <>
+                                            <DropdownMenuItem onClick={() => handleEdit(strategy)}>
+                                                <Edit className="mr-2 h-4 w-4" />
+                                                <span>Edit</span>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => handleDelete(strategy)} className="text-destructive focus:text-destructive">
+                                                <Trash2 className="mr-2 h-4 w-4" />
+                                                <span>Delete</span>
+                                            </DropdownMenuItem>
+                                          </>
+                                        ) : (
+                                          strategy.is_public && (
+                                            <DropdownMenuItem onClick={() => handleFork(strategy)} disabled={forkMutation.isPending}>
+                                                <Copy className="mr-2 h-4 w-4" />
+                                                <span>{forkMutation.isPending ? 'Forking...' : 'Fork'}</span>
+                                            </DropdownMenuItem>
+                                          )
+                                        )}
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             </div>
                         </CardHeader>
                         <CardContent className="flex-grow">
-                            <p className="text-muted-foreground line-clamp-3">
-                                {strategy.content_markdown?.substring(0, 150) || "No content."}
+                            <p className="text-sm text-muted-foreground line-clamp-3">
+                                {strategy.content_markdown || "No content."}
                             </p>
                         </CardContent>
+                        {canFollow && (
+                          <CardFooter>
+                              <div className="flex items-center justify-between w-full">
+                                <div className="flex items-center gap-2">
+                                  <Avatar className="h-8 w-8">
+                                    <AvatarImage src={strategy.profile?.avatar_url || undefined} alt={strategy.profile?.username || 'author'} />
+                                    <AvatarFallback>{strategy.profile?.username?.charAt(0).toUpperCase()}</AvatarFallback>
+                                  </Avatar>
+                                  <span className="text-sm font-medium">{strategy.profile?.username}</span>
+                                </div>
+                                <Button 
+                                  variant={isFollowing ? 'secondary' : 'outline'} 
+                                  size="sm" 
+                                  onClick={() => handleFollowToggle(strategy.profile!.id, !!isFollowing)}
+                                  disabled={followMutation.isPending || unfollowMutation.isPending}
+                                >
+                                  {isFollowing ? 'Unfollow' : 'Follow'}
+                                </Button>
+                              </div>
+                          </CardFooter>
+                        )}
                     </Card>
                 )})}
             </>
