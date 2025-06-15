@@ -15,7 +15,7 @@ export function useFollowersList(userId: string) {
         .select(`
           follower_id,
           created_at,
-          profiles!follows_follower_id_fkey (
+          profiles:follower_id (
             id,
             username,
             full_name,
@@ -49,7 +49,7 @@ export function useFollowingList(userId: string) {
         .select(`
           following_id,
           created_at,
-          profiles!follows_following_id_fkey (
+          profiles:following_id (
             id,
             username,
             full_name,
