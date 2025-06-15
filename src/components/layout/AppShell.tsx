@@ -1,4 +1,3 @@
-
 import { useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -34,16 +33,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       />
 
       {/* Main Content */}
-      <main className={cn(
-        "flex-1 relative z-10 min-h-[calc(100vh-56px)]",
-        "pt-14",
-        isMobile && "pb-20"
-      )}>
-        <div className="container mx-auto px-4 py-6">
+      <main
+        className={cn(
+          "flex-1 relative z-10 min-h-[calc(100vh-56px)] pt-14",
+          isMobile && "pb-20"
+        )}
+      >
+        <div className="max-w-screen-2xl mx-auto w-full px-4 py-6 flex flex-col">
           {children}
         </div>
       </main>
-      
+
       {/* Mobile Bottom Navigation */}
       <MobileNavigation />
     </div>

@@ -1,4 +1,3 @@
-
 import { useTrades } from "@/hooks/useTrades";
 import { useStrategies } from "@/hooks/useStrategies";
 import { useMemo, useState } from "react";
@@ -113,7 +112,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="space-y-8 w-full max-w-none">
+    <div className="flex flex-col gap-8 w-full">
       {/* Greeting */}
       <div className="w-full">
         <h1 className="text-3xl font-bold text-foreground">
@@ -165,9 +164,9 @@ export default function Dashboard() {
       </div>
 
       {/* Two Column Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 w-full">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 w-full items-start">
         {/* Left Column */}
-        <div className="space-y-8">
+        <div className="space-y-8 min-w-0">
           <OpenTrades 
             trades={stats.openTrades}
             onEdit={handleEditTrade}
@@ -180,7 +179,7 @@ export default function Dashboard() {
         </div>
         
         {/* Right Column */}
-        <div className="space-y-8">
+        <div className="space-y-8 min-w-0">
           <RecentActivity strategies={strategies} />
         </div>
       </div>
