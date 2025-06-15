@@ -129,6 +129,7 @@ export function PostCard({ post }: PostCardProps) {
               </button>
               <span className="text-muted-foreground text-sm">·</span>
               <span className="text-muted-foreground text-sm">
+                {/* Always use server-generated created_at */}
                 {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
               </span>
               {/* Delete Button (only owner) */}

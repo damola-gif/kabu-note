@@ -78,6 +78,8 @@ export function useCreatePost() {
     mutationFn: async (postData: CreatePostData) => {
       if (!user) throw new Error('User not authenticated');
 
+      // By default, Supabase generates created_at server-side.
+      // We never set created_at from the client.
       const { data, error } = await supabase
         .from('posts')
         .insert({
@@ -88,9 +90,12 @@ export function useCreatePost() {
         .single();
 
       if (error) throw error;
+
+      // Safety: explicitly return server data including created_at
       return data;
     },
     onSuccess: () => {
+      // Always re-fetch posts so new posts use server-generated 'created_at'
       queryClient.invalidateQueries({ queryKey: ['posts'] });
       toast.success('Post created successfully!');
     },
