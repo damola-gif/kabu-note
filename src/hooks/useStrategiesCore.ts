@@ -115,12 +115,13 @@ export function useStrategies() {
 export function useStrategy(id: string) {
   return useQuery({
     queryKey: ["strategy", id],
-    queryFn: async () => {
-      const { data, error } = await supabase
+    queryFn: async (): Promise<StrategyWithProfile | null> => {
+      const { data: strategy, error } = await supabase
         .from("strategies")
         .select("*")
         .eq("id", id)
         .single();
+      
       if (error) {
         // PostgREST errors are thrown for RLS failures, we can't distinguish them from "not found" easily
         // So we return null and let the component handle it.
@@ -129,7 +130,22 @@ export function useStrategy(id: string) {
         }
         throw new Error(error.message);
       }
-      return data;
+
+      if (!strategy) return null;
+
+      // Fetch the profile for the strategy owner
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("id, username, avatar_url")
+        .eq("id", strategy.user_id)
+        .single();
+
+      if (profileError) {
+        console.error("Error fetching strategy owner profile:", profileError.message);
+        return { ...strategy, profile: null };
+      }
+
+      return { ...strategy, profile: profile };
     },
     enabled: !!id,
   });
