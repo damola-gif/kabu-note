@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useSession } from '@/contexts/SessionProvider';
@@ -45,14 +44,28 @@ export function usePosts() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('posts')
-        .select(`
-          *,
-          profiles(username, avatar_url)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as Post[];
+
+      // Fetch profile data separately for each post
+      const postsWithProfiles = await Promise.all(
+        data.map(async (post) => {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('username, avatar_url')
+            .eq('id', post.user_id)
+            .single();
+          
+          return {
+            ...post,
+            profiles: profile || null
+          };
+        })
+      );
+
+      return postsWithProfiles as Post[];
     },
   });
 }

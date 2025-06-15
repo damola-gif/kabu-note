@@ -4,7 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Heart, MessageSquare, User, CheckCircle, XCircle } from 'lucide-react';
+import { Heart, MessageSquare, User, CheckCircle, XCircle, Bell } from 'lucide-react';
 import { Notification } from '@/hooks/useNotifications';
 import { useMarkNotificationAsRead } from '@/hooks/useNotifications';
 import { useNavigate } from 'react-router-dom';
