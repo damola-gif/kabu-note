@@ -17,9 +17,13 @@ export function SocialLists({ userId, stats }: SocialListsProps) {
   const { data: followers, isLoading: isLoadingFollowers } = useFollowersList(userId);
   const { data: following, isLoading: isLoadingFollowing } = useFollowingList(userId);
 
-  // DEBUGGING: Log what we get
-  console.log("SocialLists - followers:", followers);
-  console.log("SocialLists - following:", following);
+  // Enhanced logging to understand the data flow
+  console.log("SocialLists - userId:", userId);
+  console.log("SocialLists - stats:", stats);
+  console.log("SocialLists - followers data:", followers);
+  console.log("SocialLists - following data:", following);
+  console.log("SocialLists - isLoadingFollowers:", isLoadingFollowers);
+  console.log("SocialLists - isLoadingFollowing:", isLoadingFollowing);
 
   const LoadingSkeleton = () => (
     <div className="space-y-3">
@@ -60,67 +64,11 @@ export function SocialLists({ userId, stats }: SocialListsProps) {
     (follow) => follow && typeof follow === "object" && follow.profiles && typeof follow.profiles === "object"
   ) : [];
 
-  // ENHANCED DEBUGGING: show structure and problems with data
-  const DebugBlock = () => (
-    <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded text-xs">
-      <div className="mb-2">
-        <strong>DEBUG: followers ({Array.isArray(followers) ? followers.length : 0})</strong>
-        <pre style={{ overflowX: "auto", background: "#fffde7", padding: 8 }}>
-          {JSON.stringify(followers, null, 2)}
-        </pre>
-        {Array.isArray(followers) && followers.length > 0 && (
-          <div className="mt-2">
-            <strong>Followers Entry Keys:</strong>
-            <ul>
-              {followers.map((f, idx) => (
-                <li key={idx} className="mb-1">
-                  {f && typeof f === "object"
-                    ? Object.keys(f).join(", ")
-                    : "not an object"}
-                  {(!f?.profiles || typeof f.profiles !== "object") && (
-                    <span className="text-red-500 ml-2">profiles missing</span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </div>
-      <div>
-        <strong>DEBUG: following ({Array.isArray(following) ? following.length : 0})</strong>
-        <pre style={{ overflowX: "auto", background: "#fffde7", padding: 8 }}>
-          {JSON.stringify(following, null, 2)}
-        </pre>
-        {Array.isArray(following) && following.length > 0 && (
-          <div className="mt-2">
-            <strong>Following Entry Keys:</strong>
-            <ul>
-              {following.map((f, idx) => (
-                <li key={idx} className="mb-1">
-                  {f && typeof f === "object"
-                    ? Object.keys(f).join(", ")
-                    : "not an object"}
-                  {(!f?.profiles || typeof f.profiles !== "object") && (
-                    <span className="text-red-500 ml-2">profiles missing</span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </div>
-      <div className="mt-2">
-        <strong>Expected:</strong> Each entry should have a <code>profiles</code> object.<br />
-        <strong>Valid Following Count:</strong> {validFollowing.length}<br />
-        <strong>Valid Followers Count:</strong> {validFollowers.length}
-      </div>
-    </div>
-  );
+  console.log("SocialLists - validFollowing:", validFollowing);
+  console.log("SocialLists - validFollowers:", validFollowers);
 
   return (
     <div>
-      {/* Debugging block - remove in production */}
-      <DebugBlock />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Followers - keep original vertical list */}
         <Card className="landing-card">

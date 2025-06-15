@@ -6,9 +6,12 @@ export function useFollowersList(userId: string) {
   return useQuery({
     queryKey: ["followersList", userId],
     queryFn: async () => {
-      if (!userId) return [];
+      if (!userId) {
+        console.log("useFollowersList: No userId provided");
+        return [];
+      }
       
-      console.log("Fetching followers for user:", userId);
+      console.log("useFollowersList: Fetching followers for user:", userId);
       
       const { data, error } = await supabase
         .from('follows')
@@ -25,13 +28,18 @@ export function useFollowersList(userId: string) {
         .eq('following_id', userId);
 
       if (error) {
-        console.error("Error fetching followers:", error);
+        console.error("useFollowersList: Error fetching followers:", error);
         throw error;
       }
       
-      console.log("Followers data:", data);
+      console.log("useFollowersList: Raw data from database:", data);
+      console.log("useFollowersList: Data length:", data?.length || 0);
+      
       // Filter out any results where the profile might be missing
-      return data?.filter(item => item.profiles) || [];
+      const filteredData = data?.filter(item => item.profiles) || [];
+      console.log("useFollowersList: Filtered data:", filteredData);
+      
+      return filteredData;
     },
     enabled: !!userId,
   });
@@ -41,9 +49,12 @@ export function useFollowingList(userId: string) {
   return useQuery({
     queryKey: ["followingList", userId],
     queryFn: async () => {
-      if (!userId) return [];
+      if (!userId) {
+        console.log("useFollowingList: No userId provided");
+        return [];
+      }
       
-      console.log("Fetching following for user:", userId);
+      console.log("useFollowingList: Fetching following for user:", userId);
       
       const { data, error } = await supabase
         .from('follows')
@@ -60,13 +71,18 @@ export function useFollowingList(userId: string) {
         .eq('follower_id', userId);
 
       if (error) {
-        console.error("Error fetching following:", error);
+        console.error("useFollowingList: Error fetching following:", error);
         throw error;
       }
       
-      console.log("Following data:", data);
+      console.log("useFollowingList: Raw data from database:", data);
+      console.log("useFollowingList: Data length:", data?.length || 0);
+      
       // Filter out any results where the profile might be missing
-      return data?.filter(item => item.profiles) || [];
+      const filteredData = data?.filter(item => item.profiles) || [];
+      console.log("useFollowingList: Filtered data:", filteredData);
+      
+      return filteredData;
     },
     enabled: !!userId,
   });
