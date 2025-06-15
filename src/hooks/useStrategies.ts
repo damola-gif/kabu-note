@@ -5,7 +5,8 @@ export type { StrategyWithProfile } from './useStrategiesCore';
 export {
   useHashtagSearch,
   useStrategies,
-  useStrategy
+  useStrategy,
+  usePublicStrategies
 } from './useStrategiesCore';
 
 export {
