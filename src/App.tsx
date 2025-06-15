@@ -15,6 +15,7 @@ import Feed from "./pages/Feed";
 import Analytics from "./pages/Analytics";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
+import Notifications from "./pages/Notifications";
 import { SessionProvider } from "./contexts/SessionProvider";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { TwelveDataProvider } from "./contexts/TwelveDataProvider";
@@ -48,6 +49,7 @@ const App = () => {
                   <Route path="/strategies/:strategyId" element={<StrategyPage />} />
                   <Route path="/feed" element={<Feed />} />
                   <Route path="/analytics" element={<Analytics />} />
+                  <Route path="/notifications" element={<Notifications />} />
                   <Route path="/u/:username" element={<Profile />} />
                   <Route path="/settings" element={<Settings />} />
                   <Route path="/onboarding" element={<Onboarding />} />

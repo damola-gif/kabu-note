@@ -1,8 +1,8 @@
-
 import { Bell, User, LogOut, Menu } from "lucide-react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { useSession } from "@/contexts/SessionProvider";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { MobileNavigation } from "@/components/MobileNavigation";
+import { useUnreadNotificationsCount } from "@/hooks/useNotifications";
 import { useState, useEffect } from "react";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -26,6 +27,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const isMobile = useIsMobile();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userProfile, setUserProfile] = useState<any>(null);
+  const { data: unreadCount = 0 } = useUnreadNotificationsCount();
 
   // Fetch user profile to get username
   useEffect(() => {
@@ -126,9 +128,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             )}
 
             {/* Notifications */}
-            <Button variant="ghost" size="icon" className="relative">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="relative"
+              onClick={() => navigate('/notifications')}
+            >
               <Bell className="h-5 w-5" />
-              <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full"></span>
+              {unreadCount > 0 && (
+                <Badge 
+                  variant="destructive" 
+                  className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
+                >
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </Badge>
+              )}
             </Button>
 
             {/* User Profile Dropdown */}

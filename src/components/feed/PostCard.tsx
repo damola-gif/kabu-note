@@ -98,14 +98,14 @@ export function PostCard({ post }: PostCardProps) {
         {/* Author Info */}
         <div className="flex items-center space-x-3 mb-4">
           <Avatar className="h-10 w-10">
-            <AvatarImage src={post.profile?.avatar_url || ''} />
+            <AvatarImage src={post.profiles?.avatar_url || ''} />
             <AvatarFallback>
-              {post.profile?.username?.[0]?.toUpperCase() || 'U'}
+              {post.profiles?.username?.[0]?.toUpperCase() || 'U'}
             </AvatarFallback>
           </Avatar>
           <div>
             <p className="font-medium text-sm">
-              {post.profile?.username || 'Anonymous'}
+              {post.profiles?.username || 'Anonymous'}
             </p>
             <p className="text-xs text-muted-foreground">
               {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}

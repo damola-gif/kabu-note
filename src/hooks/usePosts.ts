@@ -21,7 +21,7 @@ export interface Post {
   shares_count: number;
   created_at: string;
   updated_at: string;
-  profile?: {
+  profiles?: {
     username: string | null;
     avatar_url: string | null;
   };
@@ -47,7 +47,7 @@ export function usePosts() {
         .from('posts')
         .select(`
           *,
-          profile:profiles(username, avatar_url)
+          profiles(username, avatar_url)
         `)
         .order('created_at', { ascending: false });
 
