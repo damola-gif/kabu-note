@@ -1,28 +1,29 @@
 
-// Re-export all strategy hooks from their respective files for backwards compatibility
 export type { StrategyWithProfile } from './useStrategiesCore';
 
+// Re-export all core strategy hooks
 export {
   useHashtagSearch,
   useStrategies,
   useStrategy,
-  usePublicStrategies
+  usePublicStrategies,
 } from './useStrategiesCore';
 
+// Re-export strategy interaction hooks
 export {
   useLikedStrategyIds,
   useBookmarkedStrategyIds,
   useToggleBookmark,
-  useToggleLike
+  useToggleLike,
 } from './useStrategyInteractions';
 
+// Re-export CRUD hooks
 export {
   useCreateStrategy,
   useUpdateStrategy,
   useDeleteStrategy,
-  useForkStrategy
+  useForkStrategy,
 } from './useStrategyCRUD';
 
-export {
-  useStrategyTags
-} from './useStrategyTags';
+// Re-export strategy tags hook
+export { useStrategyTags } from './useStrategyTags';
