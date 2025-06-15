@@ -10,10 +10,10 @@ interface FollowingGridProps {
 
 export function FollowingGrid({ following, isLoading }: FollowingGridProps) {
   if (isLoading) {
-    // Show grid skeletons like StrategyGrid does
+    // Match StrategyGrid's loading pattern
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {[...Array(4)].map((_, i) => (
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+        {[...Array(6)].map((_, i) => (
           <Card key={i} className="landing-card">
             <CardContent className="pt-4">
               <div className="flex items-center gap-3">
@@ -32,19 +32,19 @@ export function FollowingGrid({ following, isLoading }: FollowingGridProps) {
   }
 
   if (!following || following.length === 0) {
+    // Match StrategyGrid's empty state pattern
     return (
-      <Card className="landing-card">
-        <CardContent className="pt-6">
-          <div className="text-center py-4 text-muted-foreground">
-            Not following anyone yet
-          </div>
-        </CardContent>
-      </Card>
+      <div className="text-center py-10 border-2 border-dashed rounded-lg">
+        <h2 className="text-lg sm:text-xl font-semibold">Not Following Anyone</h2>
+        <p className="text-muted-foreground mt-2 text-sm">
+          This user isn't following anyone yet.
+        </p>
+      </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
       {following.map((follow: any) => (
         <UserListItem
           key={follow.following_id}
