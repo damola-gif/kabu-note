@@ -1,9 +1,9 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileText, Activity, Users } from "lucide-react";
-import { StrategyGrid } from "@/components/strategy/StrategyGrid";
 import { Tables } from "@/integrations/supabase/types";
 import { Card, CardContent } from "@/components/ui/card";
+import { useNavigate } from "react-router-dom";
 
 interface ProfileTabsProps {
   strategies: Tables<'strategies'>[];
@@ -21,12 +21,18 @@ export function ProfileTabs({
   profile,
   stats 
 }: ProfileTabsProps) {
+  const navigate = useNavigate();
+
+  const handleStrategyClick = (strategyId: string) => {
+    navigate(`/strategies/${strategyId}`);
+  };
+
   return (
     <Tabs defaultValue="strategies" className="w-full">
       <TabsList className="grid w-full grid-cols-3">
         <TabsTrigger value="strategies" className="flex items-center gap-2">
           <FileText className="h-4 w-4" />
-          Strategies
+          Strategies ({strategies.length})
         </TabsTrigger>
         <TabsTrigger value="activity" className="flex items-center gap-2">
           <Activity className="h-4 w-4" />
@@ -42,22 +48,60 @@ export function ProfileTabs({
         {isStrategiesLoading ? (
           <Card>
             <CardContent className="pt-6">
-              <div className="text-center">Loading strategies...</div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[...Array(6)].map((_, i) => (
+                  <Card key={i} className="animate-pulse">
+                    <CardContent className="pt-6">
+                      <div className="h-6 bg-gray-300 rounded mb-2"></div>
+                      <div className="h-4 bg-gray-300 rounded mb-2"></div>
+                      <div className="h-4 bg-gray-300 rounded mb-4"></div>
+                      <div className="flex justify-between">
+                        <div className="h-4 w-20 bg-gray-300 rounded"></div>
+                        <div className="h-4 w-16 bg-gray-300 rounded"></div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             </CardContent>
           </Card>
         ) : strategies.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {strategies.map((strategy) => (
-              <Card key={strategy.id} className="hover:shadow-md transition-shadow">
+              <Card 
+                key={strategy.id} 
+                className="hover:shadow-md transition-shadow cursor-pointer"
+                onClick={() => handleStrategyClick(strategy.id)}
+              >
                 <CardContent className="pt-6">
-                  <h3 className="font-semibold mb-2">{strategy.name}</h3>
+                  <h3 className="font-semibold mb-2 text-lg">{strategy.name}</h3>
                   <p className="text-sm text-gray-600 mb-4 line-clamp-3">
-                    {strategy.content_markdown?.substring(0, 100)}...
+                    {strategy.content_markdown ? 
+                      strategy.content_markdown.substring(0, 150) + (strategy.content_markdown.length > 150 ? '...' : '') 
+                      : 'No description available'
+                    }
                   </p>
                   <div className="flex justify-between items-center text-sm text-gray-500">
                     <span>Win Rate: {strategy.win_rate ? `${strategy.win_rate}%` : 'N/A'}</span>
-                    <span>{strategy.likes_count} likes</span>
+                    <span>{strategy.likes_count || 0} likes</span>
                   </div>
+                  {strategy.tags && strategy.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-3">
+                      {strategy.tags.slice(0, 3).map((tag, index) => (
+                        <span 
+                          key={index} 
+                          className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded"
+                        >
+                          #{tag}
+                        </span>
+                      ))}
+                      {strategy.tags.length > 3 && (
+                        <span className="text-xs text-gray-500">
+                          +{strategy.tags.length - 3} more
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             ))}

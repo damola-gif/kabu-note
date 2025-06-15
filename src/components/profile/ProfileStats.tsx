@@ -18,7 +18,15 @@ export function ProfileStats({ stats, isLoading }: ProfileStatsProps) {
     return (
       <Card>
         <CardContent className="pt-6">
-          <div className="text-center">Loading stats...</div>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="text-center animate-pulse">
+                <div className="h-4 w-4 bg-gray-300 rounded mx-auto mb-2"></div>
+                <div className="h-6 w-12 bg-gray-300 rounded mx-auto mb-1"></div>
+                <div className="h-4 w-16 bg-gray-300 rounded mx-auto"></div>
+              </div>
+            ))}
+          </div>
         </CardContent>
       </Card>
     );

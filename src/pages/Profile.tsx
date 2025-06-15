@@ -8,10 +8,12 @@ import { ProfileStats } from "@/components/profile/ProfileStats";
 import { ProfileTabs } from "@/components/profile/ProfileTabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { AlertCircle } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function Profile() {
   const { username } = useParams<{ username: string }>();
   const { user } = useSession();
+  const queryClient = useQueryClient();
   
   const { data: profile, isLoading: isProfileLoading, error: profileError } = useUserProfile(username || '');
   const { data: stats, isLoading: isStatsLoading } = useUserStats(profile?.id || '');
@@ -28,9 +30,19 @@ export default function Profile() {
     if (!profile?.id) return;
     
     if (isFollowing) {
-      unfollowMutation.mutate(profile.id);
+      unfollowMutation.mutate(profile.id, {
+        onSuccess: () => {
+          // Invalidate the user stats to update follower count
+          queryClient.invalidateQueries({ queryKey: ["userStats", profile.id] });
+        }
+      });
     } else {
-      followMutation.mutate(profile.id);
+      followMutation.mutate(profile.id, {
+        onSuccess: () => {
+          // Invalidate the user stats to update follower count
+          queryClient.invalidateQueries({ queryKey: ["userStats", profile.id] });
+        }
+      });
     }
   };
 

@@ -33,6 +33,8 @@ export function useUserStats(userId: string) {
     queryFn: async () => {
       if (!userId) return null;
 
+      console.log("Fetching user stats for:", userId);
+
       // Get follower count
       const { count: followersCount, error: followersError } = await supabase
         .from('follows')
@@ -83,13 +85,17 @@ export function useUserStats(userId: string) {
         ? strategiesWithWinRate.reduce((sum, s) => sum + Number(s.win_rate), 0) / strategiesWithWinRate.length
         : null;
 
-      return {
+      const result = {
         followersCount: followersCount || 0,
         followingCount: followingCount || 0,
         strategiesCount: strategiesCount || 0,
         totalLikes,
         avgWinRate: avgWinRate ? Math.round(avgWinRate * 100) / 100 : null,
       };
+
+      console.log("User stats result:", result);
+      
+      return result;
     },
     enabled: !!userId,
   });
@@ -101,6 +107,8 @@ export function useUserStrategies(userId: string) {
     queryFn: async () => {
       if (!userId) return [];
 
+      console.log("Fetching user strategies for:", userId);
+
       const { data: strategies, error } = await supabase
         .from('strategies')
         .select('*')
@@ -109,6 +117,8 @@ export function useUserStrategies(userId: string) {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
+
+      console.log("User strategies result:", strategies);
 
       return strategies || [];
     },
