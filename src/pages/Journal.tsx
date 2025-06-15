@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { NewTradeDialog } from "@/components/trade/NewTradeDialog";
 import { EditTradeDialog } from "@/components/trade/EditTradeDialog";
@@ -11,7 +12,8 @@ import { DateRange } from "react-day-picker";
 import { startOfDay, endOfDay } from "date-fns";
 import { useTwelveData } from "@/contexts/TwelveDataProvider";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function Journal() {
   const [isNewTradeDialogOpen, setIsNewTradeDialogOpen] = useState(false);
@@ -79,17 +81,50 @@ export default function Journal() {
 
   const renderContent = () => {
     if (isLoading) {
-      return <div className="text-center text-muted-foreground py-7">Loading trades...</div>;
+      return (
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading your trading journal...</p>
+          </div>
+        </div>
+      );
     }
+    
     if (error) {
-      return <div className="text-center text-destructive py-7">Error loading trades: {error.message}</div>;
+      return (
+        <div className="text-center py-12">
+          <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
+          <h3 className="text-lg font-semibold mb-2">Error loading trades</h3>
+          <p className="text-muted-foreground">{error.message}</p>
+        </div>
+      );
     }
+    
     if (trades && trades.length === 0) {
-      return <div className="text-center text-muted-foreground py-7">No trades yet.</div>;
+      return (
+        <div className="text-center py-12">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+            <Plus className="h-6 w-6 text-muted-foreground" />
+          </div>
+          <h3 className="text-lg font-semibold mb-2">No trades yet</h3>
+          <p className="text-muted-foreground mb-4">Start your trading journey by recording your first trade.</p>
+          <Button onClick={() => setIsNewTradeDialogOpen(true)}>
+            Record Your First Trade
+          </Button>
+        </div>
+      );
     }
+    
     if (filteredTrades.length === 0) {
-      return <div className="text-center text-muted-foreground py-7">No trades match the current filter.</div>;
+      return (
+        <div className="text-center py-12">
+          <h3 className="text-lg font-semibold mb-2">No trades match your filters</h3>
+          <p className="text-muted-foreground">Try adjusting your filters or date range to see more trades.</p>
+        </div>
+      );
     }
+    
     return (
       <TradesTable
         trades={filteredTrades}
@@ -104,19 +139,31 @@ export default function Journal() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-6xl mx-auto">
-        <div className="border-x border-border min-h-screen">
+      <div className="max-w-4xl mx-auto">
+        <div className="border-x border-border min-h-screen bg-white">
           {/* Header */}
-          <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-md border-b border-border">
-            <div className="px-4 py-3">
-              <h1 className="text-xl font-bold">Journal</h1>
+          <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-border">
+            <div className="px-6 py-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-xl font-bold text-gray-900">Trading Journal</h1>
+                  <p className="text-sm text-gray-600 mt-1">Track and analyze your trading performance</p>
+                </div>
+                <Button 
+                  onClick={() => setIsNewTradeDialogOpen(true)}
+                  className="bg-blue-500 hover:bg-blue-600 text-white"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  New Trade
+                </Button>
+              </div>
             </div>
           </div>
 
           {/* Content */}
-          <div className="p-4">
+          <div className="px-6 py-4">
             {!isConnected && hasOpenTrades && (
-              <Alert variant="destructive" className="mb-4">
+              <Alert variant="destructive" className="mb-6">
                 <AlertCircle className="h-4 w-4" />
                 <AlertTitle>Live Feed Disconnected</AlertTitle>
                 <AlertDescription>
@@ -125,21 +172,26 @@ export default function Journal() {
               </Alert>
             )}
             
-            <JournalHeader 
-              filter={filter}
-              onFilterChange={setFilter}
-              onNewTrade={() => setIsNewTradeDialogOpen(true)}
-              dateRange={dateRange}
-              onDateRangeChange={setDateRange}
-            />
+            {/* Filters */}
+            <div className="mb-6">
+              <JournalHeader 
+                filter={filter}
+                onFilterChange={setFilter}
+                onNewTrade={() => setIsNewTradeDialogOpen(true)}
+                dateRange={dateRange}
+                onDateRangeChange={setDateRange}
+              />
+            </div>
             
-            <div className="bg-card rounded-lg shadow border border-border mt-4">
+            {/* Trades Content */}
+            <div className="bg-white rounded-lg border border-gray-200">
               {renderContent()}
             </div>
           </div>
         </div>
       </div>
 
+      {/* Dialogs */}
       <NewTradeDialog
         open={isNewTradeDialogOpen}
         onOpenChange={setIsNewTradeDialogOpen}
