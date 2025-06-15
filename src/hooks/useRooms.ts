@@ -83,9 +83,18 @@ export const useCreateRoom = () => {
       // Generate invite code for invite-only rooms
       const invite_code = roomData.privacy_level === 'invite_only' ? generateInviteCode() : null;
       
+      // Construct the insert object explicitly to ensure proper types
+      const insertData = {
+        name: roomData.name,
+        description: roomData.description || null,
+        privacy_level: roomData.privacy_level,
+        creator_id: user.id,
+        invite_code: invite_code
+      };
+      
       const { data, error } = await supabase
         .from('community_rooms')
-        .insert([{ ...roomData, creator_id: user.id, invite_code }])
+        .insert([insertData])
         .select()
         .single();
       
