@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
@@ -26,14 +27,19 @@ import Rooms from "./pages/Rooms";
 import RoomPage from "./pages/RoomPage";
 import FollowingStrategies from "./pages/FollowingStrategies";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 3,
+      retryDelay: 1000,
+    },
+  },
+});
 
 const App = () => {
   useEffect(() => {
-    // Update the document title
     document.title = "KabuNote - Trading Strategy Management";
     
-    // Initialize theme from localStorage or system preference
     const savedTheme = localStorage.getItem('theme');
     const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     const theme = savedTheme || systemTheme;
@@ -46,44 +52,44 @@ const App = () => {
   }, []);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <SessionProvider>
-          <TwelveDataProvider>
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/auth" element={<Auth />} />
-                
-                {/* Public profile route - accessible without authentication */}
-                <Route path="/u/:username" element={<PublicProfile />} />
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <SessionProvider>
+            <TwelveDataProvider>
+              <BrowserRouter>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/auth" element={<Auth />} />
+                  
+                  <Route path="/u/:username" element={<PublicProfile />} />
 
-                <Route element={<ProtectedRoute />}>
-                  <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/journal" element={<Journal />} />
-                  <Route path="/strategies" element={<Strategies />} />
-                  <Route path="/strategies/:strategyId" element={<StrategyPage />} />
-                  <Route path="/following-strategies" element={<FollowingStrategies />} />
-                  <Route path="/feed" element={<Feed />} />
-                  <Route path="/rooms" element={<Rooms />} />
-                  <Route path="/rooms/:roomId" element={<RoomPage />} />
-                  <Route path="/analytics" element={<Analytics />} />
-                  <Route path="/notifications" element={<Notifications />} />
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/settings" element={<Settings />} />
-                  <Route path="/onboarding" element={<Onboarding />} />
-                </Route>
+                  <Route element={<ProtectedRoute />}>
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/journal" element={<Journal />} />
+                    <Route path="/strategies" element={<Strategies />} />
+                    <Route path="/strategies/:strategyId" element={<StrategyPage />} />
+                    <Route path="/following-strategies" element={<FollowingStrategies />} />
+                    <Route path="/feed" element={<Feed />} />
+                    <Route path="/rooms" element={<Rooms />} />
+                    <Route path="/rooms/:roomId" element={<RoomPage />} />
+                    <Route path="/analytics" element={<Analytics />} />
+                    <Route path="/notifications" element={<Notifications />} />
+                    <Route path="/profile" element={<Profile />} />
+                    <Route path="/settings" element={<Settings />} />
+                    <Route path="/onboarding" element={<Onboarding />} />
+                  </Route>
 
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </TwelveDataProvider>
-        </SessionProvider>
-      </TooltipProvider>
-    </QueryClientProvider>
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </BrowserRouter>
+            </TwelveDataProvider>
+          </SessionProvider>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 };
 

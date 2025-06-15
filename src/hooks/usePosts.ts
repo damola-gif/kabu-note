@@ -1,7 +1,9 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useSession } from '@/contexts/SessionProvider';
 import { toast } from 'sonner';
+import { useEffect } from 'react';
 
 export interface Post {
   id: string;
@@ -39,103 +41,89 @@ export interface CreatePostData {
 }
 
 export function usePosts() {
-  return useQuery({
+  const queryClient = useQueryClient();
+
+  const query = useQuery({
     queryKey: ['posts'],
     queryFn: async () => {
-      // Fetch all posts as before
+      console.log('Fetching posts...');
+      
+      // Fetch all posts with profile data
       const { data, error } = await supabase
         .from('posts')
-        .select('*')
+        .select(`
+          *,
+          profiles:user_id (
+            username,
+            avatar_url
+          )
+        `)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching posts:', error);
+        throw error;
+      }
 
-      // Fetch reposts, join with original post and user
-      const repostsQuery = (supabase.from('reposts' as any) as any)
-        .select('*')
+      console.log('Fetched posts:', data);
+
+      // Fetch reposts with original post and user data
+      const { data: reposts, error: repostsError } = await supabase
+        .from('reposts')
+        .select(`
+          *,
+          profiles:user_id (
+            username,
+            avatar_url
+          )
+        `)
         .order('created_at', { ascending: false });
-      const { data: reposts, error: repostsError } = await repostsQuery;
 
-      if (repostsError) throw repostsError;
-
-      // Collect all the original_post_ids to fetch
-      const originalPostIds =
-        (reposts as any[])?.map((r: any) => r.original_post_id) ?? [];
-
-      let originalPosts: any[] = [];
-      if (originalPostIds.length > 0) {
-        const { data: origPosts, error: origError } = await supabase
-          .from('posts')
-          .select('*')
-          .in('id', originalPostIds);
-
-        if (origError) throw origError;
-
-        // Attach profile info for original posts
-        originalPosts = await Promise.all(
-          origPosts.map(async (post: any) => {
-            const { data: profile } = await supabase
-              .from('profiles')
-              .select('username, avatar_url')
-              .eq('id', post.user_id)
-              .single();
-            return {
-              ...post,
-              profiles: profile || null,
-            };
-          })
-        );
+      if (repostsError) {
+        console.error('Error fetching reposts:', repostsError);
+        // Continue without reposts if there's an error
       }
 
-      // Map from original post id to post object
-      const origMap: Record<string, any> = {};
-      for (const p of originalPosts) {
-        origMap[p.id] = p;
+      // Process reposts if available
+      let repostObjects: any[] = [];
+      if (reposts && reposts.length > 0) {
+        const originalPostIds = reposts.map(r => r.original_post_id);
+        
+        if (originalPostIds.length > 0) {
+          const { data: originalPosts } = await supabase
+            .from('posts')
+            .select(`
+              *,
+              profiles:user_id (
+                username,
+                avatar_url
+              )
+            `)
+            .in('id', originalPostIds);
+
+          const origMap: Record<string, any> = {};
+          if (originalPosts) {
+            originalPosts.forEach(p => {
+              origMap[p.id] = p;
+            });
+          }
+
+          repostObjects = reposts.map(repost => ({
+            __repost: true,
+            repost,
+            post: origMap[repost.original_post_id],
+            repost_user_profile: repost.profiles,
+          }));
+        }
       }
 
-      // Collect regular posts + "repost" objects
-      // For reposts: structure { __repost: true, repost: <repost>, post: <original> }
-      const postsWithProfiles = await Promise.all(
-        data.map(async (post: any) => {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('username, avatar_url')
-            .eq('id', post.user_id)
-            .single();
+      // Merge and sort posts and reposts
+      const postsWithProfiles = data.map(post => ({
+        ...post,
+        __repost: false,
+      }));
 
-          return {
-            ...post,
-            profiles: profile || null,
-            __repost: false,
-          };
-        })
-      );
-
-      // Fetch repost user profiles
-      const userIds = [...new Set((reposts as any[] ?? []).map((repost: any) => repost.user_id))];
-      let userProfiles: Record<string, any> = {};
-      if (userIds.length > 0) {
-        const { data: profiles } = await supabase
-          .from('profiles')
-          .select('id, username, avatar_url')
-          .in('id', userIds);
-
-        if (profiles) profiles.forEach((p: any) => (userProfiles[p.id] = p));
-      }
-
-      const repostObjects =
-        (reposts as any[] ?? []).map((repost: any) => ({
-          __repost: true,
-          repost,
-          post: origMap[repost.original_post_id],
-          repost_user_profile: userProfiles[repost.user_id] || null,
-        }));
-
-      // Merge and sort all posts and reposts by created time (of post or repost)
-      const merged = [
-        ...postsWithProfiles,
-        ...repostObjects,
-      ].sort((a, b) => {
+      const merged = [...postsWithProfiles, ...repostObjects].sort((a, b) => {
         const aTime = a.__repost ? a.repost.created_at : a.created_at;
         const bTime = b.__repost ? b.repost.created_at : b.created_at;
         return new Date(bTime).getTime() - new Date(aTime).getTime();
@@ -143,7 +131,49 @@ export function usePosts() {
 
       return merged;
     },
+    refetchOnWindowFocus: true,
+    refetchInterval: 30000, // Refetch every 30 seconds as fallback
   });
+
+  // Set up real-time subscriptions
+  useEffect(() => {
+    console.log('Setting up real-time posts subscription');
+
+    const postsChannel = supabase
+      .channel('posts-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'posts',
+        },
+        (payload) => {
+          console.log('Posts change detected:', payload);
+          queryClient.invalidateQueries({ queryKey: ['posts'] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'reposts',
+        },
+        (payload) => {
+          console.log('Reposts change detected:', payload);
+          queryClient.invalidateQueries({ queryKey: ['posts'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      console.log('Cleaning up posts subscription');
+      supabase.removeChannel(postsChannel);
+    };
+  }, [queryClient]);
+
+  return query;
 }
 
 export function useCreatePost() {
@@ -154,8 +184,8 @@ export function useCreatePost() {
     mutationFn: async (postData: CreatePostData) => {
       if (!user) throw new Error('User not authenticated');
 
-      // By default, Supabase generates created_at server-side.
-      // We never set created_at from the client.
+      console.log('Creating post:', postData);
+
       const { data, error } = await supabase
         .from('posts')
         .insert({
@@ -165,13 +195,16 @@ export function useCreatePost() {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error creating post:', error);
+        throw error;
+      }
 
-      // Safety: explicitly return server data including created_at
+      console.log('Post created successfully:', data);
       return data;
     },
     onSuccess: () => {
-      // Always re-fetch posts so new posts use server-generated 'created_at'
+      // Immediately invalidate and refetch posts
       queryClient.invalidateQueries({ queryKey: ['posts'] });
       toast.success('Post created successfully!');
     },
@@ -247,7 +280,7 @@ export function useDeletePost() {
   return useMutation({
     mutationFn: async (postId: string) => {
       if (!user) throw new Error("User not authenticated");
-      // 1. Fetch the post's media_url if present
+      
       const { data: post, error: fetchErr } = await supabase
         .from('posts')
         .select('media_url')
@@ -256,30 +289,23 @@ export function useDeletePost() {
 
       if (fetchErr) throw fetchErr;
 
-      // 2. Delete the media file from storage (if exists)
       if (post?.media_url) {
-        // Expect URLs like 'https://.../object/buckets/post_media/objects/userid/filename.jpg'
-        // Only delete if media_url starts with "https://" and derive the file path
         try {
-          // POST_MEDIA_BUCKET is 'post_media'
           const urlParts = post.media_url.split('/object/buckets/post_media/objects/');
           if (urlParts.length === 2) {
             const filePath = decodeURIComponent(urlParts[1]);
             await supabase.storage.from('post_media').remove([filePath]);
           } else {
-            // fallback: Try to extract after final "/" for simple bucket upload
             const match = post.media_url.match(/post_media\/(.+)$/);
             if (match) {
               await supabase.storage.from('post_media').remove([match[1]]);
             }
           }
         } catch (err) {
-          // Continue even if media removal fails (still delete post)
           console.warn('Error deleting post image:', err);
         }
       }
 
-      // 3. Delete post itself
       const { error } = await supabase
         .from('posts')
         .delete()

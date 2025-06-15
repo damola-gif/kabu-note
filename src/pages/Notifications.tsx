@@ -18,12 +18,14 @@ export default function Notifications() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<string>('all');
   
-  const { data: notifications, isLoading, refetch } = useNotifications();
+  const { data: notifications, isLoading, refetch, error } = useNotifications();
   const markAllAsRead = useMarkAllNotificationsAsRead();
   const navigate = useNavigate();
   
   // Enable real-time updates
   useNotificationRealtime();
+
+  console.log('Notifications component - data:', notifications, 'loading:', isLoading, 'error:', error);
 
   const filteredNotifications = notifications?.filter(notification => {
     const matchesSearch = searchTerm === '' || 
@@ -50,10 +52,24 @@ export default function Notifications() {
     }
   };
 
+  if (error) {
+    return (
+      <div className="max-w-4xl mx-auto space-y-4 px-2 sm:px-4">
+        <div className="text-center py-8">
+          <h1 className="text-xl sm:text-2xl font-bold mb-4">Notifications</h1>
+          <p className="text-red-600 mb-4">Error loading notifications: {error.message}</p>
+          <Button onClick={() => refetch()}>Try Again</Button>
+        </div>
+      </div>
+    );
+  }
+
   if (isLoading) {
     return (
-      <div className="flex justify-center py-8">
-        <Loader2 className="h-6 w-6 animate-spin" />
+      <div className="max-w-4xl mx-auto space-y-4 px-2 sm:px-4">
+        <div className="flex justify-center py-8">
+          <Loader2 className="h-6 w-6 animate-spin" />
+        </div>
       </div>
     );
   }
