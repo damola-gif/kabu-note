@@ -1,55 +1,85 @@
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Heart, MessageCircle, Users, TrendingUp } from "lucide-react";
-import { format } from "date-fns";
+import { Heart, MessageCircle, Users, TrendingUp, BookOpen } from "lucide-react";
+import { format, parseISO } from "date-fns";
+import { StrategyWithProfile } from "@/hooks/useStrategies";
+import { useNavigate } from "react-router-dom";
 
-// Mock data - replace with real data
-const mockActivities = [
-  {
-    id: "1",
-    type: "like",
-    message: "Your EUR/USD strategy received 3 new likes",
-    timestamp: new Date("2024-01-15T10:30:00"),
-    icon: Heart,
-    iconColor: "text-red-500"
-  },
-  {
-    id: "2", 
-    type: "follower",
-    message: "Sarah Chen started following you",
-    timestamp: new Date("2024-01-15T09:15:00"),
-    icon: Users,
-    iconColor: "text-blue-500"
-  },
-  {
-    id: "3",
-    type: "comment",
-    message: "New comment on your Swing Trading strategy",
-    timestamp: new Date("2024-01-14T16:45:00"),
-    icon: MessageCircle,
-    iconColor: "text-green-500"
-  },
-  {
-    id: "4",
-    type: "published",
-    message: "You published 'Breakout Trading Method'",
-    timestamp: new Date("2024-01-14T14:20:00"),
-    icon: TrendingUp,
-    iconColor: "text-[#2AB7CA]"
-  }
-];
+interface RecentActivityProps {
+  strategies: StrategyWithProfile[];
+}
 
-export function RecentActivity() {
+export function RecentActivity({ strategies }: RecentActivityProps) {
+  const navigate = useNavigate();
+
+  // Generate activity items from real data
+  const recentActivities = [
+    // Recently published strategies
+    ...strategies
+      .filter(s => s.is_public)
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      .slice(0, 3)
+      .map(strategy => ({
+        id: `published-${strategy.id}`,
+        type: "published" as const,
+        message: `You published "${strategy.name}"`,
+        timestamp: new Date(strategy.created_at),
+        icon: TrendingUp,
+        iconColor: "text-[#2AB7CA]",
+        clickable: true,
+        onClick: () => navigate(`/strategy/${strategy.id}`)
+      })),
+    
+    // Strategies with likes (mock data based on likes_count)
+    ...strategies
+      .filter(s => s.likes_count > 0)
+      .sort((a, b) => b.likes_count - a.likes_count)
+      .slice(0, 2)
+      .map(strategy => ({
+        id: `likes-${strategy.id}`,
+        type: "like" as const,
+        message: `Your "${strategy.name}" strategy received ${strategy.likes_count} ${strategy.likes_count === 1 ? 'like' : 'likes'}`,
+        timestamp: new Date(strategy.created_at),
+        icon: Heart,
+        iconColor: "text-red-500",
+        clickable: true,
+        onClick: () => navigate(`/strategy/${strategy.id}`)
+      })),
+    
+    // Strategies with comments (mock data based on comments_count)
+    ...strategies
+      .filter(s => s.comments_count > 0)
+      .sort((a, b) => b.comments_count - a.comments_count)
+      .slice(0, 2)
+      .map(strategy => ({
+        id: `comments-${strategy.id}`,
+        type: "comment" as const,
+        message: `New ${strategy.comments_count === 1 ? 'comment' : 'comments'} on "${strategy.name}" (${strategy.comments_count})`,
+        timestamp: new Date(strategy.created_at),
+        icon: MessageCircle,
+        iconColor: "text-green-500",
+        clickable: true,
+        onClick: () => navigate(`/strategy/${strategy.id}`)
+      }))
+  ]
+  .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+  .slice(0, 6); // Show only the 6 most recent activities
+
   return (
     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
       <h3 className="text-lg font-semibold text-[#1E2A4E] mb-6">Your Activity</h3>
       
-      {mockActivities.length > 0 ? (
+      {recentActivities.length > 0 ? (
         <div className="space-y-4">
-          {mockActivities.map((activity) => {
+          {recentActivities.map((activity) => {
             const IconComponent = activity.icon;
             return (
-              <div key={activity.id} className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
+              <div 
+                key={activity.id} 
+                className={`flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors ${
+                  activity.clickable ? 'cursor-pointer' : ''
+                }`}
+                onClick={activity.clickable ? activity.onClick : undefined}
+              >
                 <div className="p-2 bg-gray-100 rounded-lg">
                   <IconComponent className={`h-4 w-4 ${activity.iconColor}`} />
                 </div>
@@ -68,7 +98,11 @@ export function RecentActivity() {
         </div>
       ) : (
         <div className="text-center py-8">
-          <p className="text-gray-500">No recent activity</p>
+          <BookOpen className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+          <p className="text-gray-500 mb-2">No recent activity</p>
+          <p className="text-sm text-gray-400">
+            Start creating strategies and trading to see your activity here
+          </p>
         </div>
       )}
     </div>

@@ -1,66 +1,105 @@
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, FileText } from "lucide-react";
+import { Plus, FileText, Eye, Edit } from "lucide-react";
 import { format } from "date-fns";
+import { StrategyWithProfile } from "@/hooks/useStrategies";
+import { useNavigate } from "react-router-dom";
 
-// Mock data - replace with real data
-const mockDrafts = [
-  {
-    id: "1",
-    title: "Swing Trading Setup",
-    tags: ["swing", "technical-analysis"],
-    createdAt: new Date("2024-01-15"),
-  },
-  {
-    id: "2",
-    title: "Breakout Strategy",
-    tags: ["breakout", "momentum"],
-    createdAt: new Date("2024-01-12"),
-  }
-];
+interface DraftStrategiesProps {
+  strategies: StrategyWithProfile[];
+}
 
-export function DraftStrategies() {
+export function DraftStrategies({ strategies }: DraftStrategiesProps) {
+  const navigate = useNavigate();
+  
+  const draftStrategies = strategies
+    .filter(strategy => strategy.is_draft)
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .slice(0, 3); // Show only 3 most recent drafts
+
+  const handleCreateNew = () => {
+    navigate("/strategies");
+  };
+
+  const handleViewAll = () => {
+    navigate("/strategies");
+  };
+
+  const handleEdit = (strategyId: string) => {
+    navigate(`/strategies?edit=${strategyId}`);
+  };
+
+  const handleView = (strategyId: string) => {
+    navigate(`/strategy/${strategyId}`);
+  };
+
   return (
     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-lg font-semibold text-[#1E2A4E]">Draft Strategies</h3>
-        <Button size="sm" className="bg-[#2AB7CA] hover:bg-[#2AB7CA]/90">
+        <Button 
+          size="sm" 
+          className="bg-[#2AB7CA] hover:bg-[#2AB7CA]/90"
+          onClick={handleCreateNew}
+        >
           <Plus className="h-4 w-4 mr-2" />
           New Strategy
         </Button>
       </div>
       
-      {mockDrafts.length > 0 ? (
+      {draftStrategies.length > 0 ? (
         <div className="space-y-4">
-          {mockDrafts.map((draft) => (
-            <div key={draft.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+          {draftStrategies.map((strategy) => (
+            <div key={strategy.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center space-x-3 mb-2">
                     <FileText className="h-5 w-5 text-[#2AB7CA]" />
-                    <h4 className="font-medium text-[#1E2A4E]">{draft.title}</h4>
+                    <h4 className="font-medium text-[#1E2A4E]">{strategy.name}</h4>
                   </div>
                   
-                  <div className="flex flex-wrap gap-2 mb-3">
-                    {draft.tags.map((tag) => (
-                      <Badge key={tag} variant="secondary" className="text-xs">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
+                  {strategy.tags && strategy.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      {strategy.tags.slice(0, 3).map((tag) => (
+                        <Badge key={tag} variant="secondary" className="text-xs">
+                          {tag}
+                        </Badge>
+                      ))}
+                      {strategy.tags.length > 3 && (
+                        <Badge variant="secondary" className="text-xs">
+                          +{strategy.tags.length - 3} more
+                        </Badge>
+                      )}
+                    </div>
+                  )}
                   
                   <p className="text-xs text-gray-500">
-                    Created {format(draft.createdAt, "MMM d, yyyy")}
+                    Created {format(new Date(strategy.created_at), "MMM d, yyyy")}
                   </p>
+                  
+                  {strategy.last_saved_at && (
+                    <p className="text-xs text-gray-400">
+                      Last saved {format(new Date(strategy.last_saved_at), "MMM d, h:mm a")}
+                    </p>
+                  )}
                 </div>
                 
                 <div className="flex space-x-2">
-                  <Button size="sm" variant="outline">
-                    Continue Editing
+                  <Button 
+                    size="sm" 
+                    variant="ghost"
+                    onClick={() => handleView(strategy.id)}
+                  >
+                    <Eye className="h-4 w-4" />
                   </Button>
-                  <Button size="sm" className="bg-[#2AB7CA] hover:bg-[#2AB7CA]/90">
-                    Publish
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => handleEdit(strategy.id)}
+                  >
+                    <Edit className="h-4 w-4 mr-1" />
+                    Edit
                   </Button>
                 </div>
               </div>
@@ -68,8 +107,13 @@ export function DraftStrategies() {
           ))}
           
           <div className="text-center pt-4">
-            <Button variant="ghost" size="sm" className="text-[#2AB7CA]">
-              See All Drafts
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="text-[#2AB7CA]"
+              onClick={handleViewAll}
+            >
+              See All Drafts ({strategies.filter(s => s.is_draft).length})
             </Button>
           </div>
         </div>
@@ -77,7 +121,10 @@ export function DraftStrategies() {
         <div className="text-center py-8">
           <FileText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
           <p className="text-gray-500 mb-4">No draft strategies yet</p>
-          <Button className="bg-[#2AB7CA] hover:bg-[#2AB7CA]/90">
+          <Button 
+            className="bg-[#2AB7CA] hover:bg-[#2AB7CA]/90"
+            onClick={handleCreateNew}
+          >
             <Plus className="h-4 w-4 mr-2" />
             Create Your First Strategy
           </Button>
