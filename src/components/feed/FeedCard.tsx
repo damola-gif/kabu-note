@@ -11,7 +11,7 @@ import { useFollowing } from '@/hooks/useProfile';
 import { CommentSection } from '@/components/comments/CommentSection';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDeleteStrategy } from '@/hooks/useStrategiesCRUD';
+import { useDeleteStrategy } from '@/hooks/useStrategies';
 
 interface FeedCardProps {
   strategy: StrategyWithProfile;
@@ -26,11 +26,11 @@ export function FeedCard({ strategy }: FeedCardProps) {
   const { handleLikeToggle, handleBookmarkToggle, handleFollowToggle } = useStrategyActions();
   const [showComments, setShowComments] = useState(false);
   const deleteStrategy = useDeleteStrategy();
+
+  // Only declare isOwnStrategy ONCE
   const isOwnStrategy = user?.id === strategy.user_id;
-  
   const isLiked = likedIds.includes(strategy.id);
   const isBookmarked = bookmarkedIds.includes(strategy.id);
-  const isOwnStrategy = user?.id === strategy.user_id;
   const isFollowing = followingIds.includes(strategy.user_id);
 
   const handleViewStrategy = () => {
