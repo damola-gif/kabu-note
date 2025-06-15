@@ -47,7 +47,7 @@ export function UserListItem({ profile }: UserListItemProps) {
       tabIndex={0}
       role="button"
     >
-      <CardContent className="flex w-full items-center px-6 py-4 min-h-0 gap-5">
+      <CardContent className="flex w-full items-center p-6 min-h-0 gap-4">
         {/* Avatar */}
         <Avatar className="h-14 w-14 ring-2 ring-orange-400/40 bg-orange-50 text-orange-600 shadow-sm flex-shrink-0">
           <AvatarImage src={profile.avatar_url || ''} alt={profile.username} />
@@ -76,10 +76,9 @@ export function UserListItem({ profile }: UserListItemProps) {
               handleFollowToggle();
             }}
             disabled={followMutation.isPending || unfollowMutation.isPending}
-            className="flex-shrink-0 px-5 h-[40px] border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:border-orange-400 hover:bg-orange-50 transition-colors shadow-none"
+            className="flex-shrink-0 px-6 h-[40px] border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:border-orange-400 hover:bg-orange-50 transition-colors shadow-none min-w-[100px]"
             style={{
               boxShadow: "none",
-              minWidth: 0,
             }}
           >
             {followMutation.isPending || unfollowMutation.isPending
