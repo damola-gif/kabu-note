@@ -1,4 +1,5 @@
-import { Heart, MessageSquare, Share, ExternalLink } from 'lucide-react';
+
+import { Heart, MessageSquare, Share, ExternalLink, Repeat } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -8,38 +9,67 @@ import { useSession } from '@/contexts/SessionProvider';
 import { usePostLikes, useTogglePostLike } from '@/hooks/usePosts';
 import { useNavigate } from 'react-router-dom';
 import { useDeletePost } from '@/hooks/usePosts';
+import { useState } from 'react';
+import { useRepostPost, useUserRepostedIds, useDeleteRepost } from '@/hooks/useReposts';
+import { RepostDialog } from './RepostDialog';
 
 interface PostCardProps {
-  post: Post;
+  post: any; // Accept both regular and repost objects
 }
 
 export function PostCard({ post }: PostCardProps) {
   const { user } = useSession();
   const navigate = useNavigate();
+
+  // Is this a repost?
+  const isRepost = post?.__repost === true;
+  // If repost, unwrap the original post and repost
+  const original = isRepost ? post.post : post;
+  const repost = isRepost ? post.repost : null;
+  const repostUserProfile = isRepost ? post.repost_user_profile : null;
+
   const { data: likedPostIds = [] } = usePostLikes();
   const toggleLike = useTogglePostLike();
   const deletePost = useDeletePost();
-  const isPostOwner = user?.id === post.user_id;
+  const { data: userRepostedIds = [] } = useUserRepostedIds();
 
-  const isLiked = likedPostIds.includes(post.id);
+  const isPostOwner = user?.id === original.user_id;
+  const isLiked = likedPostIds.includes(original.id);
+  const hasReposted = userRepostedIds.includes(original.id);
+
+  // repost dialog states
+  const [repostOpen, setRepostOpen] = useState(false);
+  const repostPost = useRepostPost();
+  const deleteRepost = useDeleteRepost();
 
   const handleLikeToggle = () => {
     if (!user) return;
-    toggleLike.mutate({ postId: post.id, isLiked });
+    toggleLike.mutate({ postId: original.id, isLiked });
+  };
+
+  const handleRepostClick = () => {
+    setRepostOpen(true);
+  };
+
+  const onConfirmRepost = (comment: string) => {
+    repostPost.mutate({ original_post_id: original.id, repost_comment: comment }, {
+      onSuccess: () => setRepostOpen(false),
+    });
   };
 
   const handleProfileClick = () => {
-    if (post.profiles?.username) {
-      navigate(`/u/${post.profiles.username}`);
+    if (original.profiles?.username) {
+      navigate(`/u/${original.profiles.username}`);
     }
   };
 
+  // Render the media as before, but on original
   const renderMedia = () => {
-    if (post.post_type === 'image' && post.media_url) {
+    if (original.post_type === 'image' && original.media_url) {
       return (
         <div className="mt-3 rounded-2xl overflow-hidden">
           <img 
-            src={post.media_url} 
+            src={original.media_url} 
             alt="Post image" 
             className="w-full max-h-96 object-cover"
           />
@@ -47,11 +77,11 @@ export function PostCard({ post }: PostCardProps) {
       );
     }
 
-    if (post.post_type === 'video' && post.media_url) {
+    if (original.post_type === 'video' && original.media_url) {
       return (
         <div className="mt-3 rounded-2xl overflow-hidden">
           <video 
-            src={post.media_url} 
+            src={original.media_url} 
             controls 
             className="w-full max-h-96"
           />
@@ -59,19 +89,19 @@ export function PostCard({ post }: PostCardProps) {
       );
     }
 
-    if (post.post_type === 'link' && post.link_url) {
+    if (original.post_type === 'link' && original.link_url) {
       return (
         <div className="mt-3 border border-border rounded-2xl overflow-hidden hover:bg-muted/30 transition-colors">
           <a 
-            href={post.link_url} 
+            href={original.link_url} 
             target="_blank" 
             rel="noopener noreferrer"
             className="block p-4"
           >
             <div className="flex items-start gap-3">
-              {post.link_image && (
+              {original.link_image && (
                 <img 
-                  src={post.link_image} 
+                  src={original.link_image} 
                   alt="Link preview" 
                   className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
                 />
@@ -79,17 +109,17 @@ export function PostCard({ post }: PostCardProps) {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <h4 className="font-medium line-clamp-1 text-sm">
-                    {post.link_title || 'Link'}
+                    {original.link_title || 'Link'}
                   </h4>
                   <ExternalLink className="h-3 w-3 text-muted-foreground flex-shrink-0" />
                 </div>
-                {post.link_description && (
+                {original.link_description && (
                   <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
-                    {post.link_description}
+                    {original.link_description}
                   </p>
                 )}
                 <p className="text-xs text-muted-foreground mt-1 truncate">
-                  {new URL(post.link_url).hostname}
+                  {new URL(original.link_url).hostname}
                 </p>
               </div>
             </div>
@@ -104,6 +134,45 @@ export function PostCard({ post }: PostCardProps) {
   return (
     <div className="border-b border-border hover:bg-muted/30 transition-colors">
       <div className="p-4">
+        {/* Repost Banner */}
+        {isRepost && (
+          <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+            <Repeat className="h-4 w-4" />
+            <Avatar className="h-6 w-6">
+              <AvatarImage src={repostUserProfile?.avatar_url || ''} />
+              <AvatarFallback>{repostUserProfile?.username?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
+            </Avatar>
+            <span>
+              <span className="font-bold">{repostUserProfile?.username || 'User'}</span> reposted
+              <span className="mx-2">·</span>
+              {formatDistanceToNow(new Date(repost.created_at), { addSuffix: true })}
+            </span>
+            {/* Delete button for own repost */}
+            {user && repost.user_id === user.id && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => deleteRepost.mutate(repost.id)}
+                className="ml-auto shrink-0"
+                aria-label="Delete repost"
+                disabled={deleteRepost.isPending}
+              >
+                <span className="sr-only">Delete</span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-4 w-4 text-destructive"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </Button>
+            )}
+          </div>
+        )}
+
         {/* Author Info */}
         <div className="flex gap-3">
           <div 
@@ -111,9 +180,9 @@ export function PostCard({ post }: PostCardProps) {
             onClick={handleProfileClick}
           >
             <Avatar className="h-10 w-10">
-              <AvatarImage src={post.profiles?.avatar_url || ''} />
+              <AvatarImage src={original.profiles?.avatar_url || ''} />
               <AvatarFallback className="bg-muted">
-                {post.profiles?.username?.[0]?.toUpperCase() || 'U'}
+                {original.profiles?.username?.[0]?.toUpperCase() || 'U'}
               </AvatarFallback>
             </Avatar>
           </div>
@@ -125,20 +194,19 @@ export function PostCard({ post }: PostCardProps) {
                 onClick={handleProfileClick}
                 className="font-bold text-sm hover:underline"
               >
-                {post.profiles?.username || 'Anonymous'}
+                {original.profiles?.username || 'Anonymous'}
               </button>
               <span className="text-muted-foreground text-sm">·</span>
               <span className="text-muted-foreground text-sm">
-                {/* Always use server-generated created_at */}
-                {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
+                {formatDistanceToNow(new Date(original.created_at), { addSuffix: true })}
               </span>
-              {/* Delete Button (only owner) */}
-              {isPostOwner && (
+              {/* Delete Button (only owner, only for original posts) */}
+              {!isRepost && isPostOwner && (
                 <Button
                   variant="ghost"
                   size="icon"
                   className="ml-auto shrink-0"
-                  onClick={() => deletePost.mutate(post.id)}
+                  onClick={() => deletePost.mutate(original.id)}
                   disabled={deletePost.isPending}
                   aria-label="Delete post"
                 >
@@ -157,11 +225,18 @@ export function PostCard({ post }: PostCardProps) {
               )}
             </div>
 
+            {/* If repost, show repost comment (if any) */}
+            {isRepost && repost.repost_comment && (
+              <div className="mb-2">
+                <p className="italic text-muted-foreground text-sm">"{repost.repost_comment}"</p>
+              </div>
+            )}
+
             {/* Post Content */}
-            {post.content && (
+            {original.content && (
               <div className="mb-3">
                 <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                  {post.content}
+                  {original.content}
                 </p>
               </div>
             )}
@@ -170,9 +245,9 @@ export function PostCard({ post }: PostCardProps) {
             {renderMedia()}
 
             {/* Hashtags */}
-            {post.hashtags && post.hashtags.length > 0 && (
+            {original.hashtags && original.hashtags.length > 0 && (
               <div className="flex flex-wrap gap-1 mt-3">
-                {post.hashtags.map((tag) => (
+                {original.hashtags.map((tag) => (
                   <Badge key={tag} variant="secondary" className="text-xs px-2 py-1">
                     #{tag}
                   </Badge>
@@ -189,7 +264,7 @@ export function PostCard({ post }: PostCardProps) {
                 disabled={!user}
               >
                 <MessageSquare className="h-4 w-4 mr-2" />
-                <span className="text-sm">{post.comments_count || 0}</span>
+                <span className="text-sm">{original.comments_count || 0}</span>
               </Button>
               
               <Button
@@ -202,21 +277,37 @@ export function PostCard({ post }: PostCardProps) {
                 disabled={!user}
               >
                 <Heart className={`h-4 w-4 mr-2 ${isLiked ? 'fill-current' : ''}`} />
-                <span className="text-sm">{post.likes_count || 0}</span>
+                <span className="text-sm">{original.likes_count || 0}</span>
               </Button>
               
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="hover:bg-green-500/10 hover:text-green-500 text-muted-foreground h-8 px-3"
-                disabled={!user}
+              {/* Repost/Share Button */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleRepostClick}
+                className={`hover:bg-green-500/10 hover:text-green-500 h-8 px-3 ${
+                  hasReposted ? 'text-green-500' : 'text-muted-foreground'
+                }`}
+                disabled={!user || isPostOwner || hasReposted}
+                aria-label="Repost"
               >
                 <Share className="h-4 w-4" />
+                <span className="text-sm">{original.shares_count || 0}</span>
               </Button>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Repost Dialog */}
+      <RepostDialog
+        open={repostOpen}
+        onClose={() => setRepostOpen(false)}
+        onRepost={onConfirmRepost}
+        loading={repostPost.isPending}
+      />
     </div>
   );
 }
+
+// This file is getting long! Consider asking me to refactor it into smaller pieces for maintainability.

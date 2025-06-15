@@ -42,6 +42,7 @@ export function usePosts() {
   return useQuery({
     queryKey: ['posts'],
     queryFn: async () => {
+      // Fetch all posts as before
       const { data, error } = await supabase
         .from('posts')
         .select('*')
@@ -49,7 +50,50 @@ export function usePosts() {
 
       if (error) throw error;
 
-      // Fetch profile data separately for each post
+      // Fetch reposts, join with original post and user
+      const { data: reposts, error: repostsError } = await supabase
+        .from('reposts')
+        .select('*, user_profiles:profiles(username, avatar_url)')
+        .order('created_at', { ascending: false });
+
+      if (repostsError) throw repostsError;
+
+      // Collect all the original_post_ids to fetch
+      const originalPostIds = reposts.map((r) => r.original_post_id);
+
+      let originalPosts: any[] = [];
+      if (originalPostIds.length > 0) {
+        const { data: origPosts, error: origError } = await supabase
+          .from('posts')
+          .select('*')
+          .in('id', originalPostIds);
+
+        if (origError) throw origError;
+
+        // Attach profile info for original posts
+        originalPosts = await Promise.all(
+          origPosts.map(async (post) => {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('username, avatar_url')
+              .eq('id', post.user_id)
+              .single();
+            return {
+              ...post,
+              profiles: profile || null,
+            };
+          })
+        );
+      }
+
+      // Map from original post id to post object
+      const origMap: Record<string, any> = {};
+      for (const p of originalPosts) {
+        origMap[p.id] = p;
+      }
+
+      // Collect regular posts + "repost" objects
+      // For reposts: structure { __repost: true, repost: <repost>, post: <original> }
       const postsWithProfiles = await Promise.all(
         data.map(async (post) => {
           const { data: profile } = await supabase
@@ -57,15 +101,33 @@ export function usePosts() {
             .select('username, avatar_url')
             .eq('id', post.user_id)
             .single();
-          
+
           return {
             ...post,
-            profiles: profile || null
+            profiles: profile || null,
+            __repost: false,
           };
         })
       );
 
-      return postsWithProfiles as Post[];
+      const repostObjects = reposts.map((repost) => ({
+        __repost: true,
+        repost,
+        post: origMap[repost.original_post_id],
+        repost_user_profile: repost.user_profiles,
+      }));
+
+      // Merge and sort all posts and reposts by created time (of post or repost)
+      const merged = [
+        ...postsWithProfiles,
+        ...repostObjects,
+      ].sort((a, b) => {
+        const aTime = a.__repost ? a.repost.created_at : a.created_at;
+        const bTime = b.__repost ? b.repost.created_at : b.created_at;
+        return new Date(bTime).getTime() - new Date(aTime).getTime();
+      });
+
+      return merged;
     },
   });
 }
