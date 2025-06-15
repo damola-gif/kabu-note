@@ -37,10 +37,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       
       {/* Main Content */}
       <main className={cn(
-        "flex-1 pt-16 relative z-10",
-        isMobile && "pb-20"
+        "flex-1 relative z-10",
+        "pt-14 sm:pt-16", // Responsive top padding for different header heights
+        isMobile && "pb-20" // Bottom padding for mobile navigation
       )}>
-        <div className="container mx-auto px-4 lg:px-6 py-6">
+        <div className="container mx-auto px-4 lg:px-6 py-4 sm:py-6">
           {children}
         </div>
       </main>

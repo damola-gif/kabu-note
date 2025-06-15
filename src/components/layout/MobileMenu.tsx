@@ -13,18 +13,18 @@ export function MobileMenu({ navigationItems, isOpen, onClose, currentPath }: Mo
   if (!isOpen) return null;
 
   return (
-    <div className="md:hidden bg-white border-t border-gray-200">
-      <div className="px-4 py-3 space-y-2">
+    <div className="md:hidden bg-background/95 backdrop-blur-sm border-t border-border shadow-lg">
+      <div className="px-4 py-3 space-y-1">
         {navigationItems.map((item) => (
           <Link
             key={item.name}
             to={item.path}
             onClick={onClose}
             className={cn(
-              "block px-3 py-2 text-sm font-medium rounded-md transition-colors",
+              "block px-4 py-3 text-sm font-medium rounded-lg transition-colors",
               currentPath === item.path
-                ? "bg-[#2AB7CA] text-white"
-                : "text-gray-600 hover:bg-gray-100"
+                ? "bg-primary text-primary-foreground"
+                : "text-foreground hover:bg-accent/50"
             )}
           >
             {item.name}
