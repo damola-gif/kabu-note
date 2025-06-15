@@ -72,9 +72,11 @@ export function StrategyVotingSection({ strategy }: StrategyVotingSectionProps) 
   };
 
   const totalVotes = (strategy.approval_votes || 0) + (strategy.rejection_votes || 0);
+  const requiredVotes = strategy.votes_required || 2;
   const approvalRate = totalVotes > 0 ? ((strategy.approval_votes || 0) / totalVotes) * 100 : 0;
-  const votesNeeded = Math.max(0, 4 - totalVotes);
-  const approvalsNeeded = Math.max(0, 2 - (strategy.approval_votes || 0));
+  const votesNeeded = Math.max(0, requiredVotes - totalVotes);
+  const majorityNeeded = Math.ceil(requiredVotes / 2);
+  const approvalsNeeded = Math.max(0, majorityNeeded - (strategy.approval_votes || 0));
 
   return (
     <Card className="border border-gray-200">
@@ -102,7 +104,8 @@ export function StrategyVotingSection({ strategy }: StrategyVotingSectionProps) 
           </div>
           <span className="text-gray-500">
             {strategy.voting_status === 'pending' ? (
-              approvalsNeeded > 0 ? `${approvalsNeeded} more approvals needed` : 'Awaiting final votes'
+              votesNeeded > 0 ? `${votesNeeded} more votes needed` : 
+              approvalsNeeded > 0 ? `Need ${approvalsNeeded} more approvals` : 'Awaiting final decision'
             ) : `${totalVotes} total votes`}
           </span>
         </div>
@@ -112,13 +115,14 @@ export function StrategyVotingSection({ strategy }: StrategyVotingSectionProps) 
           <div 
             className="bg-green-500 h-2 rounded-full transition-all duration-300" 
             style={{ 
-              width: `${Math.min(((strategy.approval_votes || 0) / 2) * 100, 100)}%` 
+              width: `${Math.min(((strategy.approval_votes || 0) / majorityNeeded) * 100, 100)}%` 
             }}
           />
         </div>
 
         <div className="text-xs text-gray-600">
-          Need 2 out of 4 follower votes to approve. Current: {strategy.approval_votes || 0}/2 approvals, {totalVotes}/4 total votes
+          Requires {requiredVotes} votes (50% of followers) with majority approval. 
+          Current: {strategy.approval_votes || 0}/{majorityNeeded} approvals needed, {totalVotes}/{requiredVotes} total votes
         </div>
 
         {/* Owner Monitoring Section */}
@@ -129,9 +133,13 @@ export function StrategyVotingSection({ strategy }: StrategyVotingSectionProps) 
               <span className="text-sm font-medium text-blue-800">Strategy Status Monitor</span>
             </div>
             <p className="text-sm text-blue-700">
-              Your strategy is being reviewed by your followers. You'll receive notifications when votes are cast.
-              {strategy.voting_status === 'pending' && approvalsNeeded > 0 && (
-                ` Need ${approvalsNeeded} more approval${approvalsNeeded !== 1 ? 's' : ''} to publish automatically.`
+              Your strategy is being reviewed by your followers. You need at least {requiredVotes} votes (50% of your followers) 
+              with majority approval to publish automatically.
+              {strategy.voting_status === 'pending' && votesNeeded > 0 && (
+                ` Need ${votesNeeded} more vote${votesNeeded !== 1 ? 's' : ''} to meet the minimum requirement.`
+              )}
+              {strategy.voting_status === 'pending' && votesNeeded === 0 && approvalsNeeded > 0 && (
+                ` Need ${approvalsNeeded} more approval${approvalsNeeded !== 1 ? 's' : ''} for majority.`
               )}
             </p>
           </div>

@@ -383,6 +383,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_required_votes: {
+        Args: { strategy_user_id: string }
+        Returns: number
+      }
       can_publish_strategy: {
         Args: { strategy_id: string }
         Returns: boolean
