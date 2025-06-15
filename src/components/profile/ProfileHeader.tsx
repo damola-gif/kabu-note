@@ -6,6 +6,7 @@ import { CalendarDays, Edit } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
 import { useSession } from "@/contexts/SessionProvider";
 import { format } from "date-fns";
+import { useNavigate } from "react-router-dom";
 
 interface ProfileHeaderProps {
   profile: Tables<'profiles'>;
@@ -23,6 +24,11 @@ export function ProfileHeader({
   isFollowLoading 
 }: ProfileHeaderProps) {
   const { user } = useSession();
+  const navigate = useNavigate();
+
+  const handleEditProfile = () => {
+    navigate('/settings');
+  };
 
   return (
     <Card className="landing-card">
@@ -55,7 +61,11 @@ export function ProfileHeader({
 
           <div className="flex gap-2">
             {isOwnProfile ? (
-              <Button variant="outline" className="flex items-center gap-2 btn-landing-ghost">
+              <Button 
+                variant="outline" 
+                className="flex items-center gap-2 btn-landing-ghost"
+                onClick={handleEditProfile}
+              >
                 <Edit className="h-4 w-4" />
                 Edit Profile
               </Button>
