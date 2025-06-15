@@ -19,6 +19,7 @@ export type Database = {
           name: string
           updated_at: string | null
           user_id: string
+          win_rate: number | null
         }
         Insert: {
           content_markdown?: string | null
@@ -29,6 +30,7 @@ export type Database = {
           name: string
           updated_at?: string | null
           user_id: string
+          win_rate?: number | null
         }
         Update: {
           content_markdown?: string | null
@@ -39,6 +41,7 @@ export type Database = {
           name?: string
           updated_at?: string | null
           user_id?: string
+          win_rate?: number | null
         }
         Relationships: []
       }

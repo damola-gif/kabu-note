@@ -1,4 +1,3 @@
-
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -78,6 +77,7 @@ export function useCreateStrategy() {
         is_public: newStrategy.is_public,
         user_id: user.id,
         image_path: imagePath,
+        win_rate: newStrategy.win_rate,
       };
       const { data, error } = await supabase.from("strategies").insert(dataToInsert).select().single();
       if (error) throw error;
@@ -132,6 +132,7 @@ export function useUpdateStrategy() {
         content_markdown: values.content_markdown,
         is_public: values.is_public,
         image_path: finalImagePath,
+        win_rate: values.win_rate,
       };
 
       const { error } = await supabase

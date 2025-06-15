@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useStrategies, useDeleteStrategy } from '@/hooks/useStrategies';
 import { Button } from '@/components/ui/button';
@@ -27,13 +26,16 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { supabase } from '@/integrations/supabase/client';
-import { Input } from '@/components/ui/input';
+import { DateRange } from 'react-day-picker';
+import { StrategyFilters } from '@/components/strategy/StrategyFilters';
 
 export default function Strategies() {
     const [isEditorOpen, setIsEditorOpen] = useState(false);
     const [selectedStrategy, setSelectedStrategy] = useState<Tables<'strategies'> | undefined>();
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
+    const [winRateRange, setWinRateRange] = useState<[number, number]>([0, 100]);
+    const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
     const { data: strategies, isLoading, error } = useStrategies();
     const deleteMutation = useDeleteStrategy();
     const navigate = useNavigate();
@@ -63,10 +65,37 @@ export default function Strategies() {
         });
     };
 
+    const filteredStrategies = strategies?.filter(strategy => {
+        const nameMatch = strategy.name.toLowerCase().includes(searchTerm.toLowerCase());
+
+        const winRate = (strategy.win_rate ?? 0) as number;
+        const winRateMatch = winRate >= winRateRange[0] && winRate <= winRateRange[1];
+
+        const createdAt = strategy.created_at ? new Date(strategy.created_at) : null;
+        let dateMatch = true;
+
+        if (dateRange && createdAt) {
+            if (dateRange.from && createdAt < dateRange.from) {
+                dateMatch = false;
+            }
+            if (dateRange.to && dateMatch) {
+                const toDate = new Date(dateRange.to);
+                toDate.setHours(23, 59, 59, 999);
+                if (createdAt > toDate) {
+                    dateMatch = false;
+                }
+            }
+        } else if (dateRange && (dateRange.from || dateRange.to)) {
+            dateMatch = false;
+        }
+
+        return nameMatch && winRateMatch && dateMatch;
+    }) ?? [];
+
     const renderContent = () => {
         if (isLoading) {
             return (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 col-span-3">
                     {[...Array(3)].map((_, i) => (
                         <Card key={i}>
                             <CardHeader>
@@ -83,26 +112,22 @@ export default function Strategies() {
         }
 
         if (error) {
-            return <p className="text-destructive">Error loading strategies: {error.message}</p>;
+            return <p className="text-destructive col-span-3">Error loading strategies: {error.message}</p>;
         }
 
-        const filteredStrategies = strategies?.filter(strategy =>
-            strategy.name.toLowerCase().includes(searchTerm.toLowerCase())
-        ) ?? [];
-
         if (filteredStrategies.length === 0) {
-            if (searchTerm) {
+            if (searchTerm || dateRange || winRateRange[0] > 0 || winRateRange[1] < 100) {
                 return (
-                    <div className="text-center py-10 border-2 border-dashed rounded-lg">
+                    <div className="text-center py-10 border-2 border-dashed rounded-lg col-span-3">
                         <h2 className="text-xl font-semibold">No Strategies Found</h2>
                         <p className="text-muted-foreground mt-2">
-                            Your search for "{searchTerm}" did not match any strategies.
+                            Try adjusting your search or filter criteria.
                         </p>
                     </div>
                 );
             }
             return (
-                <div className="text-center py-10 border-2 border-dashed rounded-lg">
+                <div className="text-center py-10 border-2 border-dashed rounded-lg col-span-3">
                     <h2 className="text-xl font-semibold">No Strategies Yet</h2>
                     <p className="text-muted-foreground mt-2">Click the button to create your first trading strategy.</p>
                     <Button className="mt-4" onClick={handleNewStrategy}>
@@ -114,7 +139,7 @@ export default function Strategies() {
         }
 
         return (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <>
                 {filteredStrategies.map((strategy) => {
                     const imageUrl = strategy.image_path ? supabase.storage.from('strategy_images').getPublicUrl(strategy.image_path).data.publicUrl : null;
                     return (
@@ -163,7 +188,7 @@ export default function Strategies() {
                         </CardContent>
                     </Card>
                 )})}
-            </div>
+            </>
         );
     }
 
@@ -174,22 +199,33 @@ export default function Strategies() {
                     <h1 className="text-3xl font-bold">Strategy Library</h1>
                     <p className="text-muted-foreground">Browse and manage your collection of trading strategies.</p>
                 </div>
-                <div className="flex items-center gap-2">
-                    <Input
-                        type="search"
-                        placeholder="Search strategies..."
-                        className="w-64"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                    <Button onClick={handleNewStrategy}>
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        New Strategy
-                    </Button>
-                </div>
+                <Button onClick={handleNewStrategy}>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    New Strategy
+                </Button>
             </div>
             
-            {renderContent()}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <aside className="md:col-span-1">
+                   <div className="sticky top-4">
+                     <h2 className="text-lg font-semibold mb-4">Filters</h2>
+                     <StrategyFilters
+                        searchTerm={searchTerm}
+                        onSearchTermChange={setSearchTerm}
+                        winRateRange={winRateRange}
+                        onWinRateChange={setWinRateRange}
+                        dateRange={dateRange}
+                        onDateChange={setDateRange}
+                     />
+                   </div>
+                </aside>
+
+                <main className="md:col-span-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {renderContent()}
+                    </div>
+                </main>
+            </div>
 
             <StrategyEditorDialog 
                 open={isEditorOpen} 

@@ -1,4 +1,3 @@
-
 import React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -47,6 +46,7 @@ export function StrategyEditorDialog({ open, onOpenChange, strategy, trade }: St
       is_public: false,
       image_file: undefined,
       image_path: undefined,
+      win_rate: 0,
     },
   });
 
@@ -58,6 +58,7 @@ export function StrategyEditorDialog({ open, onOpenChange, strategy, trade }: St
           content_markdown: strategy.content_markdown ?? '',
           is_public: strategy.is_public ?? false,
           image_path: strategy.image_path ?? undefined,
+          win_rate: (strategy.win_rate as number) ?? 0,
         });
         if (strategy.image_path) {
           const { data: { publicUrl } } = supabase.storage.from('strategy_images').getPublicUrl(strategy.image_path);
@@ -87,6 +88,7 @@ export function StrategyEditorDialog({ open, onOpenChange, strategy, trade }: St
             is_public: false,
             image_file: undefined,
             image_path: undefined,
+            win_rate: 0,
         });
         setImagePreview(null);
       } else {
@@ -96,6 +98,7 @@ export function StrategyEditorDialog({ open, onOpenChange, strategy, trade }: St
               is_public: false,
               image_file: undefined,
               image_path: undefined,
+              win_rate: 0,
           });
           setImagePreview(null);
       }
