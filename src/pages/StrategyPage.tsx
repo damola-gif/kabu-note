@@ -25,19 +25,16 @@ export default function StrategyPage() {
       navigate(`/auth?redirect=${location.pathname}`);
     }
   }, [user, sessionLoading, navigate, location.pathname]);
-  
+
   const { data: strategy, isLoading, error } = useStrategy(strategyId!);
 
   if (isLoading || sessionLoading) {
     return (
-      <div className="space-y-4">
-        {/* Header Skeleton */}
+      <div className="space-y-4 w-full max-w-full overflow-x-hidden">
         <div className="flex items-center justify-between">
           <Skeleton className="h-8 w-20" />
         </div>
-        
-        {/* Content Skeleton */}
-        <Card className="mx-0">
+        <Card className="w-full max-w-full">
           <CardHeader className="pb-3">
             <Skeleton className="h-6 w-3/4" />
             <div className="flex flex-wrap gap-2">
@@ -58,14 +55,14 @@ export default function StrategyPage() {
 
   if (error) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-4 w-full max-w-full overflow-x-hidden">
         <div className="flex items-center justify-between">
           <Button variant="outline" size="sm" onClick={() => navigate(-1)}>
             <ArrowLeft className="mr-1 h-4 w-4" />
             Back
           </Button>
         </div>
-        <Card className="mx-0">
+        <Card className="w-full max-w-full">
           <CardContent className="pt-4">
             <div className="text-destructive text-center py-6 text-sm">Error: {error.message}</div>
           </CardContent>
@@ -73,17 +70,17 @@ export default function StrategyPage() {
       </div>
     );
   }
-  
+
   if (!strategy) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-4 w-full max-w-full overflow-x-hidden">
         <div className="flex items-center justify-between">
           <Button variant="outline" size="sm" onClick={() => navigate(-1)}>
             <ArrowLeft className="mr-1 h-4 w-4" />
             Back
           </Button>
         </div>
-        <Card className="mx-0">
+        <Card className="w-full max-w-full">
           <CardContent className="pt-4">
             <div className="text-center py-8">
               <h2 className="text-lg font-bold">Strategy not found</h2>
@@ -102,9 +99,9 @@ export default function StrategyPage() {
     : null;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 w-full max-w-full overflow-x-hidden">
       {/* Compact Header */}
-      <div className="flex items-center justify-between py-2">
+      <div className="flex items-center justify-between py-2 px-0">
         <Button variant="outline" size="sm" onClick={() => navigate(-1)}>
           <ArrowLeft className="mr-1 h-4 w-4" />
           Back
@@ -112,8 +109,8 @@ export default function StrategyPage() {
       </div>
 
       {/* Strategy Content Card */}
-      <Card className="mx-0">
-        <CardHeader className="pb-3 px-4 sm:px-6">
+      <Card className="w-full max-w-full mx-0">
+        <CardHeader className="pb-3 px-3 sm:px-4">
           <div className="space-y-3">
             <div className="flex items-start gap-2">
               {strategy.is_public ? (
@@ -127,23 +124,21 @@ export default function StrategyPage() {
                 </CardTitle>
               </div>
             </div>
-            
+
             <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
               <div className="flex items-center gap-1">
                 <Calendar className="h-3 w-3" />
                 <span>{format(new Date(strategy.created_at!), "MMM d, yyyy")}</span>
               </div>
-              
               {strategy.is_public ? (
                 <Badge className="text-xs h-5">Public</Badge>
               ) : (
                 <Badge variant="secondary" className="text-xs h-5">Draft</Badge>
               )}
-              
               {strategy.voting_status && (
-                <Badge 
-                  variant={strategy.voting_status === 'approved' ? 'default' : 
-                           strategy.voting_status === 'rejected' ? 'destructive' : 'secondary'}
+                <Badge
+                  variant={strategy.voting_status === 'approved' ? 'default' :
+                    strategy.voting_status === 'rejected' ? 'destructive' : 'secondary'}
                   className="text-xs h-5"
                 >
                   {strategy.voting_status}
@@ -152,20 +147,23 @@ export default function StrategyPage() {
             </div>
           </div>
         </CardHeader>
-        
-        <CardContent className="space-y-4 px-4 sm:px-6 pb-4">
+
+        <CardContent className="space-y-4 px-3 sm:px-4 pb-4 w-full max-w-full">
+          {/* Strategy Image */}
           {imageUrl && (
-            <div className="w-full">
-              <img 
-                src={imageUrl} 
-                alt={strategy.name} 
-                className="w-full rounded-md max-h-48 sm:max-h-64 object-contain border" 
+            <div className="w-full max-w-full">
+              <img
+                src={imageUrl}
+                alt={strategy.name}
+                className="w-full max-w-full rounded-md max-h-44 sm:max-h-64 object-contain border"
+                style={{ display: 'block', margin: 0, padding: 0 }}
               />
             </div>
           )}
-          
-          <div className="overflow-x-auto">
-            <div className="prose dark:prose-invert max-w-none text-sm leading-relaxed prose-headings:text-base prose-headings:font-semibold prose-headings:mb-2 prose-p:mb-3 prose-li:mb-1">
+
+          {/* Markdown Content */}
+          <div className="w-full max-w-full">
+            <div className="prose dark:prose-invert max-w-full text-sm leading-relaxed prose-headings:text-base prose-headings:font-semibold prose-headings:mb-2 prose-p:mb-3 prose-li:mb-1 break-words">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>
                 {strategy.content_markdown || "No content available."}
               </ReactMarkdown>
@@ -176,8 +174,8 @@ export default function StrategyPage() {
 
       {/* Voting Section */}
       {strategy.is_public && (
-        <Card className="mx-0">
-          <CardContent className="pt-4 px-4 sm:px-6 pb-4">
+        <Card className="w-full max-w-full mx-0">
+          <CardContent className="pt-4 px-3 sm:px-4 pb-4">
             <StrategyVotingSection strategy={strategy} />
           </CardContent>
         </Card>
