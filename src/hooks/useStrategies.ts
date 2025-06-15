@@ -7,6 +7,7 @@ export {
   useStrategies,
   useStrategy,
   usePublicStrategies,
+  useFollowingStrategies,
 } from './useStrategiesCore';
 
 // Re-export strategy interaction hooks

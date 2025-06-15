@@ -216,3 +216,67 @@ export function usePublicStrategies() {
     enabled: true,
   });
 }
+
+// Hook to fetch strategies from followed users that are pending votes
+export function useFollowingStrategies() {
+  const { user } = useSession();
+  const { data: followingIds } = useFollowing();
+
+  return useInfiniteQuery({
+    queryKey: ['followingStrategies', user?.id, followingIds],
+    queryFn: async ({ pageParam = 0 }): Promise<StrategyWithProfile[]> => {
+      if (!user || !followingIds || followingIds.length === 0) {
+        return [];
+      }
+
+      const from = pageParam * STRATEGIES_PER_PAGE;
+      const to = from + STRATEGIES_PER_PAGE - 1;
+
+      // RLS policy "Followers can view pending strategies for voting" will enforce the core logic.
+      const { data: strategies, error } = await supabase
+        .from('strategies')
+        .select('*')
+        .in('user_id', followingIds) // Fetch strategies only from followed users
+        .eq('voting_status', 'pending')
+        .eq('is_draft', false)
+        .order('created_at', { ascending: false })
+        .range(from, to);
+
+      if (error) {
+        console.error("Error fetching following strategies:", error.message);
+        throw error;
+      }
+      if (!strategies || strategies.length === 0) return [];
+
+      const userIds = [...new Set(strategies.map(s => s.user_id).filter(Boolean))];
+      if (userIds.length === 0) {
+        return strategies.map(s => ({ ...s, profile: null }));
+      }
+      
+      const { data: profiles, error: profilesError } = await supabase
+        .from("profiles")
+        .select("id, username, avatar_url")
+        .in("id", userIds);
+
+      if (profilesError) {
+        console.error("Error fetching profiles:", profilesError.message);
+        return strategies.map(s => ({ ...s, profile: null }));
+      }
+
+      const profilesById = new Map(profiles.map(p => [p.id, p]));
+
+      return strategies.map(strategy => ({
+        ...strategy,
+        profile: strategy.user_id ? profilesById.get(strategy.user_id) ?? null : null,
+      }));
+    },
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) => {
+      if (lastPage.length < STRATEGIES_PER_PAGE) {
+        return undefined;
+      }
+      return allPages.length;
+    },
+    enabled: !!user && !!followingIds,
+  });
+}

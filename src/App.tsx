@@ -24,6 +24,7 @@ import StrategyPage from "./pages/StrategyPage";
 import { useEffect } from "react";
 import Rooms from "./pages/Rooms";
 import RoomPage from "./pages/RoomPage";
+import FollowingStrategies from "./pages/FollowingStrategies";
 
 const queryClient = new QueryClient();
 
@@ -64,6 +65,7 @@ const App = () => {
                   <Route path="/journal" element={<Journal />} />
                   <Route path="/strategies" element={<Strategies />} />
                   <Route path="/strategies/:strategyId" element={<StrategyPage />} />
+                  <Route path="/following-strategies" element={<FollowingStrategies />} />
                   <Route path="/feed" element={<Feed />} />
                   <Route path="/rooms" element={<Rooms />} />
                   <Route path="/rooms/:roomId" element={<RoomPage />} />
