@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useSession } from '@/contexts/SessionProvider';
@@ -64,7 +63,7 @@ export const useRoomMessages = (roomId: string) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('room_messages')
-        .select('*, profiles:user_id(username, avatar_url)')
+        .select('*, profiles(username, avatar_url)')
         .eq('room_id', roomId)
         .order('created_at', { ascending: true });
 
