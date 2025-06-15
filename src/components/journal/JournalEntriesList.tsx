@@ -3,7 +3,6 @@ import React from "react";
 import clsx from "clsx";
 import { Tables } from "@/integrations/supabase/types";
 import { StrategyEditorDialog } from "@/components/strategy/StrategyEditorDialog";
-import { EditTradeDialog } from "@/components/trade/EditTradeDialog";
 import { BookOpen, UploadCloud } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ImageEditor } from "@/components/common/ImageEditor";
@@ -35,8 +34,10 @@ export const JournalEntriesList: React.FC<JournalEntriesListProps> = ({
   buttonOutline,
   buttonPrimary,
 }) => {
-  // State for image editor (only if needed elsewhere)
-  const [editorImageUrl, setEditorImageUrl] = React.useState<string | undefined>();
+  const currentlyEditingStrategy = React.useMemo(() => {
+    if (!editingJournal || editingJournal === "NEW") return undefined;
+    return ownDraftStrategies.find((s) => s.id === editingJournal);
+  }, [editingJournal, ownDraftStrategies]);
 
   if (strategiesLoading) {
     return (
@@ -122,9 +123,7 @@ export const JournalEntriesList: React.FC<JournalEntriesListProps> = ({
                 }
                 width={380}
                 height={220}
-                onEdit={(dataUrl) => {
-                  setEditorImageUrl(dataUrl);
-                }}
+                onEdit={() => {}}
               />
             </div>
           )}
@@ -137,20 +136,15 @@ export const JournalEntriesList: React.FC<JournalEntriesListProps> = ({
               <span key={tag} className="bg-orange-800 text-orange-100 px-2 py-1 rounded-full text-xs font-mono">{tag}</span>
             )}
           </div>
-          {editingJournal === strategy.id && (
-            <EditTradeDialog
-              open={true}
-              onOpenChange={() => setEditingJournal(null)}
-              trade={undefined}
-            />
-          )}
         </div>
       ))}
-      {/* Show StrategyEditorDialog for "NEW" Journal creation */}
-      {editingJournal === "NEW" && (
+      
+      {/* Show StrategyEditorDialog for editing existing Journal */}
+      {currentlyEditingStrategy && (
         <StrategyEditorDialog
           open={true}
           onOpenChange={() => setEditingJournal(null)}
+          strategy={currentlyEditingStrategy}
         />
       )}
     </div>

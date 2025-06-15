@@ -1,3 +1,4 @@
+
 import { useState, useMemo } from "react";
 import { NewTradeDialog } from "@/components/trade/NewTradeDialog";
 import { EditTradeDialog } from "@/components/trade/EditTradeDialog";
@@ -188,6 +189,13 @@ export default function Journal() {
       )}
       {selectedTrade && (
         <TradeDetailsSheet open={isTradeDetailsSheetOpen} onOpenChange={setIsTradeDetailsSheetOpen} trade={selectedTrade} />
+      )}
+      {/* Dialog for NEW journal entry */}
+      {editingJournal === "NEW" && (
+        <StrategyEditorDialog
+          open={true}
+          onOpenChange={() => setEditingJournal(null)}
+        />
       )}
     </div>
   );
