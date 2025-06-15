@@ -12,13 +12,13 @@ import { DateRange } from "react-day-picker";
 import { startOfDay, endOfDay } from "date-fns";
 import { useTwelveData } from "@/contexts/TwelveDataProvider";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, Plus, BookOpen, UploadCloud } from "lucide-react";
+import { AlertCircle, Plus, BookOpen, UploadCloud, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import clsx from "clsx";
 import { useSession } from "@/contexts/SessionProvider";
-import { useStrategies } from "@/hooks/useStrategies";
-import { useUpdateStrategy } from "@/hooks/useStrategies";
+import { useStrategies, useUpdateStrategy } from "@/hooks/useStrategies";
 import { toast } from "@/hooks/use-toast";
+import { ImageEditor } from "@/components/common/ImageEditor";
 
 export default function Journal() {
   const [isNewTradeDialogOpen, setIsNewTradeDialogOpen] = useState(false);
@@ -33,11 +33,11 @@ export default function Journal() {
   const { isConnected } = useTwelveData();
   const { user } = useSession();
   const { data: strategyPages, isLoading: strategiesLoading } = useStrategies();
+  const [editorImageUrl, setEditorImageUrl] = useState<string | undefined>();
 
   // Only fetch own draft and private strategies
   const ownDraftStrategies = useMemo(() => {
     if (!strategyPages || !user) return [];
-    // Flatten pages, only include strategies that are not yet public
     return strategyPages.pages.flat().filter(
       (s) => s.user_id === user.id && (!s.is_public || s.is_draft)
     );
@@ -62,7 +62,7 @@ export default function Journal() {
 
   const hasOpenTrades = filteredTrades.some(trade => !trade.closed_at);
 
-  // === Styling tokens (orange/cyber theme)
+  // Styling tokens
   const cardBg = "bg-[#23202a] bg-opacity-90 border-none shadow-lg";
   const strongAccentColor = "text-orange-400";
   const fadedText = "text-zinc-400";
@@ -71,9 +71,8 @@ export default function Journal() {
   const buttonOutline = "border-orange-400 text-orange-400 hover:bg-orange-500/10";
   const tabBg = "bg-gradient-to-br from-[#19141c] via-[#191920] to-[#16111b]";
 
-  // --- Journal (draft) strategy publishing
+  // Journal (draft strategy) publishing
   const handlePublishStrategy = (strategy) => {
-    // Only "publish" if not already public and not in voting
     if (strategy.is_public || strategy.voting_status === 'pending') return;
     updateStrategy.mutate(
       {
@@ -86,16 +85,16 @@ export default function Journal() {
       },
       {
         onSuccess: () => {
-          toast({ title: "Journal submitted for community voting! Need majority approval from 50% of your followers." }); // FIX
+          toast({ title: "Journal submitted for community voting! Need majority approval from 50% of your followers." });
         },
         onError: (err) => {
-          toast({ title: "Error submitting for voting: " + err.message }); // FIX
+          toast({ title: "Error submitting for voting: " + err.message });
         },
       }
     );
   };
 
-  // --- Journal UI: View, Edit, Publish
+  // Journal View/Edit
   const renderJournal = () => {
     if (strategiesLoading) {
       return (
@@ -170,11 +169,28 @@ export default function Journal() {
                 )}
               </div>
             </div>
+            {/* Image section: preview and editor */}
+            {strategy.image_path && (
+              <div className="mb-2">
+                <ImageEditor
+                  imageUrl={
+                    strategy.image_path.startsWith("http")
+                      ? strategy.image_path
+                      : `https://nprkhqxhvergyikusvbc.supabase.co/storage/v1/object/public/strategy_images/${strategy.image_path}`
+                  }
+                  width={380}
+                  height={220}
+                  onEdit={(dataUrl) => {
+                    // optionally prompt user to save image (not persisted until form submit)
+                    setEditorImageUrl(dataUrl);
+                  }}
+                />
+              </div>
+            )}
             <div className={clsx("prose prose-invert text-base", fadedText)}>
               {strategy.content_markdown?.slice(0, 340) || <span className="text-sm text-muted-foreground">No content</span>}
               {(strategy.content_markdown?.length ?? 0) > 340 && <span>…</span>}
             </div>
-            {/* Optionally show tags, win rate, etc. */}
             <div className="mt-2 flex flex-wrap gap-2">
               {(strategy.tags || []).map(tag =>
                 <span key={tag} className="bg-orange-800 text-orange-100 px-2 py-1 rounded-full text-xs font-mono">{tag}</span>
@@ -185,7 +201,7 @@ export default function Journal() {
                 open={true}
                 onOpenChange={() => setEditingJournal(null)}
                 trade={undefined}
-                // you would replace this with a <StrategyEditorDialog ... /> if you want deep editing
+                // Optionally, you can pass updated image or annotate/save logic here
               />
             )}
           </div>
@@ -194,7 +210,7 @@ export default function Journal() {
     );
   };
 
-  // --- Main content tabs: 1) Journals, 2) Trades
+  // Main content tabs: Journals or Trades
   const [tab, setTab] = useState<'journal' | 'trades'>('journal');
 
   return (
@@ -312,7 +328,7 @@ export default function Journal() {
   );
 }
 
-// helper handlers (identical)
+// helper handlers
 function handleEditClick(trade: Tables<'trades'>) {}
 function handleCloseClick(trade: Tables<'trades'>) {}
 function handleViewDetailsClick(trade: Tables<'trades'>) {}

@@ -34,57 +34,72 @@ export function FeedSidebar() {
   const { data: followingIds = [] } = useFollowing();
   const { handleFollowToggle } = useStrategyActions();
 
-  // Fetch top traders based on strategy engagement
+  // Compute top traders by profitable trade or most voted strategy
   const { data: topTraders = [] } = useQuery({
-    queryKey: ['topTraders'],
+    queryKey: ['topTradersNew'],
     queryFn: async () => {
-      const { data: strategies, error } = await supabase
-        .from('strategies')
-        .select(`
-          user_id,
-          likes_count,
-          approval_votes,
-          profiles!inner(id, username, avatar_url)
-        `)
-        .eq('is_public', true)
-        .not('profiles.username', 'is', null);
+      // 1) Most profitable trade
+      const { data: trades } = await supabase
+        .from("trades")
+        .select("user_id, pnl")
+        .not("pnl", "is", null);
 
-      if (error) throw error;
+      // Max PNL per user
+      const maxPnlByUser = new Map();
+      if (trades) {
+        trades.forEach(({ user_id, pnl }) => {
+          if (!maxPnlByUser.has(user_id) || pnl > maxPnlByUser.get(user_id)) {
+            maxPnlByUser.set(user_id, pnl);
+          }
+        });
+      }
 
-      // Group by user and calculate engagement score
-      const userEngagement = new Map();
-      
-      strategies.forEach(strategy => {
-        const userId = strategy.user_id;
-        const profile = strategy.profiles;
-        
-        if (!userEngagement.has(userId)) {
-          userEngagement.set(userId, {
+      // 2) Most voted strategy (approved only)
+      const { data: strategies } = await supabase
+        .from("strategies")
+        .select("user_id, approval_votes, voting_status")
+        .eq("voting_status", "approved");
+
+      const maxVotesByUser = new Map();
+      if (strategies) {
+        strategies.forEach(({ user_id, approval_votes }) => {
+          if (!maxVotesByUser.has(user_id) || approval_votes > maxVotesByUser.get(user_id)) {
+            maxVotesByUser.set(user_id, approval_votes);
+          }
+        });
+      }
+
+      // Merge into leaderboard tab: top 3 by max(pnl) or max(approval votes)
+      const uniqueUserIds = new Set<string>([
+        ...maxPnlByUser.keys(),
+        ...maxVotesByUser.keys(),
+      ]);
+      if (uniqueUserIds.size === 0) {
+        return [];
+      }
+
+      // Fetch profiles for those users
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, username, avatar_url")
+        .in("id", Array.from(uniqueUserIds));
+
+      return Array.from(uniqueUserIds)
+        .map(userId => {
+          const profile = profiles?.find(p => p.id === userId);
+          return {
             id: userId,
-            username: profile.username,
-            avatar: profile.avatar_url || '',
-            totalLikes: 0,
-            totalVotes: 0,
-            strategiesCount: 0
-          });
-        }
-        
-        const user = userEngagement.get(userId);
-        user.totalLikes += strategy.likes_count || 0;
-        user.totalVotes += strategy.approval_votes || 0;
-        user.strategiesCount += 1;
-      });
-
-      // Convert to array and sort by engagement score
-      const traders = Array.from(userEngagement.values())
-        .map(trader => ({
-          ...trader,
-          engagementScore: (trader.totalLikes * 2) + trader.totalVotes + (trader.strategiesCount * 5)
-        }))
-        .sort((a, b) => b.engagementScore - a.engagementScore)
+            username: profile?.username ?? "anon",
+            avatar: profile?.avatar_url ?? "",
+            maxPnl: maxPnlByUser.get(userId) ?? 0,
+            maxVotes: maxVotesByUser.get(userId) ?? 0,
+          };
+        })
+        // Rank by highest PnL or most approval votes
+        .sort((a, b) =>
+          Math.max(b.maxPnl || 0, b.maxVotes || 0) - Math.max(a.maxPnl || 0, a.maxVotes || 0)
+        )
         .slice(0, 3);
-
-      return traders;
     },
   });
 
@@ -99,13 +114,13 @@ export function FeedSidebar() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center text-sm">
-            <TrendingUp className="mr-2 h-4 w-4" />
-            Trending Tags
+            <TrendingUp className="mr-2 h-4 w-4 text-orange-400" />
+            <span className="text-orange-400">Trending Tags</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
           {trendingTags.map((tag) => (
-            <Badge key={tag} variant="outline" className="mr-2 cursor-pointer hover:bg-accent">
+            <Badge key={tag} variant="outline" className="mr-2 cursor-pointer hover:bg-orange-200 hover:text-orange-700 transition">
               {tag}
             </Badge>
           ))}
@@ -116,8 +131,8 @@ export function FeedSidebar() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center text-sm">
-            <Users className="mr-2 h-4 w-4" />
-            Top Traders This Week
+            <Users className="mr-2 h-4 w-4 text-orange-400" />
+            <span className="text-orange-400">Top Traders</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -130,12 +145,18 @@ export function FeedSidebar() {
                 <div className="flex items-center space-x-2">
                   <Avatar className="h-8 w-8">
                     <AvatarImage src={trader.avatar} />
-                    <AvatarFallback>{trader.username?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
+                    <AvatarFallback>
+                      {(trader.username?.[0] || "U").toUpperCase()}
+                    </AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className="text-sm font-medium">{trader.username}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {trader.totalLikes} likes • {trader.strategiesCount} strategies
+                    <p className="text-sm font-medium text-orange-600">
+                      {trader.username}
+                    </p>
+                    <p className="text-xs text-zinc-400">
+                      Max PnL: <span className="text-orange-400 font-bold">{trader.maxPnl}</span>
+                      {" • "}
+                      Max Votes: <span className="text-orange-400 font-bold">{trader.maxVotes}</span>
                     </p>
                   </div>
                 </div>
@@ -143,6 +164,11 @@ export function FeedSidebar() {
                   <Button 
                     variant={isFollowing ? "secondary" : "outline"} 
                     size="sm"
+                    className={
+                      isFollowing
+                        ? "bg-orange-200 text-orange-800"
+                        : "border-orange-400 text-orange-400 hover:bg-orange-100"
+                    }
                     onClick={() => handleFollowToggle(trader.id, isFollowing)}
                   >
                     {isFollowing ? 'Following' : 'Follow'}
@@ -158,40 +184,40 @@ export function FeedSidebar() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center text-sm">
-            <BookOpen className="mr-2 h-4 w-4" />
-            Share Your Strategy
+            <BookOpen className="mr-2 h-4 w-4 text-orange-400" />
+            <span className="text-orange-400">Share Your Strategy</span>
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground mb-3">
+          <p className="text-sm text-zinc-400 mb-3">
             Share your trading insights with the community and build your following.
           </p>
-          <Button className="w-full" size="sm">
+          <Button className="w-full bg-orange-500 text-white hover:bg-orange-600" size="sm">
             Create Strategy
           </Button>
         </CardContent>
       </Card>
 
       <div className="bg-white dark:bg-card rounded-xl shadow border border-border p-4">
-        <div className="text-base font-bold mb-3">🏆 Top Strategies of the Week</div>
+        <div className="text-base font-bold text-orange-400 mb-3">🏆 Top Strategies of the Week</div>
         {isLoading ? (
-          <div className="text-muted-foreground text-sm">Loading...</div>
+          <div className="text-zinc-400 text-sm">Loading...</div>
         ) : leaderboard?.length ? (
           <ol className="list-decimal ml-5 space-y-1">
             {leaderboard.map((s, idx) => (
               <li key={s.id} className="flex justify-between items-center">
                 <span 
-                  className="font-medium cursor-pointer text-blue-600 hover:underline"
+                  className="font-medium cursor-pointer text-orange-600 hover:underline"
                   onClick={() => window.open(`/strategies/${s.id}`, "_blank")}
                 >
                   {s.name}
                 </span>
-                <span className="text-xs text-muted-foreground ml-2">{s.approval_votes} votes</span>
+                <span className="text-xs text-zinc-400 ml-2">{s.approval_votes} votes</span>
               </li>
             ))}
           </ol>
         ) : (
-          <div className="text-muted-foreground text-sm">No strategies found.</div>
+          <div className="text-zinc-400 text-sm">No strategies found.</div>
         )}
       </div>
     </div>
