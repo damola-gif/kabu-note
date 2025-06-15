@@ -11,10 +11,12 @@ import { format } from "date-fns";
 import ReactMarkdown from "react-markdown";
 import { CommentSection } from "@/components/comments/CommentSection";
 import { StrategyVotingSection } from "@/components/strategy/StrategyVotingSection";
+import { useNavigate } from "react-router-dom";
 
 export default function StrategyPage() {
   const { id } = useParams<{ id: string }>();
   const { user } = useSession();
+  const navigate = useNavigate();
   const { data: strategy, isLoading, error } = useStrategy(id!);
 
   if (!id) {
@@ -66,6 +68,12 @@ export default function StrategyPage() {
   }
 
   const isOwner = user?.id === strategy.user_id;
+
+  const handleProfileClick = () => {
+    if (strategy.profile?.username) {
+      navigate(`/u/${strategy.profile.username}`);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -121,6 +129,19 @@ export default function StrategyPage() {
               </div>
 
               <h1 className="text-3xl font-bold text-gray-900">{strategy.name}</h1>
+
+              {/* Author Info */}
+              {strategy.profile && (
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-600">by</span>
+                  <button 
+                    onClick={handleProfileClick}
+                    className="font-semibold text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+                  >
+                    @{strategy.profile.username}
+                  </button>
+                </div>
+              )}
 
               {/* Strategy Stats */}
               <div className="flex items-center gap-6 text-sm text-gray-600">
@@ -184,10 +205,7 @@ export default function StrategyPage() {
             )}
 
             {/* Comments Section */}
-            <CommentSection 
-              strategyId={strategy.id} 
-              isPublic={strategy.is_public} 
-            />
+            <CommentSection strategyId={strategy.id} />
           </div>
         </div>
       </div>
