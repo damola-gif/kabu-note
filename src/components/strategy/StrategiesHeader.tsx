@@ -16,7 +16,7 @@ export function StrategiesHeader({
     return (
         <div className="flex justify-between items-center mb-6 gap-4">
             <div>
-                <h1 className="text-3xl font-bold">KabuName Strategy Library</h1>
+                <h1 className="text-3xl font-bold">Strategy Library</h1>
                 <p className="text-muted-foreground">Browse and manage your collection of trading strategies.</p>
             </div>
             <div className="flex gap-2">
