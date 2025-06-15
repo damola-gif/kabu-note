@@ -42,10 +42,11 @@ export function UserListItem({ profile }: UserListItemProps) {
 
   return (
     <Card
-      className="hover:shadow-md transition-shadow duration-200 cursor-pointer flex items-stretch min-h-[90px]"
+      className="hover:shadow-md transition-shadow duration-200 cursor-pointer min-h-[80px]"
       onClick={handleProfileClick}
     >
       <CardContent className="py-4 px-6 w-full flex flex-row items-center gap-4">
+        {/* Avatar left */}
         <Avatar className="h-12 w-12 ring-2 ring-orange-500/20 hover:ring-orange-400/40 transition-all duration-200 shrink-0">
           <AvatarImage src={profile.avatar_url || ''} alt={profile.username} />
           <AvatarFallback className="bg-orange-950/40 text-orange-200 text-lg font-semibold">
@@ -54,15 +55,27 @@ export function UserListItem({ profile }: UserListItemProps) {
               'U'}
           </AvatarFallback>
         </Avatar>
-        <div className="flex flex-col justify-center min-w-0 flex-1" style={{maxWidth: '60%'}}>
-          <span className="font-semibold text-base text-orange-100" style={{overflowWrap: 'break-word'}}>
+        {/* User text info, HORIZONTAL: name and username side by side */}
+        <div
+          className="
+            flex flex-row items-center min-w-0 flex-1
+            gap-2
+            max-w-[65%] sm:max-w-[70%]
+          "
+          style={{ flexWrap: 'wrap' }} // allows name/username to wrap together on very small screens
+        >
+          <span
+            className="font-semibold text-base text-orange-100 truncate"
+            style={{ overflowWrap: 'anywhere', maxWidth: 150 }}
+            title={profile.full_name ?? profile.username}
+          >
             {profile.full_name ?? profile.username}
           </span>
-          <span className="text-sm text-orange-300/70" style={{overflowWrap: 'break-word'}}>
+          <span className="text-sm text-orange-300/70 truncate" style={{ overflowWrap: "anywhere" }}>
             @{profile.username}
           </span>
         </div>
-        {/* Button placed right and vertically centered */}
+        {/* Follow/Unfollow button on the right */}
         {!isOwnProfile && (
           <Button
             size="sm"
@@ -72,13 +85,13 @@ export function UserListItem({ profile }: UserListItemProps) {
               handleFollowToggle();
             }}
             disabled={followMutation.isPending || unfollowMutation.isPending}
-            className="min-w-[100px] ml-4"
+            className="min-w-[90px] ml-2"
           >
             {followMutation.isPending || unfollowMutation.isPending
-              ? '...'
+              ? "..."
               : isFollowing
-              ? 'Unfollow'
-              : 'Follow'}
+              ? "Unfollow"
+              : "Follow"}
           </Button>
         )}
       </CardContent>
