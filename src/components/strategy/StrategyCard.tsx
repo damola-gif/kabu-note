@@ -7,10 +7,11 @@ import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { MoreHorizontal, Eye, Edit, Trash2, Copy, Globe, Lock, ThumbsUp, MessageCircle, Bookmark } from 'lucide-react';
+import { MoreHorizontal, Eye, Edit, Trash2, Copy, Globe, Lock, ThumbsUp, MessageCircle, Bookmark, Share2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { UseMutationResult } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 interface StrategyCardProps {
     strategy: StrategyWithProfile;
@@ -49,6 +50,16 @@ export function StrategyCard({
 }: StrategyCardProps) {
     const navigate = useNavigate();
     const imageUrl = strategy.image_path ? supabase.storage.from('strategy_images').getPublicUrl(strategy.image_path).data.publicUrl : null;
+
+    const handleShare = () => {
+        const strategyUrl = `${window.location.origin}/strategies/${strategy.id}`;
+        navigator.clipboard.writeText(strategyUrl).then(() => {
+            toast.success("Strategy link copied to clipboard!");
+        }).catch(err => {
+            toast.error("Failed to copy link.");
+            console.error('Failed to copy link: ', err);
+        });
+    };
 
     const getVotingStatusBadge = () => {
         if (!strategy.is_public || !strategy.voting_status) return null;
@@ -100,6 +111,10 @@ export function StrategyCard({
                             <DropdownMenuItem onClick={() => navigate(`/strategies/${strategy.id}`)}>
                                 <Eye className="mr-2 h-4 w-4" />
                                 <span>View Details</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={handleShare}>
+                                <Share2 className="mr-2 h-4 w-4" />
+                                <span>Share</span>
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             {isOwnStrategy ? (

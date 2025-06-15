@@ -12,7 +12,8 @@ import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { StrategyVotingSection } from "@/components/strategy/StrategyVotingSection";
-import { ArrowLeft, Globe, Lock, Calendar } from "lucide-react";
+import { ArrowLeft, Globe, Lock, Calendar, Share2 } from "lucide-react";
+import { toast } from "sonner";
 
 export default function StrategyPage() {
   const { strategyId } = useParams<{ strategyId: string }>();
@@ -27,6 +28,16 @@ export default function StrategyPage() {
   }, [user, sessionLoading, navigate, location.pathname]);
 
   const { data: strategy, isLoading, error } = useStrategy(strategyId!);
+
+  const handleShare = () => {
+    const strategyUrl = window.location.href;
+    navigator.clipboard.writeText(strategyUrl).then(() => {
+        toast.success("Strategy link copied to clipboard!");
+    }).catch(err => {
+        toast.error("Failed to copy link.");
+        console.error("Failed to copy link:", err);
+    });
+  };
 
   if (isLoading || sessionLoading) {
     return (
@@ -105,6 +116,10 @@ export default function StrategyPage() {
         <Button variant="outline" size="sm" onClick={() => navigate(-1)}>
           <ArrowLeft className="mr-1 h-4 w-4" />
           Back
+        </Button>
+        <Button variant="outline" size="sm" onClick={handleShare}>
+          <Share2 className="mr-2 h-4 w-4" />
+          Share
         </Button>
       </div>
 
