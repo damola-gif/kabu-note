@@ -84,9 +84,9 @@ export function TradingPreferences() {
   return (
     <div className="space-y-6">
       {/* Currency Settings */}
-      <Card>
+      <Card className="landing-card">
         <CardHeader>
-          <CardTitle>Currency Settings</CardTitle>
+          <CardTitle className="font-light">Currency Settings</CardTitle>
           <CardDescription>
             Choose your preferred currency for displaying values
           </CardDescription>
@@ -114,9 +114,9 @@ export function TradingPreferences() {
       </Card>
 
       {/* Chart Settings */}
-      <Card>
+      <Card className="landing-card">
         <CardHeader>
-          <CardTitle>Chart Settings</CardTitle>
+          <CardTitle className="font-light">Chart Settings</CardTitle>
           <CardDescription>
             Configure your default chart preferences
           </CardDescription>
@@ -144,9 +144,9 @@ export function TradingPreferences() {
       </Card>
 
       {/* Alert Settings */}
-      <Card>
+      <Card className="landing-card">
         <CardHeader>
-          <CardTitle>Trade Alerts</CardTitle>
+          <CardTitle className="font-light">Trade Alerts</CardTitle>
           <CardDescription>
             Configure notifications for your trades
           </CardDescription>
@@ -155,7 +155,7 @@ export function TradingPreferences() {
           <div className="flex items-center justify-between">
             <div>
               <Label htmlFor="tradeAlerts">Enable Trade Alerts</Label>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-muted-foreground">
                 Get notified when trades hit TP/SL levels
               </p>
             </div>
@@ -169,7 +169,7 @@ export function TradingPreferences() {
           <div className="flex items-center justify-between">
             <div>
               <Label htmlFor="alertSound">Alert Sound</Label>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-muted-foreground">
                 Play sound when receiving alerts
               </p>
             </div>
@@ -182,8 +182,8 @@ export function TradingPreferences() {
           </div>
 
           {preferences.tradeAlertsEnabled && (
-            <div className="mt-4 p-3 bg-green-50 rounded-lg">
-              <p className="text-sm text-green-800">
+            <div className="mt-4 p-3 bg-green-50 dark:bg-green-950 rounded-lg">
+              <p className="text-sm text-green-800 dark:text-green-200">
                 Trade alerts are enabled. You'll receive notifications when your trades reach target levels.
               </p>
             </div>
@@ -196,7 +196,7 @@ export function TradingPreferences() {
         <Button 
           onClick={handleSave} 
           disabled={isLoading}
-          className="bg-[#2AB7CA] hover:bg-[#2AB7CA]/90"
+          className="btn-landing-primary"
         >
           {isLoading ? "Saving..." : "Save Preferences"}
         </Button>

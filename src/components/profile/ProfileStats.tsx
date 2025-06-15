@@ -16,14 +16,14 @@ interface ProfileStatsProps {
 export function ProfileStats({ stats, isLoading }: ProfileStatsProps) {
   if (isLoading) {
     return (
-      <Card>
+      <Card className="landing-card">
         <CardContent className="pt-6">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             {[...Array(5)].map((_, i) => (
               <div key={i} className="text-center animate-pulse">
-                <div className="h-4 w-4 bg-gray-300 rounded mx-auto mb-2"></div>
-                <div className="h-6 w-12 bg-gray-300 rounded mx-auto mb-1"></div>
-                <div className="h-4 w-16 bg-gray-300 rounded mx-auto"></div>
+                <div className="h-4 w-4 bg-muted rounded mx-auto mb-2"></div>
+                <div className="h-6 w-12 bg-muted rounded mx-auto mb-1"></div>
+                <div className="h-4 w-16 bg-muted rounded mx-auto"></div>
               </div>
             ))}
           </div>
@@ -33,49 +33,49 @@ export function ProfileStats({ stats, isLoading }: ProfileStatsProps) {
   }
 
   return (
-    <Card>
+    <Card className="landing-card">
       <CardContent className="pt-6">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
           <div>
             <div className="flex items-center justify-center gap-1 mb-1">
-              <Users className="h-4 w-4 text-gray-500" />
+              <Users className="h-4 w-4 text-muted-foreground" />
             </div>
-            <div className="text-2xl font-bold text-[#2AB7CA]">{stats.followersCount}</div>
-            <div className="text-sm text-gray-500">Followers</div>
+            <div className="text-2xl font-light text-primary">{stats.followersCount}</div>
+            <div className="text-sm text-muted-foreground">Followers</div>
           </div>
           
           <div>
             <div className="flex items-center justify-center gap-1 mb-1">
-              <Users className="h-4 w-4 text-gray-500" />
+              <Users className="h-4 w-4 text-muted-foreground" />
             </div>
-            <div className="text-2xl font-bold text-[#2AB7CA]">{stats.followingCount}</div>
-            <div className="text-sm text-gray-500">Following</div>
+            <div className="text-2xl font-light text-primary">{stats.followingCount}</div>
+            <div className="text-sm text-muted-foreground">Following</div>
           </div>
           
           <div>
             <div className="flex items-center justify-center gap-1 mb-1">
-              <FileText className="h-4 w-4 text-gray-500" />
+              <FileText className="h-4 w-4 text-muted-foreground" />
             </div>
-            <div className="text-2xl font-bold text-[#2AB7CA]">{stats.strategiesCount}</div>
-            <div className="text-sm text-gray-500">Strategies</div>
+            <div className="text-2xl font-light text-primary">{stats.strategiesCount}</div>
+            <div className="text-sm text-muted-foreground">Strategies</div>
           </div>
           
           <div>
             <div className="flex items-center justify-center gap-1 mb-1">
-              <Heart className="h-4 w-4 text-gray-500" />
+              <Heart className="h-4 w-4 text-muted-foreground" />
             </div>
-            <div className="text-2xl font-bold text-[#2AB7CA]">{stats.totalLikes}</div>
-            <div className="text-sm text-gray-500">Total Likes</div>
+            <div className="text-2xl font-light text-primary">{stats.totalLikes}</div>
+            <div className="text-sm text-muted-foreground">Total Likes</div>
           </div>
           
           <div>
             <div className="flex items-center justify-center gap-1 mb-1">
-              <TrendingUp className="h-4 w-4 text-gray-500" />
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </div>
-            <div className="text-2xl font-bold text-[#2AB7CA]">
+            <div className="text-2xl font-light text-primary">
               {stats.avgWinRate ? `${stats.avgWinRate}%` : 'N/A'}
             </div>
-            <div className="text-sm text-gray-500">Avg Win Rate</div>
+            <div className="text-sm text-muted-foreground">Avg Win Rate</div>
           </div>
         </div>
       </CardContent>

@@ -64,14 +64,14 @@ export default function Profile() {
   if (profileError || !profile) {
     return (
       <div className="flex flex-col h-full w-full items-center justify-center">
-        <Card className="max-w-md">
+        <Card className="max-w-md landing-card">
           <CardContent className="pt-6 text-center">
-            <AlertCircle className="h-12 w-12 mx-auto text-red-500 mb-4" />
+            <AlertCircle className="h-12 w-12 mx-auto text-primary mb-4" />
             <h2 className="text-xl font-semibold mb-2">User Not Found</h2>
-            <p className="text-gray-600">
+            <p className="text-muted-foreground">
               The user "@{username}" doesn't exist or their profile is not available.
             </p>
-            <p className="text-sm text-gray-500 mt-2">
+            <p className="text-sm text-muted-foreground mt-2">
               Debug: Username from URL: "{username}"
             </p>
           </CardContent>

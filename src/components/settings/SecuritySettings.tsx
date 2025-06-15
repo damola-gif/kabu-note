@@ -81,9 +81,9 @@ export function SecuritySettings() {
   return (
     <div className="space-y-6">
       {/* Change Password */}
-      <Card>
+      <Card className="landing-card">
         <CardHeader>
-          <CardTitle>Change Password</CardTitle>
+          <CardTitle className="font-light">Change Password</CardTitle>
           <CardDescription>
             Update your password to keep your account secure
           </CardDescription>
@@ -129,7 +129,7 @@ export function SecuritySettings() {
           <Button 
             onClick={handlePasswordChange}
             disabled={isLoading || !isPasswordFormValid}
-            className="bg-[#2AB7CA] hover:bg-[#2AB7CA]/90"
+            className="btn-landing-primary"
           >
             {isLoading ? "Updating..." : "Update Password"}
           </Button>
@@ -137,9 +137,9 @@ export function SecuritySettings() {
       </Card>
 
       {/* Two-Factor Authentication */}
-      <Card>
+      <Card className="landing-card">
         <CardHeader>
-          <CardTitle>Two-Factor Authentication</CardTitle>
+          <CardTitle className="font-light">Two-Factor Authentication</CardTitle>
           <CardDescription>
             Add an extra layer of security to your account
           </CardDescription>
@@ -148,7 +148,7 @@ export function SecuritySettings() {
           <div className="flex items-center justify-between">
             <div>
               <Label htmlFor="2fa">Enable 2FA</Label>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-muted-foreground">
                 Secure your account with SMS or authenticator app
               </p>
             </div>
@@ -159,8 +159,8 @@ export function SecuritySettings() {
             />
           </div>
           {twoFactorEnabled && (
-            <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-              <p className="text-sm text-blue-800">
+            <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
+              <p className="text-sm text-blue-800 dark:text-blue-200">
                 2FA is enabled. You'll need to provide a code when signing in.
               </p>
             </div>
@@ -169,9 +169,9 @@ export function SecuritySettings() {
       </Card>
 
       {/* Connected Logins */}
-      <Card>
+      <Card className="landing-card">
         <CardHeader>
-          <CardTitle>Connected Accounts</CardTitle>
+          <CardTitle className="font-light">Connected Accounts</CardTitle>
           <CardDescription>
             Manage your connected social accounts
           </CardDescription>
@@ -184,7 +184,7 @@ export function SecuritySettings() {
               </div>
               <div>
                 <p className="font-medium">Google</p>
-                <p className="text-sm text-gray-500">Not connected</p>
+                <p className="text-sm text-muted-foreground">Not connected</p>
               </div>
             </div>
             <Button variant="outline" size="sm" onClick={() => toast.info("Google OAuth coming soon!")}>

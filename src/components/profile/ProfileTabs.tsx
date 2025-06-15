@@ -29,7 +29,7 @@ export function ProfileTabs({
 
   return (
     <Tabs defaultValue="strategies" className="w-full">
-      <TabsList className="grid w-full grid-cols-3">
+      <TabsList className="grid w-full grid-cols-3 bg-card">
         <TabsTrigger value="strategies" className="flex items-center gap-2">
           <FileText className="h-4 w-4" />
           Strategies ({strategies.length})
@@ -46,18 +46,18 @@ export function ProfileTabs({
 
       <TabsContent value="strategies" className="mt-6">
         {isStrategiesLoading ? (
-          <Card>
+          <Card className="landing-card">
             <CardContent className="pt-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {[...Array(6)].map((_, i) => (
-                  <Card key={i} className="animate-pulse">
+                  <Card key={i} className="animate-pulse landing-card">
                     <CardContent className="pt-6">
-                      <div className="h-6 bg-gray-300 rounded mb-2"></div>
-                      <div className="h-4 bg-gray-300 rounded mb-2"></div>
-                      <div className="h-4 bg-gray-300 rounded mb-4"></div>
+                      <div className="h-6 bg-muted rounded mb-2"></div>
+                      <div className="h-4 bg-muted rounded mb-2"></div>
+                      <div className="h-4 bg-muted rounded mb-4"></div>
                       <div className="flex justify-between">
-                        <div className="h-4 w-20 bg-gray-300 rounded"></div>
-                        <div className="h-4 w-16 bg-gray-300 rounded"></div>
+                        <div className="h-4 w-20 bg-muted rounded"></div>
+                        <div className="h-4 w-16 bg-muted rounded"></div>
                       </div>
                     </CardContent>
                   </Card>
@@ -70,18 +70,18 @@ export function ProfileTabs({
             {strategies.map((strategy) => (
               <Card 
                 key={strategy.id} 
-                className="hover:shadow-md transition-shadow cursor-pointer"
+                className="landing-card hover:shadow-md transition-all duration-300 cursor-pointer hover:border-primary/30"
                 onClick={() => handleStrategyClick(strategy.id)}
               >
                 <CardContent className="pt-6">
                   <h3 className="font-semibold mb-2 text-lg">{strategy.name}</h3>
-                  <p className="text-sm text-gray-600 mb-4 line-clamp-3">
+                  <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
                     {strategy.content_markdown ? 
                       strategy.content_markdown.substring(0, 150) + (strategy.content_markdown.length > 150 ? '...' : '') 
                       : 'No description available'
                     }
                   </p>
-                  <div className="flex justify-between items-center text-sm text-gray-500">
+                  <div className="flex justify-between items-center text-sm text-muted-foreground">
                     <span>Win Rate: {strategy.win_rate ? `${strategy.win_rate}%` : 'N/A'}</span>
                     <span>{strategy.likes_count || 0} likes</span>
                   </div>
@@ -90,13 +90,13 @@ export function ProfileTabs({
                       {strategy.tags.slice(0, 3).map((tag, index) => (
                         <span 
                           key={index} 
-                          className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded"
+                          className="px-2 py-1 bg-primary/10 text-primary text-xs rounded"
                         >
                           #{tag}
                         </span>
                       ))}
                       {strategy.tags.length > 3 && (
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-muted-foreground">
                           +{strategy.tags.length - 3} more
                         </span>
                       )}
@@ -107,12 +107,12 @@ export function ProfileTabs({
             ))}
           </div>
         ) : (
-          <Card>
+          <Card className="landing-card">
             <CardContent className="pt-6">
               <div className="text-center py-8">
-                <FileText className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No Strategies Yet</h3>
-                <p className="text-gray-600">
+                <p className="text-muted-foreground">
                   {profile.username} hasn't published any strategies yet.
                 </p>
               </div>
@@ -122,12 +122,12 @@ export function ProfileTabs({
       </TabsContent>
 
       <TabsContent value="activity" className="mt-6">
-        <Card>
+        <Card className="landing-card">
           <CardContent className="pt-6">
             <div className="text-center py-8">
-              <Activity className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+              <Activity className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
               <h3 className="text-lg font-semibold mb-2">Activity Feed</h3>
-              <p className="text-gray-600">
+              <p className="text-muted-foreground">
                 Activity feed coming soon! This will show recent likes, comments, and strategy publications.
               </p>
             </div>
@@ -137,20 +137,20 @@ export function ProfileTabs({
 
       <TabsContent value="social" className="mt-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card>
+          <Card className="landing-card">
             <CardContent className="pt-6">
               <h3 className="font-semibold mb-4">Followers ({stats.followersCount})</h3>
               <div className="text-center py-4">
-                <p className="text-gray-600">Followers list coming soon!</p>
+                <p className="text-muted-foreground">Followers list coming soon!</p>
               </div>
             </CardContent>
           </Card>
           
-          <Card>
+          <Card className="landing-card">
             <CardContent className="pt-6">
               <h3 className="font-semibold mb-4">Following ({stats.followingCount})</h3>
               <div className="text-center py-4">
-                <p className="text-gray-600">Following list coming soon!</p>
+                <p className="text-muted-foreground">Following list coming soon!</p>
               </div>
             </CardContent>
           </Card>

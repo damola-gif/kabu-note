@@ -117,10 +117,10 @@ export default function Dashboard() {
       <div className="space-y-8">
         {/* Greeting */}
         <div>
-          <h1 className="text-3xl font-bold text-[#1E2A4E]">
+          <h1 className="text-3xl font-light text-foreground">
             Welcome back, Trader 👋
           </h1>
-          <p className="text-gray-600 mt-2">Here's what's happening with your trades today.</p>
+          <p className="text-muted-foreground mt-2">Here's what's happening with your trades today.</p>
         </div>
 
         {/* Quick Stats Overview */}

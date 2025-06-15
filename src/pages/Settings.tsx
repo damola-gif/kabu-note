@@ -69,20 +69,20 @@ const Settings = () => {
   const ActiveComponent = settingSections.find(s => s.id === activeSection)?.component || ProfileSettings;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-[#1E2A4E] mb-2">Settings</h1>
-          <p className="text-gray-600">Manage your account and application preferences</p>
+          <h1 className="text-3xl font-light text-foreground mb-2">Settings</h1>
+          <p className="text-muted-foreground">Manage your account and application preferences</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Sidebar Navigation - Desktop */}
           <div className="lg:col-span-1">
-            <Card className="sticky top-4">
+            <Card className="sticky top-4 landing-card">
               <CardHeader>
-                <CardTitle className="text-lg">Settings</CardTitle>
+                <CardTitle className="text-lg font-light">Settings</CardTitle>
               </CardHeader>
               <CardContent className="p-0">
                 <nav className="space-y-1">
@@ -94,15 +94,15 @@ const Settings = () => {
                         variant={activeSection === section.id ? "secondary" : "ghost"}
                         className={`w-full justify-start items-start px-3 py-3 h-auto text-left gap-3 overflow-hidden ${
                           activeSection === section.id 
-                            ? "bg-[#2AB7CA]/10 text-[#2AB7CA] border-r-2 border-[#2AB7CA]" 
-                            : "text-gray-700 hover:bg-gray-50"
+                            ? "bg-primary/10 text-primary border-r-2 border-primary" 
+                            : "text-muted-foreground hover:bg-accent/10"
                         }`}
                         onClick={() => setActiveSection(section.id)}
                       >
                         <IconComponent className="h-4 w-4 mt-0.5 flex-shrink-0" />
                         <div className="flex-1 min-w-0 overflow-hidden">
                           <div className="font-medium text-sm truncate">{section.title}</div>
-                          <div className="text-xs text-gray-500 leading-tight mt-0.5 break-words whitespace-normal hyphens-auto max-w-full" 
+                          <div className="text-xs text-muted-foreground leading-tight mt-0.5 break-words whitespace-normal hyphens-auto max-w-full" 
                                style={{ 
                                  wordBreak: 'break-word', 
                                  overflowWrap: 'break-word',
@@ -121,9 +121,9 @@ const Settings = () => {
 
           {/* Main Content */}
           <div className="lg:col-span-3">
-            <Card>
+            <Card className="landing-card">
               <CardHeader>
-                <CardTitle className="text-xl text-[#1E2A4E]">
+                <CardTitle className="text-xl font-light text-foreground">
                   {settingSections.find(s => s.id === activeSection)?.title}
                 </CardTitle>
                 <CardDescription>

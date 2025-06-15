@@ -35,7 +35,7 @@ export function ProfileActions({ formData, isLoading, onSave }: ProfileActionsPr
       <Button 
         onClick={onSave} 
         disabled={isLoading || !formData.fullName.trim() || !formData.username.trim()}
-        className="bg-[#2AB7CA] hover:bg-[#2AB7CA]/90"
+        className="btn-landing-primary"
       >
         {isLoading ? "Saving..." : "Save Changes"}
       </Button>
@@ -44,6 +44,7 @@ export function ProfileActions({ formData, isLoading, onSave }: ProfileActionsPr
         <Button 
           onClick={handleViewProfile}
           variant="outline"
+          className="btn-landing-ghost"
         >
           View Profile
         </Button>
