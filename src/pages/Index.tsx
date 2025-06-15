@@ -81,7 +81,7 @@ const Index = () => {
         
         {/* Content */}
         <div className="relative z-10 max-w-4xl mx-auto px-8 text-center">
-          <h1 className="text-6xl md:text-8xl font-light mb-8 leading-tight">
+          <h1 className="text-4xl md:text-6xl font-light mb-8 leading-tight">
             Discover the
             <br />
             <span className="bg-gradient-to-r from-orange-400 to-orange-600 bg-clip-text text-transparent font-normal">
@@ -153,7 +153,7 @@ const Index = () => {
       <section className="py-32 px-8 relative">
         <div className="absolute inset-0 bg-gradient-to-t from-orange-500/5 to-transparent"></div>
         <div className="max-w-4xl mx-auto text-center relative z-10">
-          <h2 className="text-5xl md:text-6xl font-light mb-8">
+          <h2 className="text-4xl md:text-5xl font-light mb-8">
             Ready to <span className="text-orange-400">transform</span>
             <br />
             your trading?
