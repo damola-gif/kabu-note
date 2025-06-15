@@ -92,18 +92,18 @@ const Settings = () => {
                       <Button
                         key={section.id}
                         variant={activeSection === section.id ? "secondary" : "ghost"}
-                        className={`w-full justify-start px-3 py-2 h-auto text-left ${
+                        className={`w-full justify-start px-3 py-3 h-auto text-left ${
                           activeSection === section.id 
                             ? "bg-[#2AB7CA]/10 text-[#2AB7CA] border-r-2 border-[#2AB7CA]" 
                             : "text-gray-700 hover:bg-gray-50"
                         }`}
                         onClick={() => setActiveSection(section.id)}
                       >
-                        <div className="flex items-start gap-3 w-full">
+                        <div className="flex items-start gap-3 w-full max-w-full">
                           <IconComponent className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                          <div className="flex-1 min-w-0 overflow-hidden">
-                            <div className="font-medium text-sm truncate">{section.title}</div>
-                            <div className="text-xs text-gray-500 leading-tight line-clamp-2">
+                          <div className="flex-1 min-w-0 max-w-full">
+                            <div className="font-medium text-sm truncate w-full">{section.title}</div>
+                            <div className="text-xs text-gray-500 leading-tight mt-0.5 break-words hyphens-auto" style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>
                               {section.description}
                             </div>
                           </div>
