@@ -1,4 +1,3 @@
-
 import { useParams } from "react-router-dom";
 import { useUserProfile, useUserStats, useUserStrategies } from "@/hooks/useUserProfile";
 import { useFollowing, useFollowUser, useUnfollowUser } from "@/hooks/useProfile";
@@ -15,7 +14,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
 export default function Profile() {
-  const { username } = useParams<{ username: string }>();
+  const { username } = useParams();
   const { user } = useSession();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
