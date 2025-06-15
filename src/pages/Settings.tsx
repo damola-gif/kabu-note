@@ -92,17 +92,17 @@ const Settings = () => {
                       <Button
                         key={section.id}
                         variant={activeSection === section.id ? "secondary" : "ghost"}
-                        className={`w-full justify-start px-4 py-3 h-auto ${
+                        className={`w-full justify-start px-4 py-3 h-auto min-h-[60px] ${
                           activeSection === section.id 
                             ? "bg-[#2AB7CA]/10 text-[#2AB7CA] border-r-2 border-[#2AB7CA]" 
                             : "text-gray-700 hover:bg-gray-50"
                         }`}
                         onClick={() => setActiveSection(section.id)}
                       >
-                        <IconComponent className="h-4 w-4 mr-3" />
-                        <div className="text-left">
-                          <div className="font-medium">{section.title}</div>
-                          <div className="text-xs text-gray-500 hidden sm:block">
+                        <IconComponent className="h-4 w-4 mr-3 flex-shrink-0" />
+                        <div className="text-left flex-1 min-w-0">
+                          <div className="font-medium text-sm leading-tight">{section.title}</div>
+                          <div className="text-xs text-gray-500 mt-1 leading-tight break-words">
                             {section.description}
                           </div>
                         </div>
