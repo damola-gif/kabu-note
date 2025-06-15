@@ -83,9 +83,15 @@ export const useCreateRoom = () => {
       // Generate invite code for invite-only rooms
       const invite_code = roomData.privacy_level === 'invite_only' ? generateInviteCode() : null;
       
-      // Construct the insert object explicitly to ensure proper types
-      const insertData = {
-        name: roomData.name,
+      // Construct the insert object with explicit typing to ensure name is required
+      const insertData: {
+        name: string;
+        description: string | null;
+        privacy_level: 'public' | 'private' | 'invite_only';
+        creator_id: string;
+        invite_code: string | null;
+      } = {
+        name: roomData.name, // This is guaranteed to exist due to Zod validation
         description: roomData.description || null,
         privacy_level: roomData.privacy_level,
         creator_id: user.id,
