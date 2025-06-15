@@ -1,5 +1,5 @@
 
-import { Bell, User, LogOut, Menu } from "lucide-react";
+import { Bell, User, LogOut, Menu, Sun, Moon } from "lucide-react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -17,6 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useSession } from "@/contexts/SessionProvider";
 import { useUnreadNotificationsCount } from "@/hooks/useNotifications";
+import { useState, useEffect } from "react";
 
 interface AppHeaderProps {
   navigationItems: Array<{ name: string; path: string }>;
@@ -35,6 +36,26 @@ export function AppHeader({
   const location = useLocation();
   const navigate = useNavigate();
   const { data: unreadCount = 0 } = useUnreadNotificationsCount();
+  const [isDark, setIsDark] = useState(false);
+
+  useEffect(() => {
+    // Check if dark mode is enabled
+    const isDarkMode = document.documentElement.classList.contains('dark');
+    setIsDark(isDarkMode);
+  }, []);
+
+  const toggleTheme = () => {
+    const newTheme = !isDark;
+    setIsDark(newTheme);
+    
+    if (newTheme) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  };
 
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut();
@@ -47,11 +68,11 @@ export function AppHeader({
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 shadow-sm">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border shadow-sm">
       <div className="flex items-center justify-between px-4 lg:px-6 h-16">
         {/* Logo */}
         <div className="flex items-center space-x-4">
-          <Link to="/dashboard" className="text-xl font-bold text-[#1E2A4E]">
+          <Link to="/dashboard" className="text-xl font-light text-foreground">
             KabuNote
           </Link>
           
@@ -63,10 +84,10 @@ export function AppHeader({
                   key={item.name}
                   to={item.path}
                   className={cn(
-                    "text-sm font-medium transition-colors hover:text-[#2AB7CA]",
+                    "text-sm font-medium transition-colors hover:text-primary",
                     location.pathname === item.path
-                      ? "text-[#2AB7CA] border-b-2 border-[#2AB7CA] pb-4"
-                      : "text-gray-600"
+                      ? "text-primary border-b-2 border-primary pb-4"
+                      : "text-muted-foreground"
                   )}
                 >
                   {item.name}
@@ -78,13 +99,27 @@ export function AppHeader({
 
         {/* Right Side */}
         <div className="flex items-center space-x-4">
+          {/* Theme Toggle */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleTheme}
+            className="hover:bg-accent/10"
+          >
+            {isDark ? (
+              <Sun className="h-5 w-5" />
+            ) : (
+              <Moon className="h-5 w-5" />
+            )}
+          </Button>
+
           {/* Mobile Menu Button */}
           {isMobile && (
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden"
+              className="md:hidden hover:bg-accent/10"
             >
               <Menu className="h-5 w-5" />
             </Button>
@@ -94,14 +129,14 @@ export function AppHeader({
           <Button 
             variant="ghost" 
             size="icon" 
-            className="relative"
+            className="relative hover:bg-accent/10"
             onClick={() => navigate('/notifications')}
           >
             <Bell className="h-5 w-5" />
             {unreadCount > 0 && (
               <Badge 
                 variant="destructive" 
-                className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
+                className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs bg-primary"
               >
                 {unreadCount > 99 ? '99+' : unreadCount}
               </Badge>
@@ -111,16 +146,16 @@ export function AppHeader({
           {/* User Profile Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+              <Button variant="ghost" className="relative h-8 w-8 rounded-full hover:bg-accent/10">
                 <Avatar className="h-8 w-8">
                   <AvatarImage src="" />
-                  <AvatarFallback className="bg-[#2AB7CA] text-white">
+                  <AvatarFallback className="bg-primary text-primary-foreground">
                     <User className="w-4 h-4" />
                   </AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="end" forceMount>
+            <DropdownMenuContent className="w-56 bg-card border-border" align="end" forceMount>
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium leading-none">Account</p>
@@ -131,11 +166,11 @@ export function AppHeader({
                   )}
                 </div>
               </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate("/settings")}>
+              <DropdownMenuSeparator className="bg-border" />
+              <DropdownMenuItem onClick={() => navigate("/settings")} className="hover:bg-accent/10">
                 Settings
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleSignOut}>
+              <DropdownMenuItem onClick={handleSignOut} className="hover:bg-accent/10">
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Log out</span>
               </DropdownMenuItem>

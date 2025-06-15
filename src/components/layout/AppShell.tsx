@@ -15,7 +15,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const navigationItems = useNavigationItems();
 
   return (
-    <div className="flex min-h-screen w-full bg-gray-50">
+    <div className="flex min-h-screen w-full bg-background">
+      {/* Geometric background effects */}
+      <div className="geometric-lines fixed inset-0 pointer-events-none opacity-30" />
+      
       {/* Header */}
       <AppHeader 
         navigationItems={navigationItems}
@@ -34,7 +37,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       
       {/* Main Content */}
       <main className={cn(
-        "flex-1 pt-16",
+        "flex-1 pt-16 relative z-10",
         isMobile && "pb-20"
       )}>
         <div className="container mx-auto px-4 lg:px-6 py-6">

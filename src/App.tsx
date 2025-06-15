@@ -26,8 +26,19 @@ const queryClient = new QueryClient();
 
 const App = () => {
   useEffect(() => {
-    // Update the document title to KabuName
-    document.title = "KabuName - Trading Strategy Management";
+    // Update the document title
+    document.title = "KabuNote - Trading Strategy Management";
+    
+    // Initialize theme from localStorage or system preference
+    const savedTheme = localStorage.getItem('theme');
+    const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    const theme = savedTheme || systemTheme;
+    
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
   }, []);
 
   return (

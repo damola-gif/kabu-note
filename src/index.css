@@ -3,10 +3,11 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. */
+/* Definition of the design system based on landing page style */
 
 @layer base {
   :root {
+    /* Light theme variables */
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
 
@@ -16,8 +17,9 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 210 74% 45%; /* Deep navy #2AB7CA equivalent */
-    --primary-foreground: 210 40% 98%;
+    /* Primary colors based on landing page orange theme */
+    --primary: 20 91% 56%; /* Orange #ff6b35 equivalent */
+    --primary-foreground: 0 0% 100%;
 
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
@@ -25,64 +27,67 @@
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 190 74% 47%; /* Soft teal #2AB7CA */
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Accent using orange from landing */
+    --accent: 20 91% 56%; /* Orange #ff6b35 */
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 190 74% 47%;
+    --ring: 20 91% 56%;
 
-    --radius: 0.75rem; /* 12px */
+    --radius: 0.75rem; /* 12px - rounded-xl from landing */
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-primary: 20 91% 56%;
+    --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 240 4.8% 95.9%;
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-ring: 20 91% 56%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    /* Dark theme variables - following landing page dark style */
+    --background: 0 0% 0%; /* Pure black like landing */
+    --foreground: 0 0% 100%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 240 10% 3.9%; /* Very dark gray with slight blue tint */
+    --card-foreground: 0 0% 100%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 100%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 20 91% 56%; /* Keep orange primary */
+    --primary-foreground: 0 0% 0%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 20 91% 56%; /* Orange accent */
+    --accent-foreground: 0 0% 0%;
 
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 20 91% 56%;
+
+    --sidebar-background: 0 0% 0%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 20 91% 56%;
+    --sidebar-primary-foreground: 0 0% 0%;
     --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 0 0% 100%;
     --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-ring: 20 91% 56%;
   }
 }
 
@@ -98,24 +103,83 @@
 
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Inter', 'Roboto', 'Noto Sans', sans-serif;
+    font-weight: 300; /* Light weight like landing page */
   }
 }
 
-/* Custom component styles matching the design system */
+/* Custom component styles matching the landing page design system */
 @layer components {
   .stat-card {
-    @apply bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow;
+    @apply bg-card p-6 rounded-xl shadow-sm border border-border hover:shadow-md transition-all duration-300;
   }
   
   .nav-primary {
-    background: linear-gradient(135deg, #1E2A4E 0%, #2AB7CA 100%);
+    background: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--primary)) 100%);
   }
   
   .button-primary {
-    @apply bg-[#2AB7CA] hover:bg-[#2AB7CA]/90 text-white font-medium rounded-xl px-6 py-3 transition-colors;
+    @apply bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-xl px-6 py-3 transition-all duration-300;
   }
   
   .button-secondary {
-    @apply bg-white hover:bg-gray-50 text-[#1E2A4E] font-medium rounded-xl px-6 py-3 border border-gray-200 transition-colors;
+    @apply bg-card hover:bg-accent/10 text-foreground font-medium rounded-xl px-6 py-3 border border-border transition-all duration-300;
+  }
+
+  /* Card styles inspired by landing page */
+  .landing-card {
+    @apply bg-gradient-to-b from-card/50 to-background/50 border-border/50 hover:border-primary/30 transition-all duration-500 backdrop-blur-sm rounded-xl;
+  }
+
+  /* Button styles from landing page */
+  .btn-landing-primary {
+    @apply bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-8 py-4 rounded-xl transition-all duration-300;
+  }
+
+  .btn-landing-ghost {
+    @apply text-foreground/70 hover:text-foreground px-8 py-4 transition-all duration-300 hover:bg-accent/10 rounded-xl;
+  }
+
+  /* Geometric line effects from landing */
+  .geometric-lines {
+    @apply absolute inset-0;
+  }
+
+  .geometric-lines::before,
+  .geometric-lines::after {
+    content: '';
+    @apply absolute left-0 w-full h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent;
+  }
+
+  .geometric-lines::before {
+    top: 25%;
+  }
+
+  .geometric-lines::after {
+    top: 75%;
+  }
+
+  /* Landing page gradient backgrounds */
+  .landing-gradient {
+    @apply bg-gradient-to-br from-primary/10 via-background to-secondary/20;
+  }
+
+  .landing-hero-gradient {
+    @apply bg-gradient-to-br from-primary/10 via-background to-accent/20;
+  }
+}
+
+/* Dark theme specific styles */
+.dark {
+  .stat-card {
+    @apply bg-card/50 border-border/50 hover:border-primary/30;
+  }
+
+  .landing-card {
+    @apply bg-gradient-to-b from-card/50 to-background/50 border-border/50 hover:border-primary/30;
+  }
+
+  .geometric-lines::before,
+  .geometric-lines::after {
+    @apply bg-gradient-to-r from-transparent via-primary/20 to-transparent;
   }
 }
