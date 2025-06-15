@@ -60,33 +60,55 @@ export function SocialLists({ userId, stats }: SocialListsProps) {
     (follow) => follow && typeof follow === "object" && follow.profiles && typeof follow.profiles === "object"
   ) : [];
 
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {/* Followers - keep original vertical list */}
-      <Card className="landing-card">
-        <CardContent className="pt-6">
-          <h3 className="font-semibold mb-4">Followers ({stats.followersCount})</h3>
-          <div className="space-y-3 max-h-96 overflow-y-auto">
-            {isLoadingFollowers ? (
-              <LoadingSkeleton />
-            ) : validFollowers.length > 0 ? (
-              validFollowers.map((follow: any) => (
-                <UserListItem
-                  key={follow.follower_id}
-                  profile={follow.profiles}
-                />
-              ))
-            ) : (
-              <EmptyState title="No followers yet" />
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Following as a grid */}
+  // DEBUGGING: Show raw data in UI (remove this later)
+  const DebugBlock = () => (
+    <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded">
       <div>
-        <h3 className="font-semibold mb-4">Following ({stats.followingCount})</h3>
-        <FollowingGrid following={validFollowing} isLoading={isLoadingFollowing} />
+        <strong>DEBUG: followers ({Array.isArray(followers) ? followers.length : 0})</strong>
+        <pre style={{ overflowX: "auto", fontSize: 12, background: "#fffde7", padding: 8 }}>
+          {JSON.stringify(followers, null, 2)}
+        </pre>
+      </div>
+      <div>
+        <strong>DEBUG: following ({Array.isArray(following) ? following.length : 0})</strong>
+        <pre style={{ overflowX: "auto", fontSize: 12, background: "#fffde7", padding: 8 }}>
+          {JSON.stringify(following, null, 2)}
+        </pre>
+      </div>
+    </div>
+  );
+
+  return (
+    <div>
+      {/* Debugging block - remove in production */}
+      <DebugBlock />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Followers - keep original vertical list */}
+        <Card className="landing-card">
+          <CardContent className="pt-6">
+            <h3 className="font-semibold mb-4">Followers ({stats.followersCount})</h3>
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              {isLoadingFollowers ? (
+                <LoadingSkeleton />
+              ) : validFollowers.length > 0 ? (
+                validFollowers.map((follow: any, idx: number) => (
+                  <UserListItem
+                    key={follow.follower_id || idx}
+                    profile={follow.profiles}
+                  />
+                ))
+              ) : (
+                <EmptyState title="No followers yet" />
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Following as a grid */}
+        <div>
+          <h3 className="font-semibold mb-4">Following ({stats.followingCount})</h3>
+          <FollowingGrid following={validFollowing} isLoading={isLoadingFollowing} />
+        </div>
       </div>
     </div>
   );
