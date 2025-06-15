@@ -3,7 +3,7 @@ import { useState, useMemo } from 'react';
 import { useStrategies, useDeleteStrategy, useForkStrategy, useLikedStrategyIds, useToggleLike } from '@/hooks/useStrategies';
 import { Button } from '@/components/ui/button';
 import { StrategyEditorDialog } from '@/components/strategy/StrategyEditorDialog';
-import { PlusCircle, Loader2 } from 'lucide-react';
+import { PlusCircle, Loader2, Upload, Download } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
 import { DateRange } from 'react-day-picker';
 import { StrategyFilters } from '@/components/strategy/StrategyFilters';
@@ -11,15 +11,20 @@ import { useSession } from '@/contexts/SessionProvider';
 import { useFollowing, useFollowUser, useUnfollowUser } from '@/hooks/useProfile';
 import { StrategyGrid } from '@/components/strategy/StrategyGrid';
 import { DeleteStrategyDialog } from '@/components/strategy/DeleteStrategyDialog';
+import { ImportStrategyDialog } from '@/components/strategy/ImportStrategyDialog';
+import { ExportStrategiesDialog } from '@/components/strategy/ExportStrategiesDialog';
 
 export default function Strategies() {
     const [isEditorOpen, setIsEditorOpen] = useState(false);
     const [selectedStrategy, setSelectedStrategy] = useState<Tables<'strategies'> | undefined>();
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
+    const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
     const [winRateRange, setWinRateRange] = useState<[number, number]>([0, 100]);
     const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
     const [authorFilter, setAuthorFilter] = useState("all");
+    const [selectedTags, setSelectedTags] = useState<string[]>([]);
     
     const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, error } = useStrategies();
     const { data: likedStrategyIds } = useLikedStrategyIds();
@@ -37,6 +42,14 @@ export default function Strategies() {
     const handleNewStrategy = () => {
         setSelectedStrategy(undefined);
         setIsEditorOpen(true);
+    };
+
+    const handleImportStrategy = () => {
+        setIsImportDialogOpen(true);
+    };
+
+    const handleExportStrategies = () => {
+        setIsExportDialogOpen(true);
     };
 
     const handleEdit = (strategy: Tables<'strategies'>) => {
@@ -110,22 +123,35 @@ export default function Strategies() {
             authorMatch = !!strategy.profile?.id && followingIds.includes(strategy.profile.id);
         }
 
-        return nameMatch && winRateMatch && dateMatch && authorMatch;
-    }), [allStrategies, searchTerm, winRateRange, dateRange, authorFilter, user?.id, followingIds, isLoadingFollowing]);
+        // TODO: Add tag filtering when tags are implemented
+        // const tagMatch = selectedTags.length === 0 || selectedTags.some(tag => strategy.tags?.includes(tag));
 
-    const isFiltering = searchTerm !== "" || winRateRange[0] !== 0 || winRateRange[1] !== 100 || dateRange !== undefined || authorFilter !== "all";
+        return nameMatch && winRateMatch && dateMatch && authorMatch;
+    }), [allStrategies, searchTerm, winRateRange, dateRange, authorFilter, user?.id, followingIds, isLoadingFollowing, selectedTags]);
+
+    const isFiltering = searchTerm !== "" || winRateRange[0] !== 0 || winRateRange[1] !== 100 || dateRange !== undefined || authorFilter !== "all" || selectedTags.length > 0;
 
     return (
         <div className="w-full">
             <div className="flex justify-between items-center mb-6 gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold">Strategy Library</h1>
+                    <h1 className="text-3xl font-bold">KabuName Strategy Library</h1>
                     <p className="text-muted-foreground">Browse and manage your collection of trading strategies.</p>
                 </div>
-                <Button onClick={handleNewStrategy}>
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    New Strategy
-                </Button>
+                <div className="flex gap-2">
+                    <Button variant="outline" onClick={handleImportStrategy}>
+                        <Upload className="mr-2 h-4 w-4" />
+                        Import Strategy
+                    </Button>
+                    <Button variant="outline" onClick={handleExportStrategies}>
+                        <Download className="mr-2 h-4 w-4" />
+                        Export All
+                    </Button>
+                    <Button onClick={handleNewStrategy}>
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        New Strategy
+                    </Button>
+                </div>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
@@ -141,6 +167,8 @@ export default function Strategies() {
                         onDateChange={setDateRange}
                         authorFilter={authorFilter}
                         onAuthorFilterChange={setAuthorFilter}
+                        selectedTags={selectedTags}
+                        onTagsChange={setSelectedTags}
                      />
                    </div>
                 </aside>
@@ -201,6 +229,17 @@ export default function Strategies() {
                 onConfirm={confirmDelete}
                 isPending={deleteMutation.isPending}
                 strategyName={selectedStrategy?.name}
+            />
+
+            <ImportStrategyDialog
+                open={isImportDialogOpen}
+                onOpenChange={setIsImportDialogOpen}
+            />
+
+            <ExportStrategiesDialog
+                open={isExportDialogOpen}
+                onOpenChange={setIsExportDialogOpen}
+                strategies={allStrategies}
             />
         </div>
     );

@@ -2,7 +2,7 @@
 import * as React from "react"
 import { DateRange } from "react-day-picker"
 import { format } from "date-fns"
-import { Calendar as CalendarIcon } from "lucide-react"
+import { Calendar as CalendarIcon, X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -19,6 +19,7 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Slider } from "@/components/ui/slider"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Badge } from "@/components/ui/badge"
 
 interface StrategyFiltersProps {
     searchTerm: string;
@@ -29,8 +30,22 @@ interface StrategyFiltersProps {
     onDateChange: (range: DateRange | undefined) => void;
     authorFilter: string;
     onAuthorFilterChange: (filter: string) => void;
+    selectedTags: string[];
+    onTagsChange: (tags: string[]) => void;
     className?: string;
 }
+
+// Mock tags for now - in a real app, these would come from the database
+const availableTags = [
+    "breakout",
+    "mean-reversion", 
+    "momentum",
+    "scalping",
+    "swing-trading",
+    "day-trading",
+    "trend-following",
+    "contrarian"
+];
 
 export function StrategyFilters({
     searchTerm,
@@ -41,8 +56,22 @@ export function StrategyFilters({
     onDateChange,
     authorFilter,
     onAuthorFilterChange,
+    selectedTags,
+    onTagsChange,
     className,
 }: StrategyFiltersProps) {
+
+    const handleTagToggle = (tag: string) => {
+        if (selectedTags.includes(tag)) {
+            onTagsChange(selectedTags.filter(t => t !== tag));
+        } else {
+            onTagsChange([...selectedTags, tag]);
+        }
+    };
+
+    const clearAllTags = () => {
+        onTagsChange([]);
+    };
 
   return (
     <div className={cn("space-y-6", className)}>
@@ -51,11 +80,56 @@ export function StrategyFilters({
             <Input
                 id="search"
                 type="search"
-                placeholder="Search by name..."
+                placeholder="Search by name or keyword..."
                 value={searchTerm}
                 onChange={(e) => onSearchTermChange(e.target.value)}
                 className="mt-1"
             />
+        </div>
+
+        <Separator />
+
+        <div>
+            <div className="flex items-center justify-between mb-2">
+                <Label>Tags</Label>
+                {selectedTags.length > 0 && (
+                    <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={clearAllTags}
+                        className="h-auto p-1 text-xs"
+                    >
+                        Clear all
+                    </Button>
+                )}
+            </div>
+            <div className="space-y-2">
+                {selectedTags.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                        {selectedTags.map((tag) => (
+                            <Badge key={tag} variant="secondary" className="text-xs">
+                                {tag}
+                                <X 
+                                    className="ml-1 h-3 w-3 cursor-pointer" 
+                                    onClick={() => handleTagToggle(tag)}
+                                />
+                            </Badge>
+                        ))}
+                    </div>
+                )}
+                <div className="flex flex-wrap gap-1">
+                    {availableTags.filter(tag => !selectedTags.includes(tag)).map((tag) => (
+                        <Badge 
+                            key={tag}
+                            variant="outline" 
+                            className="cursor-pointer hover:bg-secondary text-xs"
+                            onClick={() => handleTagToggle(tag)}
+                        >
+                            {tag}
+                        </Badge>
+                    ))}
+                </div>
+            </div>
         </div>
 
         <Separator />
