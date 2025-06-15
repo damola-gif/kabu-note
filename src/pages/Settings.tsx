@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -91,7 +92,7 @@ const Settings = () => {
                       <Button
                         key={section.id}
                         variant={activeSection === section.id ? "secondary" : "ghost"}
-                        className={`w-full justify-start items-start px-3 py-3 h-auto text-left gap-3 ${
+                        className={`w-full justify-start items-start px-3 py-3 h-auto text-left gap-3 overflow-hidden ${
                           activeSection === section.id 
                             ? "bg-[#2AB7CA]/10 text-[#2AB7CA] border-r-2 border-[#2AB7CA]" 
                             : "text-gray-700 hover:bg-gray-50"
@@ -99,9 +100,14 @@ const Settings = () => {
                         onClick={() => setActiveSection(section.id)}
                       >
                         <IconComponent className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                        <div className="flex-1 min-w-0">
+                        <div className="flex-1 min-w-0 overflow-hidden">
                           <div className="font-medium text-sm truncate">{section.title}</div>
-                          <div className="text-xs text-gray-500 leading-tight mt-0.5 whitespace-normal break-words">
+                          <div className="text-xs text-gray-500 leading-tight mt-0.5 break-words whitespace-normal hyphens-auto max-w-full" 
+                               style={{ 
+                                 wordBreak: 'break-word', 
+                                 overflowWrap: 'break-word',
+                                 maxWidth: '100%'
+                               }}>
                             {section.description}
                           </div>
                         </div>
