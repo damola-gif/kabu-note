@@ -1,9 +1,9 @@
-
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileText, Activity, Users } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
+import { SocialLists } from "./SocialLists";
 
 interface ProfileTabsProps {
   strategies: Tables<'strategies'>[];
@@ -136,25 +136,7 @@ export function ProfileTabs({
       </TabsContent>
 
       <TabsContent value="social" className="mt-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="landing-card">
-            <CardContent className="pt-6">
-              <h3 className="font-semibold mb-4">Followers ({stats.followersCount})</h3>
-              <div className="text-center py-4">
-                <p className="text-muted-foreground">Followers list coming soon!</p>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="landing-card">
-            <CardContent className="pt-6">
-              <h3 className="font-semibold mb-4">Following ({stats.followingCount})</h3>
-              <div className="text-center py-4">
-                <p className="text-muted-foreground">Following list coming soon!</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        <SocialLists userId={profile.id} stats={stats} />
       </TabsContent>
     </Tabs>
   );
