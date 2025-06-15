@@ -1,5 +1,4 @@
 
-
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -30,7 +29,6 @@ export function UserListItem({ profile }: UserListItemProps) {
 
   const handleFollowToggle = () => {
     if (!profile.id) return;
-    
     if (isFollowing) {
       unfollowMutation.mutate(profile.id);
     } else {
@@ -43,10 +41,13 @@ export function UserListItem({ profile }: UserListItemProps) {
   };
 
   return (
-    <Card className="hover:shadow-md transition-shadow duration-200 cursor-pointer" onClick={handleProfileClick}>
-      <CardContent className="p-6">
-        <div className="flex items-center gap-4">
-          <Avatar className="h-12 w-12 ring-2 ring-orange-500/20 hover:ring-orange-400/40 transition-all duration-200">
+    <Card
+      className="hover:shadow-md transition-shadow duration-200 cursor-pointer h-full flex flex-col justify-between min-h-[170px]"
+      onClick={handleProfileClick}
+    >
+      <CardContent className="p-6 flex flex-col h-full justify-between">
+        <div className="flex flex-row gap-4 items-center">
+          <Avatar className="h-14 w-14 ring-2 ring-orange-500/20 hover:ring-orange-400/40 transition-all duration-200 shrink-0">
             <AvatarImage src={profile.avatar_url || ''} alt={profile.username} />
             <AvatarFallback className="bg-orange-950/40 text-orange-200 text-lg font-semibold">
               {profile.full_name?.charAt(0).toUpperCase() ||
@@ -54,39 +55,35 @@ export function UserListItem({ profile }: UserListItemProps) {
                 'U'}
             </AvatarFallback>
           </Avatar>
-          
-          <div className="flex-1 min-w-0">
-            <p className="font-semibold text-base text-orange-100 truncate hover:text-orange-300 transition-colors">
+          <div className="flex flex-col min-w-0 flex-1">
+            <p className="font-semibold text-base text-orange-100 break-words leading-tight">
               {profile.full_name || profile.username}
             </p>
-            {profile.full_name && (
-              <p className="text-sm text-orange-300/70 truncate mt-1">
-                @{profile.username}
-              </p>
-            )}
-            
-            {!isOwnProfile && (
-              <div className="mt-3">
-                <Button
-                  size="sm"
-                  variant={isFollowing ? 'outline' : 'default'}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleFollowToggle();
-                  }}
-                  disabled={followMutation.isPending || unfollowMutation.isPending}
-                  className="min-w-[80px]"
-                >
-                  {followMutation.isPending || unfollowMutation.isPending
-                    ? '...'
-                    : isFollowing
-                    ? 'Unfollow'
-                    : 'Follow'}
-                </Button>
-              </div>
-            )}
+            <p className="text-sm text-orange-300/70 break-all">
+              @{profile.username}
+            </p>
           </div>
         </div>
+        {!isOwnProfile && (
+          <div className="flex mt-6">
+            <Button
+              size="sm"
+              variant={isFollowing ? 'outline' : 'default'}
+              onClick={(e) => {
+                e.stopPropagation(); // Prevents card click
+                handleFollowToggle();
+              }}
+              disabled={followMutation.isPending || unfollowMutation.isPending}
+              className="min-w-[100px] ml-auto"
+            >
+              {followMutation.isPending || unfollowMutation.isPending
+                ? '...'
+                : isFollowing
+                ? 'Unfollow'
+                : 'Follow'}
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
