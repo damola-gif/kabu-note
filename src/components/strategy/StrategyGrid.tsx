@@ -1,4 +1,3 @@
-
 import { StrategyWithProfile } from '@/hooks/useStrategies';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -98,7 +97,7 @@ export function StrategyGrid({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {strategies.map((strategy) => {
                 const isOwnStrategy = strategy.user_id === user?.id;
-                const canFollow = !isOwnStrategy && strategy.profile?.id;
+                const canFollow = !!(!isOwnStrategy && strategy.profile?.id);
                 const isFollowing = !!(canFollow && followingIds?.includes(strategy.profile!.id));
                 const isLiked = !!likedStrategyIds?.includes(strategy.id);
 
