@@ -6,9 +6,12 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/integrations/supabase/client";
+import { useSession } from "@/contexts/SessionProvider";
 import { toast } from "sonner";
 
 export function SecuritySettings() {
+  const { user } = useSession();
   const [isLoading, setIsLoading] = useState(false);
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const [passwordData, setPasswordData] = useState({
@@ -18,19 +21,36 @@ export function SecuritySettings() {
   });
 
   const handlePasswordChange = async () => {
+    if (!user) {
+      toast.error('You must be logged in to change your password');
+      return;
+    }
+
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       toast.error("New passwords don't match");
       return;
     }
 
+    if (passwordData.newPassword.length < 6) {
+      toast.error("New password must be at least 6 characters long");
+      return;
+    }
+
     setIsLoading(true);
     try {
-      // TODO: Implement password change logic
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const { error } = await supabase.auth.updateUser({
+        password: passwordData.newPassword
+      });
+
+      if (error) {
+        throw error;
+      }
+
       toast.success("Password updated successfully!");
       setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
-    } catch (error) {
-      toast.error("Failed to update password");
+    } catch (error: any) {
+      console.error('Error updating password:', error);
+      toast.error(error.message || "Failed to update password");
     } finally {
       setIsLoading(false);
     }
@@ -38,13 +58,25 @@ export function SecuritySettings() {
 
   const handleTwoFactorToggle = async (enabled: boolean) => {
     try {
-      // TODO: Implement 2FA setup logic
-      setTwoFactorEnabled(enabled);
-      toast.success(enabled ? "2FA enabled" : "2FA disabled");
+      if (enabled) {
+        // For now, just show a message about 2FA setup
+        toast.info("2FA setup will be implemented in a future update");
+        setTwoFactorEnabled(false);
+      } else {
+        setTwoFactorEnabled(false);
+        toast.success("2FA disabled");
+      }
     } catch (error) {
+      console.error('Error updating 2FA settings:', error);
       toast.error("Failed to update 2FA settings");
     }
   };
+
+  const isPasswordFormValid = passwordData.currentPassword && 
+                              passwordData.newPassword && 
+                              passwordData.confirmPassword &&
+                              passwordData.newPassword === passwordData.confirmPassword &&
+                              passwordData.newPassword.length >= 6;
 
   return (
     <div className="space-y-6">
@@ -64,6 +96,7 @@ export function SecuritySettings() {
               type="password"
               value={passwordData.currentPassword}
               onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+              placeholder="Enter current password"
             />
           </div>
 
@@ -74,6 +107,7 @@ export function SecuritySettings() {
               type="password"
               value={passwordData.newPassword}
               onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+              placeholder="Enter new password (min. 6 characters)"
             />
           </div>
 
@@ -84,12 +118,17 @@ export function SecuritySettings() {
               type="password"
               value={passwordData.confirmPassword}
               onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+              placeholder="Confirm new password"
             />
+            {passwordData.newPassword && passwordData.confirmPassword && 
+             passwordData.newPassword !== passwordData.confirmPassword && (
+              <p className="text-sm text-red-600">Passwords don't match</p>
+            )}
           </div>
 
           <Button 
             onClick={handlePasswordChange}
-            disabled={isLoading || !passwordData.currentPassword || !passwordData.newPassword}
+            disabled={isLoading || !isPasswordFormValid}
             className="bg-[#2AB7CA] hover:bg-[#2AB7CA]/90"
           >
             {isLoading ? "Updating..." : "Update Password"}
@@ -119,6 +158,13 @@ export function SecuritySettings() {
               onCheckedChange={handleTwoFactorToggle}
             />
           </div>
+          {twoFactorEnabled && (
+            <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+              <p className="text-sm text-blue-800">
+                2FA is enabled. You'll need to provide a code when signing in.
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -138,12 +184,12 @@ export function SecuritySettings() {
               </div>
               <div>
                 <p className="font-medium">Google</p>
-                <p className="text-sm text-gray-500">Connected</p>
+                <p className="text-sm text-gray-500">Not connected</p>
               </div>
             </div>
-            <Badge variant="secondary" className="bg-green-100 text-green-800">
-              Connected
-            </Badge>
+            <Button variant="outline" size="sm" onClick={() => toast.info("Google OAuth coming soon!")}>
+              Connect
+            </Button>
           </div>
         </CardContent>
       </Card>

@@ -1,10 +1,11 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useSession } from "@/contexts/SessionProvider";
 import { toast } from "sonner";
 
 const currencies = [
@@ -28,6 +29,7 @@ const timeframes = [
 ];
 
 export function TradingPreferences() {
+  const { user } = useSession();
   const [isLoading, setIsLoading] = useState(false);
   const [preferences, setPreferences] = useState({
     currency: "USD",
@@ -36,17 +38,47 @@ export function TradingPreferences() {
     alertSoundEnabled: true
   });
 
+  // Load preferences from localStorage on component mount
+  useEffect(() => {
+    const savedPreferences = localStorage.getItem(`trading_preferences_${user?.id}`);
+    if (savedPreferences) {
+      try {
+        const parsed = JSON.parse(savedPreferences);
+        setPreferences(parsed);
+      } catch (error) {
+        console.error('Error parsing saved preferences:', error);
+      }
+    }
+  }, [user?.id]);
+
   const handleSave = async () => {
+    if (!user) {
+      toast.error('You must be logged in to save preferences');
+      return;
+    }
+
     setIsLoading(true);
     try {
-      // TODO: Implement preferences save logic
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Save to localStorage (in a real app, you'd save to a database)
+      localStorage.setItem(`trading_preferences_${user.id}`, JSON.stringify(preferences));
+      
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       toast.success("Trading preferences updated!");
     } catch (error) {
+      console.error('Error saving preferences:', error);
       toast.error("Failed to update preferences");
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const updatePreference = (key: string, value: any) => {
+    setPreferences(prev => ({
+      ...prev,
+      [key]: value
+    }));
   };
 
   return (
@@ -64,7 +96,7 @@ export function TradingPreferences() {
             <Label htmlFor="currency">Preferred Currency</Label>
             <Select 
               value={preferences.currency} 
-              onValueChange={(value) => setPreferences({ ...preferences, currency: value })}
+              onValueChange={(value) => updatePreference('currency', value)}
             >
               <SelectTrigger>
                 <SelectValue />
@@ -94,7 +126,7 @@ export function TradingPreferences() {
             <Label htmlFor="timeframe">Default Timeframe</Label>
             <Select 
               value={preferences.defaultTimeframe} 
-              onValueChange={(value) => setPreferences({ ...preferences, defaultTimeframe: value })}
+              onValueChange={(value) => updatePreference('defaultTimeframe', value)}
             >
               <SelectTrigger>
                 <SelectValue />
@@ -130,7 +162,7 @@ export function TradingPreferences() {
             <Switch
               id="tradeAlerts"
               checked={preferences.tradeAlertsEnabled}
-              onCheckedChange={(checked) => setPreferences({ ...preferences, tradeAlertsEnabled: checked })}
+              onCheckedChange={(checked) => updatePreference('tradeAlertsEnabled', checked)}
             />
           </div>
 
@@ -144,9 +176,18 @@ export function TradingPreferences() {
             <Switch
               id="alertSound"
               checked={preferences.alertSoundEnabled}
-              onCheckedChange={(checked) => setPreferences({ ...preferences, alertSoundEnabled: checked })}
+              onCheckedChange={(checked) => updatePreference('alertSoundEnabled', checked)}
+              disabled={!preferences.tradeAlertsEnabled}
             />
           </div>
+
+          {preferences.tradeAlertsEnabled && (
+            <div className="mt-4 p-3 bg-green-50 rounded-lg">
+              <p className="text-sm text-green-800">
+                Trade alerts are enabled. You'll receive notifications when your trades reach target levels.
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
 

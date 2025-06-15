@@ -1,11 +1,12 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useSession } from "@/contexts/SessionProvider";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const timezones = [
@@ -23,19 +24,82 @@ const timezones = [
 export function ProfileSettings() {
   const { user } = useSession();
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [formData, setFormData] = useState({
     fullName: "",
     username: "",
     timezone: "UTC"
   });
 
+  // Load user profile data
+  useEffect(() => {
+    const loadProfile = async () => {
+      if (!user) return;
+      
+      try {
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+
+        if (error && error.code !== 'PGRST116') {
+          console.error('Error loading profile:', error);
+          toast.error('Failed to load profile data');
+          return;
+        }
+
+        if (profile) {
+          setFormData({
+            fullName: profile.full_name || "",
+            username: profile.username || "",
+            timezone: "UTC" // Add timezone to profiles table if needed
+          });
+        }
+      } catch (error) {
+        console.error('Error loading profile:', error);
+      } finally {
+        setIsLoadingProfile(false);
+      }
+    };
+
+    loadProfile();
+  }, [user]);
+
   const handleSave = async () => {
+    if (!user) {
+      toast.error('You must be logged in to update your profile');
+      return;
+    }
+
+    if (!formData.fullName.trim() || !formData.username.trim()) {
+      toast.error('Full name and username are required');
+      return;
+    }
+
     setIsLoading(true);
     try {
-      // TODO: Implement profile update logic
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
+      const { error } = await supabase
+        .from('profiles')
+        .upsert({
+          id: user.id,
+          full_name: formData.fullName.trim(),
+          username: formData.username.trim(),
+          updated_at: new Date().toISOString()
+        });
+
+      if (error) {
+        if (error.code === '23505') {
+          toast.error('Username already taken. Please choose a different one.');
+        } else {
+          throw error;
+        }
+        return;
+      }
+
       toast.success("Profile updated successfully!");
     } catch (error) {
+      console.error('Error updating profile:', error);
       toast.error("Failed to update profile");
     } finally {
       setIsLoading(false);
@@ -43,9 +107,12 @@ export function ProfileSettings() {
   };
 
   const handlePhotoChange = () => {
-    // TODO: Implement photo upload
-    toast.info("Photo upload coming soon!");
+    toast.info("Photo upload feature coming soon!");
   };
+
+  if (isLoadingProfile) {
+    return <div className="flex justify-center py-8">Loading profile...</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -54,7 +121,7 @@ export function ProfileSettings() {
         <Avatar className="h-20 w-20">
           <AvatarImage src="" alt="Profile" />
           <AvatarFallback className="text-lg bg-[#2AB7CA]/10 text-[#2AB7CA]">
-            {user?.email?.charAt(0).toUpperCase() || 'U'}
+            {formData.fullName?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || 'U'}
           </AvatarFallback>
         </Avatar>
         <div className="flex-1">
@@ -70,12 +137,13 @@ export function ProfileSettings() {
       {/* Form Fields */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">
-          <Label htmlFor="fullName">Full Name</Label>
+          <Label htmlFor="fullName">Full Name *</Label>
           <Input
             id="fullName"
             value={formData.fullName}
             onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
             placeholder="Enter your full name"
+            required
           />
         </div>
 
@@ -91,12 +159,13 @@ export function ProfileSettings() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="username">Username</Label>
+          <Label htmlFor="username">Username *</Label>
           <Input
             id="username"
             value={formData.username}
             onChange={(e) => setFormData({ ...formData, username: e.target.value })}
             placeholder="Choose a username"
+            required
           />
         </div>
 
@@ -121,7 +190,7 @@ export function ProfileSettings() {
       <div className="pt-4">
         <Button 
           onClick={handleSave} 
-          disabled={isLoading}
+          disabled={isLoading || !formData.fullName.trim() || !formData.username.trim()}
           className="bg-[#2AB7CA] hover:bg-[#2AB7CA]/90"
         >
           {isLoading ? "Saving..." : "Save Changes"}

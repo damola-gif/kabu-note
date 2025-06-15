@@ -1,60 +1,115 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useSession } from "@/contexts/SessionProvider";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Trash2, Copy } from "lucide-react";
-
-const publicLinks = [
-  {
-    id: 1,
-    name: "Scalping Strategy #1",
-    url: "https://kabuname.com/strategy/abc123",
-    views: 245,
-    created: "2024-12-01"
-  },
-  {
-    id: 2,
-    name: "Swing Trading Setup",
-    url: "https://kabuname.com/strategy/def456",
-    views: 89,
-    created: "2024-11-28"
-  }
-];
+import { Trash2, Copy, ExternalLink } from "lucide-react";
 
 export function PrivacySettings() {
+  const { user } = useSession();
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingShares, setIsLoadingShares] = useState(true);
   const [privacy, setPrivacy] = useState({
     strategyVisibility: "followers",
     allowComments: true,
     allowFollows: true
   });
+  const [publicShares, setPublicShares] = useState<any[]>([]);
+
+  // Load privacy settings and public shares
+  useEffect(() => {
+    const loadSettings = async () => {
+      if (!user) return;
+
+      try {
+        // Load privacy settings from localStorage (in real app, would be from database)
+        const savedPrivacy = localStorage.getItem(`privacy_settings_${user.id}`);
+        if (savedPrivacy) {
+          setPrivacy(JSON.parse(savedPrivacy));
+        }
+
+        // Load public strategies that are shared
+        const { data: strategies, error } = await supabase
+          .from('strategies')
+          .select('id, name, created_at')
+          .eq('user_id', user.id)
+          .eq('is_public', true);
+
+        if (error) {
+          console.error('Error loading public strategies:', error);
+        } else {
+          setPublicShares(strategies || []);
+        }
+      } catch (error) {
+        console.error('Error loading settings:', error);
+      } finally {
+        setIsLoadingShares(false);
+      }
+    };
+
+    loadSettings();
+  }, [user]);
 
   const handleSave = async () => {
+    if (!user) {
+      toast.error('You must be logged in to save privacy settings');
+      return;
+    }
+
     setIsLoading(true);
     try {
-      // TODO: Implement privacy settings save logic
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Save to localStorage (in real app, would save to database)
+      localStorage.setItem(`privacy_settings_${user.id}`, JSON.stringify(privacy));
+      
+      await new Promise(resolve => setTimeout(resolve, 500));
       toast.success("Privacy settings updated!");
     } catch (error) {
+      console.error('Error saving privacy settings:', error);
       toast.error("Failed to update privacy settings");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const copyLink = (url: string) => {
-    navigator.clipboard.writeText(url);
-    toast.success("Link copied to clipboard!");
+  const copyShareLink = (strategyId: string) => {
+    const shareUrl = `${window.location.origin}/strategy/${strategyId}`;
+    navigator.clipboard.writeText(shareUrl);
+    toast.success("Share link copied to clipboard!");
   };
 
-  const revokeAccess = (linkId: number) => {
-    // TODO: Implement revoke access logic
-    toast.success("Access revoked for this link");
+  const makeStrategyPrivate = async (strategyId: string) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('strategies')
+        .update({ is_public: false })
+        .eq('id', strategyId)
+        .eq('user_id', user.id);
+
+      if (error) {
+        throw error;
+      }
+
+      setPublicShares(prev => prev.filter(s => s.id !== strategyId));
+      toast.success("Strategy made private");
+    } catch (error) {
+      console.error('Error making strategy private:', error);
+      toast.error("Failed to make strategy private");
+    }
+  };
+
+  const updatePrivacySetting = (key: string, value: any) => {
+    setPrivacy(prev => ({
+      ...prev,
+      [key]: value
+    }));
   };
 
   return (
@@ -72,7 +127,7 @@ export function PrivacySettings() {
             <Label htmlFor="visibility">Who can view my strategies?</Label>
             <Select 
               value={privacy.strategyVisibility} 
-              onValueChange={(value) => setPrivacy({ ...privacy, strategyVisibility: value })}
+              onValueChange={(value) => updatePrivacySetting('strategyVisibility', value)}
             >
               <SelectTrigger>
                 <SelectValue />
@@ -83,6 +138,9 @@ export function PrivacySettings() {
                 <SelectItem value="private">Private - Only me</SelectItem>
               </SelectContent>
             </Select>
+            <p className="text-xs text-gray-500">
+              This affects new strategies. Existing public strategies remain public until individually changed.
+            </p>
           </div>
         </CardContent>
       </Card>
@@ -106,7 +164,7 @@ export function PrivacySettings() {
             <Switch
               id="allowComments"
               checked={privacy.allowComments}
-              onCheckedChange={(checked) => setPrivacy({ ...privacy, allowComments: checked })}
+              onCheckedChange={(checked) => updatePrivacySetting('allowComments', checked)}
             />
           </div>
 
@@ -120,38 +178,39 @@ export function PrivacySettings() {
             <Switch
               id="allowFollows"
               checked={privacy.allowFollows}
-              onCheckedChange={(checked) => setPrivacy({ ...privacy, allowFollows: checked })}
+              onCheckedChange={(checked) => updatePrivacySetting('allowFollows', checked)}
             />
           </div>
         </CardContent>
       </Card>
 
-      {/* Public Links Management */}
+      {/* Public Strategies Management */}
       <Card>
         <CardHeader>
-          <CardTitle>Shared Strategy Links</CardTitle>
+          <CardTitle>Public Strategies</CardTitle>
           <CardDescription>
-            Manage your publicly shared strategy links
+            Manage your publicly shared strategies
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {publicLinks.length === 0 ? (
+          {isLoadingShares ? (
+            <p className="text-center py-4">Loading public strategies...</p>
+          ) : publicShares.length === 0 ? (
             <p className="text-gray-500 text-center py-4">
-              No public links created yet
+              No public strategies found
             </p>
           ) : (
             <div className="space-y-3">
-              {publicLinks.map((link) => (
-                <div key={link.id} className="flex items-center justify-between p-3 border rounded-lg">
+              {publicShares.map((strategy) => (
+                <div key={strategy.id} className="flex items-center justify-between p-3 border rounded-lg">
                   <div className="flex-1">
-                    <p className="font-medium">{link.name}</p>
-                    <p className="text-sm text-gray-500">{link.url}</p>
+                    <p className="font-medium">{strategy.name}</p>
                     <div className="flex items-center space-x-4 mt-1">
                       <Badge variant="secondary" className="text-xs">
-                        {link.views} views
+                        Public
                       </Badge>
                       <span className="text-xs text-gray-400">
-                        Created {link.created}
+                        Shared {new Date(strategy.created_at).toLocaleDateString()}
                       </span>
                     </div>
                   </div>
@@ -159,15 +218,25 @@ export function PrivacySettings() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => copyLink(link.url)}
+                      onClick={() => copyShareLink(strategy.id)}
+                      title="Copy share link"
                     >
                       <Copy className="h-4 w-4" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => revokeAccess(link.id)}
+                      onClick={() => window.open(`/strategy/${strategy.id}`, '_blank')}
+                      title="View strategy"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => makeStrategyPrivate(strategy.id)}
                       className="text-red-600 hover:text-red-700"
+                      title="Make private"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
