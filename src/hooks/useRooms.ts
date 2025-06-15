@@ -33,8 +33,7 @@ export const usePublicRooms = () => {
   return useQuery<RoomWithCreator[], Error>({
     queryKey: ['publicRooms'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('community_rooms')
+      const { data, error } = await (supabase.from('community_rooms') as any)
         .select('*, profiles:creator_id(username, avatar_url), room_members(count)')
         .eq('privacy_level', 'public')
         .order('created_at', { ascending: false });
@@ -57,8 +56,7 @@ export const useCreateRoom = () => {
     mutationFn: async (roomData: NewRoom) => {
       if (!user) throw new Error('User must be logged in to create a room');
       
-      const { data, error } = await supabase
-        .from('community_rooms')
+      const { data, error } = await (supabase.from('community_rooms') as any)
         .insert([{ ...roomData, creator_id: user.id }])
         .select()
         .single();
