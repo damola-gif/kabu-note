@@ -14,6 +14,7 @@ import Strategies from "./pages/Strategies";
 import Feed from "./pages/Feed";
 import Analytics from "./pages/Analytics";
 import Profile from "./pages/Profile";
+import PublicProfile from "./pages/PublicProfile";
 import Settings from "./pages/Settings";
 import Notifications from "./pages/Notifications";
 import { SessionProvider } from "./contexts/SessionProvider";
@@ -52,6 +53,9 @@ const App = () => {
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
+                
+                {/* Public profile route - accessible without authentication */}
+                <Route path="/u/:username" element={<PublicProfile />} />
 
                 <Route element={<ProtectedRoute />}>
                   <Route path="/dashboard" element={<Dashboard />} />
@@ -62,7 +66,6 @@ const App = () => {
                   <Route path="/analytics" element={<Analytics />} />
                   <Route path="/notifications" element={<Notifications />} />
                   <Route path="/profile" element={<Profile />} />
-                  <Route path="/u/:username" element={<Profile />} />
                   <Route path="/settings" element={<Settings />} />
                   <Route path="/onboarding" element={<Onboarding />} />
                 </Route>

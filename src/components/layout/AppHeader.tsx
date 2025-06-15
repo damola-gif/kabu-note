@@ -68,6 +68,12 @@ export function AppHeader({
     }
   };
 
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+    setShowResults(value.length >= 2);
+  };
+
   const handleSearchFocus = () => {
     if (searchTerm.length >= 2) {
       setShowResults(true);
@@ -137,7 +143,7 @@ export function AppHeader({
                 type="text"
                 placeholder="Search strategies or traders..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={handleSearchChange}
                 onFocus={handleSearchFocus}
                 onBlur={handleSearchBlur}
                 className="w-full h-10 bg-slate-900/60 border border-slate-700/50 rounded-full px-10 py-2 text-sm text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:border-cyan-400/50 transition-all duration-200"
@@ -148,7 +154,13 @@ export function AppHeader({
             {showResults && searchTerm.length >= 2 && (
               <Card className="absolute top-full left-0 right-0 mt-2 z-50 shadow-xl shadow-black/20 border-slate-700/50 bg-slate-900/95 backdrop-blur-md">
                 <CardContent className="p-0">
-                  {traders.length > 0 && (
+                  {isLoading && (
+                    <div className="px-4 py-3 text-sm text-slate-400">
+                      Searching...
+                    </div>
+                  )}
+                  
+                  {!isLoading && traders.length > 0 && (
                     <div>
                       <div className="px-4 py-2 text-xs font-medium text-slate-400 bg-slate-800/50 border-b border-slate-700/30">
                         Traders
@@ -181,14 +193,17 @@ export function AppHeader({
                       </ul>
                     </div>
                   )}
-                  <div className="px-4 py-3 border-t border-slate-700/30">
-                    <button
-                      onClick={handleSearchSubmit}
-                      className="text-sm text-cyan-400 hover:text-cyan-300 transition-colors"
-                    >
-                      Search strategies for "{searchTerm}"
-                    </button>
-                  </div>
+                  
+                  {!isLoading && (
+                    <div className="px-4 py-3 border-t border-slate-700/30">
+                      <button
+                        onClick={handleSearchSubmit}
+                        className="text-sm text-cyan-400 hover:text-cyan-300 transition-colors"
+                      >
+                        Search strategies for "{searchTerm}"
+                      </button>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             )}
