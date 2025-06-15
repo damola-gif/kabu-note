@@ -1,7 +1,7 @@
 
 import { Heart, MessageCircle, Users, TrendingUp, BookOpen } from "lucide-react";
 import { format, parseISO } from "date-fns";
-import { StrategyWithProfile } from "@/hooks/useStrategiesCore";
+import { StrategyWithProfile } from "@/hooks/useStrategies";
 import { useNavigate } from "react-router-dom";
 import { useSession } from "@/contexts/SessionProvider";
 
