@@ -1,4 +1,3 @@
-
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -42,12 +41,12 @@ export function UserListItem({ profile }: UserListItemProps) {
 
   return (
     <Card
-      className="hover:shadow-md transition-shadow duration-200 cursor-pointer min-h-[120px]"
+      className="hover:shadow-md transition-shadow duration-200 cursor-pointer min-h-[156px] md:min-h-[128px] w-full"
       onClick={handleProfileClick}
     >
-      <CardContent className="py-4 px-6 w-full flex flex-row items-start gap-4">
+      <CardContent className="py-6 px-8 w-full flex flex-row items-start gap-5">
         {/* Avatar left */}
-        <Avatar className="h-12 w-12 ring-2 ring-orange-500/20 hover:ring-orange-400/40 transition-all duration-200 shrink-0">
+        <Avatar className="h-14 w-14 ring-2 ring-orange-500/20 hover:ring-orange-400/40 transition-all duration-200 shrink-0">
           <AvatarImage src={profile.avatar_url || ''} alt={profile.username} />
           <AvatarFallback className="bg-orange-950/40 text-orange-200 text-lg font-semibold">
             {profile.full_name?.charAt(0).toUpperCase() ||
@@ -55,19 +54,20 @@ export function UserListItem({ profile }: UserListItemProps) {
               'U'}
           </AvatarFallback>
         </Avatar>
-        
         {/* User info section - name horizontal, button below */}
-        <div className="flex flex-col flex-1 min-w-0 gap-3">
+        <div className="flex flex-col flex-1 min-w-0 gap-4 justify-center">
           {/* Name and username horizontally */}
-          <div className="flex flex-row items-center gap-3 flex-wrap">
-            <span className="font-semibold text-base text-orange-100">
+          <div className="flex flex-row items-center gap-4 flex-wrap">
+            <span 
+              className="font-semibold text-lg sm:text-xl text-orange-100 break-all"
+              style={{ wordBreak: 'break-word' }}
+            >
               {profile.full_name ?? profile.username}
             </span>
-            <span className="text-sm text-orange-300/70">
+            <span className="text-base sm:text-lg text-orange-300/70 break-all">
               @{profile.username}
             </span>
           </div>
-          
           {/* Follow/Unfollow button below */}
           {!isOwnProfile && (
             <Button
@@ -78,7 +78,7 @@ export function UserListItem({ profile }: UserListItemProps) {
                 handleFollowToggle();
               }}
               disabled={followMutation.isPending || unfollowMutation.isPending}
-              className="min-w-[90px] self-start"
+              className="min-w-[100px] mt-2"
             >
               {followMutation.isPending || unfollowMutation.isPending
                 ? "..."
