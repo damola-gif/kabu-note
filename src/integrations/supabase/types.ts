@@ -570,6 +570,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      is_user_member_of_room: {
+        Args: { p_room_id: string }
+        Returns: boolean
+      }
       search_strategies_by_hashtag: {
         Args: { hashtag_query: string }
         Returns: {
