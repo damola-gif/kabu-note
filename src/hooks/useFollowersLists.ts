@@ -15,7 +15,7 @@ export function useFollowersList(userId: string) {
         .select(`
           follower_id,
           created_at,
-          profiles:follower_id (
+          profiles!follows_follower_id_fkey (
             id,
             username,
             full_name,
@@ -30,7 +30,8 @@ export function useFollowersList(userId: string) {
       }
       
       console.log("Followers data:", data);
-      return data || [];
+      // Filter out any results where the profile might be missing
+      return data?.filter(item => item.profiles) || [];
     },
     enabled: !!userId,
   });
@@ -49,7 +50,7 @@ export function useFollowingList(userId: string) {
         .select(`
           following_id,
           created_at,
-          profiles:following_id (
+          profiles!follows_following_id_fkey (
             id,
             username,
             full_name,
@@ -64,7 +65,8 @@ export function useFollowingList(userId: string) {
       }
       
       console.log("Following data:", data);
-      return data || [];
+      // Filter out any results where the profile might be missing
+      return data?.filter(item => item.profiles) || [];
     },
     enabled: !!userId,
   });
