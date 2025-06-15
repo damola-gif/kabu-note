@@ -2,13 +2,16 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useSession } from '@/contexts/SessionProvider';
+import * as z from 'zod';
 
 // Manually defining types until the auto-generated types are updated.
-type NewRoom = {
-  name: string;
-  description?: string;
-  privacy_level: 'public' | 'private' | 'invite_only';
-};
+export const createRoomSchema = z.object({
+  name: z.string().min(3, 'Name must be at least 3 characters').max(50),
+  description: z.string().max(200).optional(),
+  privacy_level: z.enum(['public', 'private', 'invite_only']),
+});
+
+export type NewRoom = z.infer<typeof createRoomSchema>;
 
 export type CommunityRoom = {
   id: string;

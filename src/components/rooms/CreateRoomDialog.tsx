@@ -1,8 +1,6 @@
-
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -22,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useCreateRoom } from '@/hooks/useRooms';
+import { useCreateRoom, NewRoom, createRoomSchema } from '@/hooks/useRooms';
 import { toast } from '@/hooks/use-toast';
 import { Users } from 'lucide-react';
 import {
@@ -34,18 +32,10 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 
-const createRoomSchema = z.object({
-  name: z.string().min(3, 'Name must be at least 3 characters').max(50),
-  description: z.string().max(200).optional(),
-  privacy_level: z.enum(['public', 'private', 'invite_only']),
-});
-
-type CreateRoomValues = z.infer<typeof createRoomSchema>;
-
 export const CreateRoomDialog = () => {
   const [open, setOpen] = useState(false);
   const createRoomMutation = useCreateRoom();
-  const form = useForm<CreateRoomValues>({
+  const form = useForm<NewRoom>({
     resolver: zodResolver(createRoomSchema),
     defaultValues: {
       name: '',
@@ -54,7 +44,7 @@ export const CreateRoomDialog = () => {
     },
   });
 
-  const onSubmit = async (values: CreateRoomValues) => {
+  const onSubmit = async (values: NewRoom) => {
     await createRoomMutation.mutateAsync(values, {
       onSuccess: () => {
         toast({ title: 'Room created successfully!' });
@@ -114,7 +104,11 @@ export const CreateRoomDialog = () => {
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="What is this room about?" {...field} />
+                    <Textarea
+                      placeholder="What is this room about?"
+                      {...field}
+                      value={field.value ?? ''}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

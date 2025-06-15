@@ -9,6 +9,44 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      community_rooms: {
+        Row: {
+          created_at: string
+          creator_id: string | null
+          description: string | null
+          id: string
+          invite_code: string | null
+          name: string
+          privacy_level: Database["public"]["Enums"]["room_privacy_level"]
+        }
+        Insert: {
+          created_at?: string
+          creator_id?: string | null
+          description?: string | null
+          id?: string
+          invite_code?: string | null
+          name: string
+          privacy_level?: Database["public"]["Enums"]["room_privacy_level"]
+        }
+        Update: {
+          created_at?: string
+          creator_id?: string | null
+          description?: string | null
+          id?: string
+          invite_code?: string | null
+          name?: string
+          privacy_level?: Database["public"]["Enums"]["room_privacy_level"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_rooms_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       follows: {
         Row: {
           created_at: string
@@ -180,6 +218,42 @@ export type Database = {
           username?: string | null
         }
         Relationships: []
+      }
+      room_members: {
+        Row: {
+          id: number
+          joined_at: string
+          room_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: number
+          joined_at?: string
+          room_id: string
+          user_id: string
+        }
+        Update: {
+          id?: number
+          joined_at?: string
+          room_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "room_members_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "community_rooms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "room_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       strategies: {
         Row: {
@@ -515,6 +589,7 @@ export type Database = {
       }
     }
     Enums: {
+      room_privacy_level: "public" | "private" | "invite_only"
       trade_side: "long" | "short"
     }
     CompositeTypes: {
@@ -631,6 +706,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      room_privacy_level: ["public", "private", "invite_only"],
       trade_side: ["long", "short"],
     },
   },
