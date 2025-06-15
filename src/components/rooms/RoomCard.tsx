@@ -5,13 +5,32 @@ import { Button } from '@/components/ui/button';
 import { Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { RoomWithCreator } from '@/hooks/useRooms';
+import { useIsRoomMember, useJoinRoom } from '@/hooks/useRoomMembers';
+import { toast } from '@/hooks/use-toast';
 
 interface RoomCardProps {
   room: RoomWithCreator;
 }
 
 export const RoomCard = ({ room }: RoomCardProps) => {
-  const memberCount = room.room_members[0]?.count ?? 1;
+  const { data: isMember, isLoading: checkingMembership } = useIsRoomMember(room.id);
+  const joinRoom = useJoinRoom();
+
+  const handleJoinRoom = async () => {
+    try {
+      await joinRoom.mutateAsync(room.id);
+      toast({
+        title: 'Joined room',
+        description: `You've successfully joined ${room.name}`,
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Error joining room',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  };
 
   return (
     <Card className="flex flex-col bg-card/50 hover:bg-card/90 transition-colors border-border/50">
@@ -22,7 +41,7 @@ export const RoomCard = ({ room }: RoomCardProps) => {
       <CardContent className="flex-grow">
         <div className="flex items-center text-sm text-muted-foreground">
           <Users className="mr-2 h-4 w-4" />
-          <span>{memberCount} {memberCount === 1 ? 'member' : 'members'}</span>
+          <span>{room.member_count} {room.member_count === 1 ? 'member' : 'members'}</span>
         </div>
       </CardContent>
       <CardFooter className="flex justify-between items-center">
@@ -35,9 +54,23 @@ export const RoomCard = ({ room }: RoomCardProps) => {
             by {room.profiles?.username || '...'}
           </span>
         </div>
-        <Button asChild size="sm">
-          <Link to={`/rooms/${room.id}`}>Enter Room</Link>
-        </Button>
+        
+        {checkingMembership ? (
+          <Button size="sm" disabled>Loading...</Button>
+        ) : isMember ? (
+          <Button asChild size="sm">
+            <Link to={`/rooms/${room.id}`}>Enter Room</Link>
+          </Button>
+        ) : (
+          <Button 
+            size="sm" 
+            variant="outline"
+            onClick={handleJoinRoom}
+            disabled={joinRoom.isPending}
+          >
+            {joinRoom.isPending ? 'Joining...' : 'Join Room'}
+          </Button>
+        )}
       </CardFooter>
     </Card>
   );

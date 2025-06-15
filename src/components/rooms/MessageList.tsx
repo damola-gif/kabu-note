@@ -3,7 +3,7 @@ import { RoomMessage } from '@/hooks/useRoomMessages';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { useSession } from '@/contexts/SessionProvider';
-import { formatDistanceToNow } from 'date-fns';
+import { formatTimeAgo } from '@/utils/timeFormatter';
 import { useEffect, useRef } from 'react';
 
 interface MessageListProps {
@@ -41,7 +41,7 @@ export const MessageList = ({ messages }: MessageListProps) => {
                 <p className="text-sm whitespace-pre-wrap">{message.content}</p>
               </div>
               <span className="text-xs text-muted-foreground mt-1">
-                {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
+                {formatTimeAgo(message.created_at)}
               </span>
             </div>
           </div>

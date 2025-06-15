@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useSession } from '@/contexts/SessionProvider';
@@ -27,7 +28,7 @@ export type RoomWithCreator = CommunityRoom & {
     username: string | null;
     avatar_url: string | null;
   } | null;
-  room_members: { count: number }[];
+  member_count: number;
 };
 
 // Function to generate a random invite code
@@ -45,15 +46,27 @@ export const usePublicRooms = () => {
   return useQuery<RoomWithCreator[], Error>({
     queryKey: ['publicRooms'],
     queryFn: async () => {
-      const { data, error } = await (supabase.from('community_rooms') as any)
-        .select('*, profiles:creator_id(username, avatar_url), room_members(count)')
+      const { data, error } = await supabase
+        .from('community_rooms')
+        .select(`
+          *,
+          profiles:creator_id(username, avatar_url),
+          room_members(count)
+        `)
         .order('created_at', { ascending: false });
       
       if (error) {
         console.error('Error fetching rooms:', error);
         throw error;
       }
-      return data as RoomWithCreator[];
+
+      // Transform the data to include member count
+      const transformedData = data.map(room => ({
+        ...room,
+        member_count: room.room_members?.[0]?.count || 1
+      }));
+
+      return transformedData as RoomWithCreator[];
     },
   });
 };
@@ -70,7 +83,8 @@ export const useCreateRoom = () => {
       // Generate invite code for invite-only rooms
       const invite_code = roomData.privacy_level === 'invite_only' ? generateInviteCode() : null;
       
-      const { data, error } = await (supabase.from('community_rooms') as any)
+      const { data, error } = await supabase
+        .from('community_rooms')
         .insert([{ ...roomData, creator_id: user.id, invite_code }])
         .select()
         .single();
