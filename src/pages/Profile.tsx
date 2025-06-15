@@ -34,13 +34,19 @@ export default function Profile() {
   const isFollowing = !!(profile?.id && followingIds?.includes(profile.id));
   
   const handleFollowToggle = () => {
-    if (!profile?.id) return;
+    if (!profile?.id) {
+      console.error('Profile ID is missing');
+      return;
+    }
     
     if (isFollowing) {
       unfollowMutation.mutate(profile.id, {
         onSuccess: () => {
           // Invalidate the user stats to update follower count
           queryClient.invalidateQueries({ queryKey: ["userStats", profile.id] });
+        },
+        onError: (error) => {
+          console.error('Error unfollowing user:', error);
         }
       });
     } else {
@@ -48,6 +54,9 @@ export default function Profile() {
         onSuccess: () => {
           // Invalidate the user stats to update follower count
           queryClient.invalidateQueries({ queryKey: ["userStats", profile.id] });
+        },
+        onError: (error) => {
+          console.error('Error following user:', error);
         }
       });
     }
@@ -71,9 +80,11 @@ export default function Profile() {
             <p className="text-muted-foreground">
               The user "@{username}" doesn't exist or their profile is not available.
             </p>
-            <p className="text-sm text-muted-foreground mt-2">
-              Debug: Username from URL: "{username}"
-            </p>
+            {profileError && (
+              <p className="text-sm text-destructive mt-2">
+                Error: {profileError.message}
+              </p>
+            )}
           </CardContent>
         </Card>
       </div>

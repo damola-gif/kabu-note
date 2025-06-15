@@ -52,16 +52,28 @@ export default function Journal() {
   const hasOpenTrades = filteredTrades.some(trade => !trade.closed_at);
 
   const handleEditClick = (trade: Tables<'trades'>) => {
+    if (!trade) {
+      console.error('Trade is undefined');
+      return;
+    }
     setSelectedTrade(trade);
     setIsEditTradeDialogOpen(true);
   };
 
   const handleCloseClick = (trade: Tables<'trades'>) => {
+    if (!trade) {
+      console.error('Trade is undefined');
+      return;
+    }
     setSelectedTrade(trade);
     setIsCloseTradeDialogOpen(true);
   };
 
   const handleViewDetailsClick = (trade: Tables<'trades'>) => {
+    if (!trade) {
+      console.error('Trade is undefined');
+      return;
+    }
     setSelectedTrade(trade);
     setIsTradeDetailsSheetOpen(true);
   };

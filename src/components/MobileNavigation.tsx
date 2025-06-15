@@ -1,28 +1,11 @@
 
-import { Home, Settings, Newspaper } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-
-const mobileNavItems = [
-  {
-    title: "Dashboard",
-    url: "/dashboard",
-    icon: Home,
-  },
-  {
-    title: "Feed",
-    url: "/feed",
-    icon: Newspaper,
-  },
-  {
-    title: "Settings",
-    url: "/settings",
-    icon: Settings,
-  },
-];
+import { useMobileNavItems } from "@/hooks/useMobileNavItems";
 
 export function MobileNavigation() {
   const { pathname } = useLocation();
+  const mobileNavItems = useMobileNavItems();
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border z-50 safe-area-pb">
