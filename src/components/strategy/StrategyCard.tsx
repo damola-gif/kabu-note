@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { MoreHorizontal, Eye, Edit, Trash2, Copy, Globe, Lock, ThumbsUp, MessageCircle } from 'lucide-react';
+import { MoreHorizontal, Eye, Edit, Trash2, Copy, Globe, Lock, ThumbsUp, MessageCircle, Bookmark } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { UseMutationResult } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
@@ -18,11 +18,13 @@ interface StrategyCardProps {
     canFollow: boolean;
     isFollowing: boolean;
     isLiked: boolean;
+    isBookmarked: boolean;
     onEdit: (strategy: Tables<'strategies'>) => void;
     onDelete: (strategy: Tables<'strategies'>) => void;
     onFork: (strategy: Tables<'strategies'>) => void;
     onFollowToggle: (profileId: string, isCurrentlyFollowing: boolean) => void;
     onLikeToggle: (strategyId: string, isLiked: boolean) => void;
+    onBookmarkToggle: (strategyId: string, isBookmarked: boolean) => void;
     forkMutation: UseMutationResult<any, Error, Tables<'strategies'>, unknown>;
     followMutation: UseMutationResult<void, Error, string, unknown>;
     unfollowMutation: UseMutationResult<void, Error, string, unknown>;
@@ -34,11 +36,13 @@ export function StrategyCard({
     canFollow,
     isFollowing,
     isLiked,
+    isBookmarked,
     onEdit,
     onDelete,
     onFork,
     onFollowToggle,
     onLikeToggle,
+    onBookmarkToggle,
     forkMutation,
     followMutation,
     unfollowMutation
@@ -116,10 +120,14 @@ export function StrategyCard({
                          <ThumbsUp className={cn("h-4 w-4", isLiked && "fill-blue-500 text-blue-500")} />
                          <span>{strategy.likes_count ?? 0}</span>
                     </Button>
-                     <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1">
                          <MessageCircle className="h-4 w-4" />
                          <span>{strategy.comments_count ?? 0}</span>
                      </div>
+                    <Button variant="ghost" size="sm" className="flex items-center gap-1 px-2" onClick={() => onBookmarkToggle(strategy.id, isBookmarked)}>
+                         <Bookmark className={cn("h-4 w-4", isBookmarked && "fill-yellow-500 text-yellow-500")} />
+                         <span>{strategy.bookmarks_count ?? 0}</span>
+                    </Button>
                 </div>
                 {canFollow && (
                     <div className="flex items-center justify-between w-full pt-4 border-t">
