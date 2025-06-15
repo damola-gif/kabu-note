@@ -21,6 +21,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       
       {/* Header */}
       <AppHeader 
+        onMenuClick={() => setMobileMenuOpen(!mobileMenuOpen)}
         navigationItems={navigationItems}
         isMobile={isMobile}
         mobileMenuOpen={mobileMenuOpen}

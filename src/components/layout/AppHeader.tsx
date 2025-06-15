@@ -4,12 +4,23 @@ import { Bell, Menu } from "lucide-react";
 import { UserMenu } from "./UserMenu";
 import { ThemeToggle } from "./ThemeToggle";
 import { TraderSearch } from "@/components/search/TraderSearch";
+import { Dispatch, SetStateAction } from "react";
 
 interface AppHeaderProps {
   onMenuClick: () => void;
+  navigationItems?: { name: string; path: string; }[];
+  isMobile?: boolean;
+  mobileMenuOpen?: boolean;
+  setMobileMenuOpen?: Dispatch<SetStateAction<boolean>>;
 }
 
-export function AppHeader({ onMenuClick }: AppHeaderProps) {
+export function AppHeader({ 
+  onMenuClick,
+  navigationItems,
+  isMobile,
+  mobileMenuOpen,
+  setMobileMenuOpen 
+}: AppHeaderProps) {
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center">
