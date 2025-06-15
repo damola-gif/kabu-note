@@ -26,19 +26,16 @@ export default function Profile() {
       // We need to get the user's username from their profile
       const fetchAndRedirect = async () => {
         try {
-          const { data: profile } = await queryClient.fetchQuery({
-            queryKey: ['userProfile', user.id],
-            queryFn: async () => {
-              const { data, error } = await supabase
-                .from('profiles')
-                .select('username')
-                .eq('id', user.id)
-                .single();
-              
-              if (error) throw error;
-              return data;
-            }
-          });
+          const { data: profile, error } = await supabase
+            .from('profiles')
+            .select('username')
+            .eq('id', user.id)
+            .single();
+          
+          if (error) {
+            console.error('Error fetching user profile:', error);
+            return;
+          }
           
           if (profile?.username) {
             navigate(`/u/${profile.username}`, { replace: true });
