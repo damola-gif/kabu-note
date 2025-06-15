@@ -54,7 +54,7 @@ export function StrategiesMainContent({
     onFetchNextPage
 }: StrategiesMainContentProps) {
     return (
-        <main className="md:col-span-3">
+        <div className="w-full">
             <StrategyGrid 
                 strategies={strategies}
                 isLoading={isLoading}
@@ -80,6 +80,7 @@ export function StrategiesMainContent({
                     <Button
                         onClick={onFetchNextPage}
                         disabled={isFetchingNextPage}
+                        className="w-full sm:w-auto"
                     >
                         {isFetchingNextPage ? (
                             <>
@@ -92,6 +93,6 @@ export function StrategiesMainContent({
                     </Button>
                 </div>
             )}
-        </main>
+        </div>
     );
 }

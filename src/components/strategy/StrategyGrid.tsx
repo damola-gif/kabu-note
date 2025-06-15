@@ -54,7 +54,7 @@ export function StrategyGrid({
 
     if (isLoading && strategies.length === 0) {
         return (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
                 {[...Array(6)].map((_, i) => (
                     <Card key={i}>
                         <CardHeader>
@@ -72,24 +72,24 @@ export function StrategyGrid({
     }
 
     if (error) {
-        return <p className="text-destructive col-span-3">Error loading strategies: {error.message}</p>;
+        return <p className="text-destructive">Error loading strategies: {error.message}</p>;
     }
     
     if (strategies.length === 0) {
         if (isFiltering) {
             return (
-                <div className="text-center py-10 border-2 border-dashed rounded-lg col-span-full">
-                    <h2 className="text-xl font-semibold">No Strategies Found</h2>
-                    <p className="text-muted-foreground mt-2">
+                <div className="text-center py-10 border-2 border-dashed rounded-lg">
+                    <h2 className="text-lg sm:text-xl font-semibold">No Strategies Found</h2>
+                    <p className="text-muted-foreground mt-2 text-sm">
                         Try adjusting your search or filter criteria.
                     </p>
                 </div>
             );
         }
         return (
-            <div className="text-center py-10 border-2 border-dashed rounded-lg col-span-full">
-                <h2 className="text-xl font-semibold">No Strategies Yet</h2>
-                <p className="text-muted-foreground mt-2">Click the button to create your first trading strategy.</p>
+            <div className="text-center py-10 border-2 border-dashed rounded-lg">
+                <h2 className="text-lg sm:text-xl font-semibold">No Strategies Yet</h2>
+                <p className="text-muted-foreground mt-2 text-sm">Click the button to create your first trading strategy.</p>
                 <Button className="mt-4" onClick={handleNewStrategy}>
                     <PlusCircle className="mr-2 h-4 w-4" />
                     Create Strategy
@@ -99,7 +99,7 @@ export function StrategyGrid({
     }
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
             {strategies.map((strategy) => {
                 const isOwnStrategy = strategy.user_id === user?.id;
                 const canFollow = !isOwnStrategy && !!strategy.profile?.id;

@@ -59,17 +59,17 @@ export default function Notifications() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-4 px-2 sm:px-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Notifications</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-xl sm:text-2xl font-bold">Notifications</h1>
+          <p className="text-sm text-muted-foreground">
             {unreadCount > 0 ? `${unreadCount} unread notifications` : 'All caught up!'}
           </p>
         </div>
         
-        <div className="flex items-center space-x-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button
             variant="outline"
             size="sm"
@@ -77,7 +77,7 @@ export default function Notifications() {
             className="flex items-center space-x-2"
           >
             <RefreshCw className="h-4 w-4" />
-            <span>Refresh</span>
+            <span className="hidden sm:inline">Refresh</span>
           </Button>
           
           {unreadCount > 0 && (
@@ -89,7 +89,7 @@ export default function Notifications() {
               className="flex items-center space-x-2"
             >
               <CheckCheck className="h-4 w-4" />
-              <span>Mark all read</span>
+              <span className="hidden sm:inline">Mark all read</span>
             </Button>
           )}
           
@@ -100,28 +100,29 @@ export default function Notifications() {
             className="flex items-center space-x-2"
           >
             <Settings className="h-4 w-4" />
-            <span>Settings</span>
+            <span className="hidden sm:inline">Settings</span>
           </Button>
         </div>
       </div>
 
-      {/* Search and Filters */}
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search notifications..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        
-        <Tabs value={filterType} onValueChange={setFilterType} className="w-full sm:w-auto">
-          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6">
-            <TabsTrigger value="all">All</TabsTrigger>
-            {notificationTypes.slice(0, 5).map(type => (
-              <TabsTrigger key={type} value={type}>
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Search notifications..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-10"
+        />
+      </div>
+
+      {/* Filters */}
+      <div className="w-full overflow-x-auto">
+        <Tabs value={filterType} onValueChange={setFilterType}>
+          <TabsList className="inline-flex h-9 min-w-full sm:min-w-0">
+            <TabsTrigger value="all" className="text-xs sm:text-sm">All</TabsTrigger>
+            {notificationTypes.slice(0, 4).map(type => (
+              <TabsTrigger key={type} value={type} className="text-xs sm:text-sm">
                 {getTypeDisplayName(type)}
               </TabsTrigger>
             ))}
@@ -133,7 +134,7 @@ export default function Notifications() {
       <div className="space-y-3">
         {filteredNotifications.length === 0 ? (
           <div className="text-center py-12">
-            <div className="text-muted-foreground">
+            <div className="text-muted-foreground text-sm">
               {searchTerm || filterType !== 'all' 
                 ? 'No notifications found matching your criteria.'
                 : 'No notifications yet. Activity will appear here when other users interact with your content.'
