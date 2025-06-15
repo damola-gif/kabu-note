@@ -42,7 +42,7 @@ export function UserListItem({ profile }: UserListItemProps) {
 
   return (
     <Card
-      className="w-full max-w-full sm:max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto p-0 flex items-center border border-gray-200 dark:border-border rounded-2xl shadow hover:shadow-lg transition-shadow duration-200 min-h-[84px] bg-white dark:bg-card"
+      className="w-full mx-auto p-0 flex items-center border border-gray-200 dark:border-border rounded-2xl shadow hover:shadow-lg transition-shadow duration-200 min-h-[84px] bg-white dark:bg-card"
       onClick={handleProfileClick}
       tabIndex={0}
       role="button"
