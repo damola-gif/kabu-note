@@ -90,7 +90,7 @@ export function SocialLists({ userId, stats }: SocialListsProps) {
           </CardContent>
         </Card>
         
-        {/* Following - now using same vertical list layout */}
+        {/* Following */}
         <Card>
           <CardContent className="pt-6">
             <h3 className="font-semibold mb-4">Following ({stats.followingCount})</h3>
