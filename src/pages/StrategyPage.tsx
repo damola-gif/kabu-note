@@ -7,9 +7,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { StrategyVotingSection } from "@/components/strategy/StrategyVotingSection";
+import { ArrowLeft, Globe, Lock, Calendar } from "lucide-react";
 
 export default function StrategyPage() {
   const { strategyId } = useParams<{ strategyId: string }>();
@@ -27,39 +30,69 @@ export default function StrategyPage() {
 
   if (isLoading || sessionLoading) {
     return (
-      <div className="max-w-4xl mx-auto px-4 space-y-4">
-        <Skeleton className="h-8 w-3/4" />
-        <div className="flex flex-wrap gap-2">
-          <Skeleton className="h-6 w-32" />
-          <Skeleton className="h-6 w-20" />
+      <div className="space-y-6">
+        {/* Header Skeleton */}
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-10 w-24" />
         </div>
-        <div className="space-y-3 pt-4">
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-5/6" />
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-4/5" />
-        </div>
+        
+        {/* Content Skeleton */}
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-8 w-3/4" />
+            <div className="flex flex-wrap gap-2">
+              <Skeleton className="h-6 w-32" />
+              <Skeleton className="h-6 w-20" />
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-5/6" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-4/5" />
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="max-w-4xl mx-auto px-4">
-        <div className="text-destructive text-center py-8">Error: {error.message}</div>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <Button variant="outline" onClick={() => navigate(-1)}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back
+          </Button>
+        </div>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-destructive text-center py-8">Error: {error.message}</div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
   
   if (!strategy) {
     return (
-      <div className="max-w-4xl mx-auto px-4">
-        <div className="text-center py-10">
-          <h2 className="text-xl sm:text-2xl font-bold">Strategy not found</h2>
-          <p className="text-muted-foreground text-sm sm:text-base mt-2">
-            This strategy may have been deleted, or you might not have permission to view it.
-          </p>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <Button variant="outline" onClick={() => navigate(-1)}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back
+          </Button>
         </div>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-center py-10">
+              <h2 className="text-xl sm:text-2xl font-bold">Strategy not found</h2>
+              <p className="text-muted-foreground text-sm sm:text-base mt-2">
+                This strategy may have been deleted, or you might not have permission to view it.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -69,47 +102,83 @@ export default function StrategyPage() {
     : null;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 space-y-6">
-      <article className="prose dark:prose-invert max-w-none prose-sm sm:prose-base">
-        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight">{strategy.name}</h1>
-        <div className="flex flex-wrap items-center gap-3 mb-6 text-xs sm:text-sm text-muted-foreground not-prose">
-          <span className="whitespace-nowrap">Published on {format(new Date(strategy.created_at!), "MMM d, yyyy")}</span>
-          {strategy.is_public ? (
-            <Badge className="text-xs">Public</Badge>
-          ) : (
-            <Badge variant="secondary" className="text-xs">Draft</Badge>
-          )}
-          {strategy.voting_status && (
-            <Badge 
-              variant={strategy.voting_status === 'approved' ? 'default' : 
-                       strategy.voting_status === 'rejected' ? 'destructive' : 'secondary'}
-              className="text-xs"
-            >
-              {strategy.voting_status}
-            </Badge>
-          )}
-        </div>
-        {imageUrl && (
-          <div className="not-prose mb-6">
-            <img 
-              src={imageUrl} 
-              alt={strategy.name} 
-              className="w-full rounded-lg max-h-[300px] sm:max-h-[400px] lg:max-h-[500px] object-contain border" 
-            />
+    <div className="space-y-6">
+      {/* Header similar to Journal page */}
+      <div className="flex items-center justify-between">
+        <Button variant="outline" onClick={() => navigate(-1)}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back
+        </Button>
+      </div>
+
+      {/* Strategy Content Card */}
+      <Card>
+        <CardHeader>
+          <div className="space-y-4">
+            <div className="flex items-start gap-3">
+              {strategy.is_public ? (
+                <Globe className="h-5 w-5 text-muted-foreground mt-1 flex-shrink-0" />
+              ) : (
+                <Lock className="h-5 w-5 text-muted-foreground mt-1 flex-shrink-0" />
+              )}
+              <div className="flex-1 min-w-0">
+                <CardTitle className="text-2xl sm:text-3xl font-bold leading-tight break-words">
+                  {strategy.name}
+                </CardTitle>
+              </div>
+            </div>
+            
+            <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+              <div className="flex items-center gap-1">
+                <Calendar className="h-4 w-4" />
+                <span>Published on {format(new Date(strategy.created_at!), "MMM d, yyyy")}</span>
+              </div>
+              
+              {strategy.is_public ? (
+                <Badge className="text-xs">Public</Badge>
+              ) : (
+                <Badge variant="secondary" className="text-xs">Draft</Badge>
+              )}
+              
+              {strategy.voting_status && (
+                <Badge 
+                  variant={strategy.voting_status === 'approved' ? 'default' : 
+                           strategy.voting_status === 'rejected' ? 'destructive' : 'secondary'}
+                  className="text-xs"
+                >
+                  {strategy.voting_status}
+                </Badge>
+              )}
+            </div>
           </div>
-        )}
-        <div className="prose-headings:text-lg sm:prose-headings:text-xl lg:prose-headings:text-2xl prose-p:text-sm sm:prose-p:text-base prose-li:text-sm sm:prose-li:text-base">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>
-            {strategy.content_markdown || ""}
-          </ReactMarkdown>
-        </div>
-      </article>
+        </CardHeader>
+        
+        <CardContent className="space-y-6">
+          {imageUrl && (
+            <div className="w-full">
+              <img 
+                src={imageUrl} 
+                alt={strategy.name} 
+                className="w-full rounded-lg max-h-[300px] sm:max-h-[400px] lg:max-h-[500px] object-contain border" 
+              />
+            </div>
+          )}
+          
+          <div className="prose dark:prose-invert max-w-none prose-sm sm:prose-base prose-headings:text-lg sm:prose-headings:text-xl lg:prose-headings:text-2xl prose-p:text-sm sm:prose-p:text-base prose-li:text-sm sm:prose-li:text-base">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {strategy.content_markdown || "No content available."}
+            </ReactMarkdown>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Voting Section - only show for public strategies */}
       {strategy.is_public && (
-        <div className="mt-8">
-          <StrategyVotingSection strategy={strategy} />
-        </div>
+        <Card>
+          <CardContent className="pt-6">
+            <StrategyVotingSection strategy={strategy} />
+          </CardContent>
+        </Card>
       )}
     </div>
   );
