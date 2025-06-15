@@ -1,4 +1,3 @@
-
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -42,18 +41,19 @@ export function UserListItem({ profile }: UserListItemProps) {
   };
 
   return (
-    <Card className="landing-card">
+    <Card>
       <CardContent className="pt-4">
         <div className="flex items-center justify-between">
-          <div 
+          <div
             className="flex items-center gap-3 cursor-pointer flex-1"
             onClick={handleProfileClick}
           >
             <Avatar className="h-10 w-10">
-              <AvatarImage src={profile.avatar_url || ""} alt={profile.username} />
+              <AvatarImage src={profile.avatar_url || ''} alt={profile.username} />
               <AvatarFallback className="bg-primary/10 text-primary">
-                {profile.full_name?.charAt(0).toUpperCase() || 
-                 profile.username?.charAt(0).toUpperCase() || 'U'}
+                {profile.full_name?.charAt(0).toUpperCase() ||
+                  profile.username?.charAt(0).toUpperCase() ||
+                  'U'}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
@@ -71,16 +71,15 @@ export function UserListItem({ profile }: UserListItemProps) {
           {!isOwnProfile && (
             <Button
               size="sm"
-              variant={isFollowing ? "outline" : "default"}
+              variant={isFollowing ? 'outline' : 'default'}
               onClick={handleFollowToggle}
               disabled={followMutation.isPending || unfollowMutation.isPending}
-              className={isFollowing ? "btn-landing-ghost" : "btn-landing-primary"}
             >
               {followMutation.isPending || unfollowMutation.isPending
-                ? "..."
+                ? '...'
                 : isFollowing
-                ? "Unfollow"
-                : "Follow"}
+                ? 'Unfollow'
+                : 'Follow'}
             </Button>
           )}
         </div>

@@ -30,7 +30,7 @@ export function ProfileHeader({
   };
 
   return (
-    <Card className="landing-card">
+    <Card>
       <CardContent className="pt-6">
         <div className="flex flex-col md:flex-row items-center gap-6">
           <Avatar className="h-24 w-24">
@@ -59,7 +59,7 @@ export function ProfileHeader({
             {isOwnProfile ? (
               <Button 
                 variant="outline" 
-                className="flex items-center gap-2 btn-landing-ghost"
+                className="flex items-center gap-2"
                 onClick={handleEditProfile}
               >
                 <Edit className="h-4 w-4" />
@@ -69,10 +69,13 @@ export function ProfileHeader({
               <Button 
                 onClick={onFollowToggle}
                 disabled={isFollowLoading}
-                variant={isFollowing ? "outline" : "default"}
-                className={isFollowing ? "btn-landing-ghost" : "btn-landing-primary"}
+                variant={isFollowing ? 'outline' : 'default'}
               >
-                {isFollowLoading ? "Loading..." : isFollowing ? "Unfollow" : "Follow"}
+                {isFollowLoading
+                  ? 'Loading...'
+                  : isFollowing
+                  ? 'Unfollow'
+                  : 'Follow'}
               </Button>
             )}
           </div>

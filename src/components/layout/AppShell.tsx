@@ -16,11 +16,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen w-full bg-background">
-      {/* Geometric background effects */}
-      <div className="geometric-lines fixed inset-0 pointer-events-none opacity-30" />
-      
       {/* Header */}
-      <AppHeader 
+      <AppHeader
         onMenuClick={() => setMobileMenuOpen(!mobileMenuOpen)}
         navigationItems={navigationItems}
         isMobile={isMobile}
@@ -29,13 +26,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       />
 
       {/* Mobile Navigation Menu */}
-      <MobileMenu 
+      <MobileMenu
         navigationItems={navigationItems}
         isOpen={mobileMenuOpen}
         onClose={() => setMobileMenuOpen(false)}
         currentPath={location.pathname}
       />
-      
+
       {/* Main Content */}
       <main className={cn(
         "flex-1 relative z-10 min-h-[calc(100vh-56px)]",

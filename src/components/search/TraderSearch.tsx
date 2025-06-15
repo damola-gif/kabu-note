@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -54,7 +53,7 @@ export function TraderSearch() {
         />
       </div>
       {searchTerm.length >= 2 && (
-        <Card className="absolute top-full left-0 right-0 mt-1 z-50 border bg-popover backdrop-blur-md shadow-xl animate-fade-in">
+        <Card className="absolute top-full left-0 right-0 mt-1 z-50 border bg-popover shadow-xl animate-fade-in">
           <CardContent className="p-0">
             {isLoading ? (
               <div className="p-2 text-center text-xs text-muted-foreground">
@@ -70,7 +69,7 @@ export function TraderSearch() {
                   <li
                     key={trader.id}
                     onClick={() => handleTraderClick(trader.username)}
-                    className="flex items-center gap-2 px-3 py-2 hover:bg-accent/80 cursor-pointer transition text-xs"
+                    className="flex items-center gap-2 px-3 py-2 hover:bg-accent cursor-pointer transition text-xs"
                   >
                     <Avatar className="h-7 w-7">
                       <AvatarImage src={trader.avatar_url || ''} alt={trader.username} />

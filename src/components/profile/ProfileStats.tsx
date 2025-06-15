@@ -1,4 +1,3 @@
-
 import { Card, CardContent } from "@/components/ui/card";
 import { Users, FileText, Heart, TrendingUp } from "lucide-react";
 
@@ -16,7 +15,7 @@ interface ProfileStatsProps {
 export function ProfileStats({ stats, isLoading }: ProfileStatsProps) {
   if (isLoading) {
     return (
-      <Card className="landing-card">
+      <Card>
         <CardContent className="pt-6">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             {[...Array(5)].map((_, i) => (
@@ -33,7 +32,7 @@ export function ProfileStats({ stats, isLoading }: ProfileStatsProps) {
   }
 
   return (
-    <Card className="landing-card">
+    <Card>
       <CardContent className="pt-6">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
           <div>

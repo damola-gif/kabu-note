@@ -43,11 +43,11 @@ export function ProfileTabs({
       </TabsList>
       <TabsContent value="strategies" className="mt-6">
         {isStrategiesLoading ? (
-          <Card className="landing-card">
+          <Card>
             <CardContent className="pt-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {[...Array(4)].map((_, i) => (
-                  <Card key={i} className="animate-pulse landing-card">
+                  <Card key={i} className="animate-pulse">
                     <CardContent className="pt-6">
                       <div className="h-6 bg-muted rounded mb-2"></div>
                       <div className="h-4 bg-muted rounded mb-2"></div>
@@ -67,7 +67,7 @@ export function ProfileTabs({
             {strategies.map((strategy) => (
               <Card 
                 key={strategy.id} 
-                className="landing-card hover:shadow-md transition-all duration-300 cursor-pointer hover:border-primary/30"
+                className="hover:shadow-md transition-all duration-300 cursor-pointer hover:border-primary/30"
                 onClick={() => handleStrategyClick(strategy.id)}
               >
                 <CardContent className="pt-6">
@@ -104,7 +104,7 @@ export function ProfileTabs({
             ))}
           </div>
         ) : (
-          <Card className="landing-card">
+          <Card>
             <CardContent className="pt-6">
               <div className="text-center py-6">
                 <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
@@ -118,7 +118,7 @@ export function ProfileTabs({
         )}
       </TabsContent>
       <TabsContent value="activity" className="mt-6">
-        <Card className="landing-card">
+        <Card>
           <CardContent className="pt-6">
             <div className="text-center py-6">
               <Activity className="h-12 w-12 mx-auto text-muted-foreground mb-4" />

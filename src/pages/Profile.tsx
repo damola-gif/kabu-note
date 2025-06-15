@@ -109,7 +109,7 @@ export default function Profile() {
     return (
       <AppShell>
         <div className="flex flex-col h-full w-full items-center justify-center">
-          <Card className="max-w-md landing-card">
+          <Card className="max-w-md">
             <CardContent className="pt-6 text-center">
               <AlertCircle className="h-12 w-12 mx-auto text-primary mb-4" />
               <h2 className="text-xl font-semibold mb-2">User Not Found</h2>
@@ -131,7 +131,7 @@ export default function Profile() {
   return (
     <AppShell>
       <div className="w-full max-w-3xl mx-auto px-2 sm:px-4 py-4 space-y-6">
-        <ProfileHeader 
+        <ProfileHeader
           profile={profile}
           isOwnProfile={isOwnProfile}
           isFollowing={isFollowing}
@@ -139,12 +139,12 @@ export default function Profile() {
           isFollowLoading={followMutation.isPending || unfollowMutation.isPending}
         />
         {stats && (
-          <ProfileStats 
+          <ProfileStats
             stats={stats}
             isLoading={isStatsLoading}
           />
         )}
-        <ProfileTabs 
+        <ProfileTabs
           strategies={strategies || []}
           isStrategiesLoading={isStrategiesLoading}
           profile={profile}

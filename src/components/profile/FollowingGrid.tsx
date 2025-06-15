@@ -1,4 +1,3 @@
-
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { UserListItem } from "./UserListItem";
@@ -14,7 +13,7 @@ export function FollowingGrid({ following, isLoading }: FollowingGridProps) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
         {[...Array(6)].map((_, i) => (
-          <Card key={i} className="landing-card">
+          <Card key={i}>
             <CardContent className="pt-4">
               <div className="flex items-center gap-3">
                 <Skeleton className="h-10 w-10 rounded-full" />
