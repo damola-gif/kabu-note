@@ -27,11 +27,18 @@ export const useRoomMessages = (roomId: string) => {
   useEffect(() => {
     if (!roomId) return;
 
+    console.log(`Setting up real-time subscription for room: ${roomId}`);
+
     const channel = supabase
       .channel(`room-messages-${roomId}`)
       .on<RoomMessageRow>(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'room_messages', filter: `room_id=eq.${roomId}` },
+        { 
+          event: 'INSERT', 
+          schema: 'public', 
+          table: 'room_messages', 
+          filter: `room_id=eq.${roomId}` 
+        },
         async (payload) => {
           console.log('Real-time message received:', payload.new);
           
@@ -44,6 +51,7 @@ export const useRoomMessages = (roomId: string) => {
 
           if (error) {
             console.error('Error fetching profile for new message:', error);
+            // Fallback: just invalidate queries to refresh data
             queryClient.invalidateQueries({ queryKey: ['roomMessages', roomId] });
             return;
           }
@@ -61,11 +69,14 @@ export const useRoomMessages = (roomId: string) => {
             const messageExists = oldData.some(msg => msg.id === newMessage.id);
             if (messageExists) return oldData;
             
+            console.log('Adding new message to cache:', newMessage);
             return [...oldData, newMessage];
           });
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Real-time subscription status:', status);
+      });
 
     return () => {
       console.log('Unsubscribing from real-time channel');
@@ -76,6 +87,7 @@ export const useRoomMessages = (roomId: string) => {
   return useQuery<RoomMessage[], Error>({
     queryKey: ['roomMessages', roomId],
     queryFn: async () => {
+      console.log(`Fetching messages for room: ${roomId}`);
       const { data, error } = await supabase
         .from('room_messages')
         .select('*, profiles(username, avatar_url)')
@@ -86,6 +98,7 @@ export const useRoomMessages = (roomId: string) => {
         console.error('Error fetching messages:', error);
         throw error;
       }
+      console.log(`Fetched ${data.length} messages for room: ${roomId}`);
       return data as RoomMessage[];
     },
     enabled: !!roomId,
@@ -104,57 +117,28 @@ export const useSendMessage = () => {
       if (!user) throw new Error('User must be logged in to send a message');
       if (!content.trim()) throw new Error('Message cannot be empty');
 
-      // Get user profile for optimistic update
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('username, avatar_url')
-        .eq('id', user.id)
+      console.log('Sending message:', { roomId, content, userId: user.id });
+
+      const { data, error } = await supabase
+        .from('room_messages')
+        .insert([{ room_id: roomId, user_id: user.id, content: content.trim() }])
+        .select()
         .single();
 
-      const messageId = crypto.randomUUID();
-      const tempMessage: RoomMessage = {
-        id: messageId,
-        content: content.trim(),
-        user_id: user.id,
-        room_id: roomId,
-        created_at: new Date().toISOString(),
-        profiles: profile || { username: null, avatar_url: null }
-      };
-
-      // Optimistically add the message immediately
-      queryClient.setQueryData<RoomMessage[]>(['roomMessages', roomId], (oldData) => {
-        if (!oldData) return [tempMessage];
-        return [...oldData, tempMessage];
-      });
-
-      try {
-        const { data, error } = await supabase
-          .from('room_messages')
-          .insert([{ room_id: roomId, user_id: user.id, content: content.trim() }])
-          .select()
-          .single();
-
-        if (error) {
-          // Remove the optimistic message on error
-          queryClient.setQueryData<RoomMessage[]>(['roomMessages', roomId], (oldData) => {
-            return oldData?.filter(msg => msg.id !== messageId) || [];
-          });
-          throw error;
-        }
-
-        // Replace the temporary message with the real one
-        queryClient.setQueryData<RoomMessage[]>(['roomMessages', roomId], (oldData) => {
-          if (!oldData) return [];
-          return oldData.map(msg => 
-            msg.id === messageId ? { ...tempMessage, id: data.id, created_at: data.created_at } : msg
-          );
-        });
-
-        return data;
-      } catch (error) {
+      if (error) {
         console.error('Error sending message:', error);
         throw error;
       }
+
+      console.log('Message sent successfully:', data);
+      return data;
     },
+    onSuccess: (data, variables) => {
+      console.log('Message mutation successful, data will come via real-time');
+      // Don't manually update cache here since real-time will handle it
+    },
+    onError: (error) => {
+      console.error('Failed to send message:', error);
+    }
   });
 };
