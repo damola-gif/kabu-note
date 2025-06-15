@@ -59,51 +59,46 @@ export function useHashtagSearch(hashtag: string) {
   });
 }
 
-// Hook to fetch strategies with pagination
+// Hook to fetch strategies with pagination - ONLY current user's strategies
 export function useStrategies() {
   const { user } = useSession();
   
   return useInfiniteQuery({
-    queryKey: ["strategies"],
+    queryKey: ["strategies", user?.id],
     queryFn: async ({ pageParam = 0 }): Promise<StrategyWithProfile[]> => {
+      if (!user) return [];
+      
       const from = pageParam * STRATEGIES_PER_PAGE;
       const to = from + STRATEGIES_PER_PAGE - 1;
 
-      // Step 1: Fetch strategies
+      // Step 1: Fetch only current user's strategies
       const { data: strategies, error: strategiesError } = await supabase
         .from("strategies")
         .select("*")
+        .eq("user_id", user.id)
         .order("created_at", { ascending: false })
         .range(from, to);
 
       if (strategiesError) throw new Error(strategiesError.message);
       if (!strategies) return [];
 
-      // Step 2: Get unique user IDs from the fetched strategies
-      const userIds = [...new Set(strategies.map(s => s.user_id).filter(Boolean))];
-      
-      if (userIds.length === 0) {
-        return strategies.map(s => ({ ...s, profile: null }));
-      }
-
-      // Step 3: Fetch profiles for those user IDs
-      const { data: profiles, error: profilesError } = await supabase
+      // Step 2: Fetch current user's profile
+      const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("id, username, avatar_url")
-        .in("id", userIds);
+        .eq("id", user.id)
+        .single();
 
-      if (profilesError) {
-        console.error("Error fetching profiles:", profilesError.message);
-        // Return strategies without profile info if profiles fetch fails
+      if (profileError) {
+        console.error("Error fetching user profile:", profileError.message);
+        // Return strategies without profile info if profile fetch fails
         return strategies.map(s => ({ ...s, profile: null }));
       }
 
-      // Step 4: Map profiles to strategies
-      const profilesById = new Map(profiles.map(p => [p.id, p]));
-
+      // Step 3: Map profile to all strategies
       return strategies.map(strategy => ({
         ...strategy,
-        profile: strategy.user_id ? profilesById.get(strategy.user_id) ?? null : null,
+        profile: profile,
       }));
     },
     initialPageParam: 0,
