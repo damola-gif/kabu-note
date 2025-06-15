@@ -2,6 +2,7 @@ import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/contexts/SessionProvider";
 import { Tables } from "@/integrations/supabase/types";
+import { useFollowing } from "@/hooks/useProfile";
 
 export type StrategyWithProfile = Tables<'strategies'> & {
   profile?: Pick<Tables<'profiles'>, 'id' | 'username' | 'avatar_url'> | null;

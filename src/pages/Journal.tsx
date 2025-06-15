@@ -86,10 +86,10 @@ export default function Journal() {
       },
       {
         onSuccess: () => {
-          toast.success("Journal submitted for community voting! Need majority approval from 50% of your followers.");
+          toast({ title: "Journal submitted for community voting! Need majority approval from 50% of your followers." }); // FIX
         },
         onError: (err) => {
-          toast.error("Error submitting for voting: " + err.message);
+          toast({ title: "Error submitting for voting: " + err.message }); // FIX
         },
       }
     );
