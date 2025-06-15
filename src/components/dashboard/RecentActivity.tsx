@@ -65,8 +65,8 @@ export function RecentActivity({ strategies }: RecentActivityProps) {
   .slice(0, 6); // Show only the 6 most recent activities
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-      <h3 className="text-lg font-semibold text-[#1E2A4E] mb-6">Your Activity</h3>
+    <div className="stat-card">
+      <h3 className="text-lg font-light text-foreground mb-6">Your Activity</h3>
       
       {recentActivities.length > 0 ? (
         <div className="space-y-4">
@@ -75,20 +75,20 @@ export function RecentActivity({ strategies }: RecentActivityProps) {
             return (
               <div 
                 key={activity.id} 
-                className={`flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors ${
+                className={`flex items-start space-x-3 p-3 rounded-lg hover:bg-muted/50 transition-colors ${
                   activity.clickable ? 'cursor-pointer' : ''
                 }`}
                 onClick={activity.clickable ? activity.onClick : undefined}
               >
-                <div className="p-2 bg-gray-100 rounded-lg">
+                <div className="p-2 bg-primary/10 rounded-lg">
                   <IconComponent className={`h-4 w-4 ${activity.iconColor}`} />
                 </div>
                 
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-gray-900 leading-relaxed">
+                  <p className="text-sm text-foreground leading-relaxed">
                     {activity.message}
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-muted-foreground mt-1">
                     {format(activity.timestamp, "MMM d, h:mm a")}
                   </p>
                 </div>
@@ -98,9 +98,9 @@ export function RecentActivity({ strategies }: RecentActivityProps) {
         </div>
       ) : (
         <div className="text-center py-8">
-          <BookOpen className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-500 mb-2">No recent activity</p>
-          <p className="text-sm text-gray-400">
+          <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <p className="text-muted-foreground mb-2">No recent activity</p>
+          <p className="text-sm text-muted-foreground">
             Start creating strategies and trading to see your activity here
           </p>
         </div>

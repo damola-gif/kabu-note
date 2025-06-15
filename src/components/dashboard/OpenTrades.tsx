@@ -42,12 +42,12 @@ export function OpenTrades({
   }, [trades]);
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+    <div className="stat-card">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-[#1E2A4E]">Your Open Trades</h3>
+        <h3 className="text-lg font-light text-foreground">Your Open Trades</h3>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button size="sm" variant="outline">
+            <Button size="sm" variant="outline" className="btn-landing-ghost">
               <Filter className="h-4 w-4 mr-2" />
               Filter
             </Button>
@@ -68,15 +68,15 @@ export function OpenTrades({
       {filteredTrades.length > 0 ? (
         <div className="space-y-4">
           {filteredTrades.map((trade) => (
-            <div key={trade.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+            <div key={trade.id} className="border border-border rounded-lg p-4 hover:bg-muted/50 transition-colors">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
                   <div>
-                    <p className="text-gray-600">Asset</p>
+                    <p className="text-muted-foreground">Asset</p>
                     <p className="font-semibold">{trade.symbol}</p>
                   </div>
                   <div>
-                    <p className="text-gray-600">Side</p>
+                    <p className="text-muted-foreground">Side</p>
                     <p className={`font-medium capitalize ${
                       trade.side === 'long' ? 'text-green-600' : 'text-red-600'
                     }`}>
@@ -84,17 +84,17 @@ export function OpenTrades({
                     </p>
                   </div>
                   <div>
-                    <p className="text-gray-600">Entry</p>
+                    <p className="text-muted-foreground">Entry</p>
                     <p className="font-medium">${trade.entry_price}</p>
                   </div>
                   <div>
-                    <p className="text-gray-600">Size</p>
+                    <p className="text-muted-foreground">Size</p>
                     <p className="font-medium">{trade.size}</p>
                   </div>
                 </div>
                 
                 <div className="flex items-center space-x-2">
-                  <Badge variant="secondary" className="bg-[#2AB7CA]/10 text-[#2AB7CA] border-[#2AB7CA]/20">
+                  <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
                     Open
                   </Badge>
                   <Button size="sm" variant="ghost" onClick={() => onViewDetails(trade)}>
@@ -107,7 +107,7 @@ export function OpenTrades({
                     size="sm" 
                     variant="outline"
                     onClick={() => onClose(trade)}
-                    className="bg-[#2AB7CA] text-white hover:bg-[#2AB7CA]/90"
+                    className="btn-landing-primary"
                   >
                     Close
                   </Button>
@@ -124,17 +124,17 @@ export function OpenTrades({
               </div>
               
               {(trade.stop_loss || trade.take_profit) && (
-                <div className="mt-3 pt-3 border-t border-gray-100">
+                <div className="mt-3 pt-3 border-t border-border">
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     {trade.stop_loss && (
                       <div>
-                        <p className="text-gray-600">Stop Loss</p>
+                        <p className="text-muted-foreground">Stop Loss</p>
                         <p className="font-medium text-red-600">${trade.stop_loss}</p>
                       </div>
                     )}
                     {trade.take_profit && (
                       <div>
-                        <p className="text-gray-600">Take Profit</p>
+                        <p className="text-muted-foreground">Take Profit</p>
                         <p className="font-medium text-green-600">${trade.take_profit}</p>
                       </div>
                     )}
@@ -146,8 +146,8 @@ export function OpenTrades({
         </div>
       ) : (
         <div className="text-center py-8">
-          <p className="text-gray-500">No open trades found</p>
-          <p className="text-sm text-gray-400 mt-1">
+          <p className="text-muted-foreground">No open trades found</p>
+          <p className="text-sm text-muted-foreground mt-1">
             {filterAsset !== "all" ? `No open trades for ${filterAsset}` : "Start trading to see your positions here"}
           </p>
         </div>

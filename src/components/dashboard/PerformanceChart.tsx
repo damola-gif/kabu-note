@@ -80,10 +80,10 @@ export function PerformanceChart({ trades }: PerformanceChartProps) {
   const renderChart = () => {
     if (chartData.length === 0) {
       return (
-        <div className="h-64 flex items-center justify-center bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
+        <div className="h-64 flex items-center justify-center bg-muted/20 rounded-lg border-2 border-dashed border-border">
           <div className="text-center">
-            <p className="text-gray-500 text-sm">No data available</p>
-            <p className="text-xs text-gray-400 mt-1">Complete some trades to see your performance</p>
+            <p className="text-muted-foreground text-sm">No data available</p>
+            <p className="text-xs text-muted-foreground mt-1">Complete some trades to see your performance</p>
           </div>
         </div>
       );
@@ -169,9 +169,9 @@ export function PerformanceChart({ trades }: PerformanceChartProps) {
   };
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+    <div className="stat-card">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
-        <h3 className="text-lg font-semibold text-[#1E2A4E] mb-4 sm:mb-0">
+        <h3 className="text-lg font-light text-foreground mb-4 sm:mb-0">
           Performance Summary
         </h3>
         
@@ -184,7 +184,7 @@ export function PerformanceChart({ trades }: PerformanceChartProps) {
               onClick={() => setActiveChart(chart.id)}
               className={cn(
                 "text-xs",
-                activeChart === chart.id && "bg-[#2AB7CA] hover:bg-[#2AB7CA]/90"
+                activeChart === chart.id ? "btn-landing-primary" : "btn-landing-ghost"
               )}
             >
               {chart.label}
