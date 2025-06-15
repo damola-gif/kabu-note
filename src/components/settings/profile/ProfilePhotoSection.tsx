@@ -25,7 +25,10 @@ export function ProfilePhotoSection({ fullName, userEmail, avatarUrl, onAvatarUp
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file || !user) return;
+    if (!file || !user) {
+      toast.error('Please select a file and ensure you are logged in');
+      return;
+    }
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
@@ -39,25 +42,36 @@ export function ProfilePhotoSection({ fullName, userEmail, avatarUrl, onAvatarUp
       return;
     }
 
+    console.log('Starting file upload for user:', user.id);
     setIsUploading(true);
     try {
       // Create a unique filename
       const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/avatar.${fileExt}`;
+      const fileName = `${user.id}/avatar-${Date.now()}.${fileExt}`;
+
+      console.log('Uploading file:', fileName);
 
       // Upload to Supabase storage
-      const { error: uploadError } = await supabase.storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(fileName, file, { upsert: true });
+        .upload(fileName, file, { 
+          upsert: true,
+          cacheControl: '3600'
+        });
 
       if (uploadError) {
+        console.error('Upload error:', uploadError);
         throw uploadError;
       }
+
+      console.log('Upload successful:', uploadData);
 
       // Get the public URL
       const { data: { publicUrl } } = supabase.storage
         .from('avatars')
         .getPublicUrl(fileName);
+
+      console.log('Public URL:', publicUrl);
 
       // Update the user's profile with the new avatar URL
       const { error: updateError } = await supabase
@@ -66,16 +80,22 @@ export function ProfilePhotoSection({ fullName, userEmail, avatarUrl, onAvatarUp
         .eq('id', user.id);
 
       if (updateError) {
+        console.error('Profile update error:', updateError);
         throw updateError;
       }
 
+      console.log('Profile updated successfully');
       toast.success('Profile photo updated successfully!');
       onAvatarUpdate?.(publicUrl);
     } catch (error) {
       console.error('Error uploading image:', error);
-      toast.error('Failed to upload image');
+      toast.error('Failed to upload image. Please try again.');
     } finally {
       setIsUploading(false);
+      // Clear the input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 

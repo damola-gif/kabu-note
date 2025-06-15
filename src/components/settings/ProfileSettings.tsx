@@ -11,7 +11,9 @@ export function ProfileSettings() {
     setFormData,
     isLoading,
     isLoadingProfile,
-    handleSave
+    handleSave,
+    avatarUrl,
+    setAvatarUrl
   } = useProfileData();
 
   if (isLoadingProfile) {
@@ -23,6 +25,8 @@ export function ProfileSettings() {
       <ProfilePhotoSection 
         fullName={formData.fullName}
         userEmail={user?.email}
+        avatarUrl={avatarUrl}
+        onAvatarUpdate={setAvatarUrl}
       />
 
       <ProfileFormFields 
