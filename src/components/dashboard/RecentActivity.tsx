@@ -3,6 +3,7 @@ import { Heart, MessageCircle, Users, TrendingUp, BookOpen } from "lucide-react"
 import { format, parseISO } from "date-fns";
 import { StrategyWithProfile } from "@/hooks/useStrategies";
 import { useNavigate } from "react-router-dom";
+import { useSession } from "@/contexts/SessionProvider";
 
 interface RecentActivityProps {
   strategies: StrategyWithProfile[];
@@ -10,11 +11,15 @@ interface RecentActivityProps {
 
 export function RecentActivity({ strategies }: RecentActivityProps) {
   const navigate = useNavigate();
+  const { user } = useSession();
 
-  // Generate activity items from real data
+  // Filter strategies to only include those created by the current user
+  const userStrategies = strategies.filter(strategy => strategy.user_id === user?.id);
+
+  // Generate activity items from the current user's data only
   const recentActivities = [
-    // Recently published strategies
-    ...strategies
+    // Recently published strategies by the current user
+    ...userStrategies
       .filter(s => s.is_public)
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
       .slice(0, 3)
@@ -29,8 +34,8 @@ export function RecentActivity({ strategies }: RecentActivityProps) {
         onClick: () => navigate(`/strategy/${strategy.id}`)
       })),
     
-    // Strategies with likes (mock data based on likes_count)
-    ...strategies
+    // Current user's strategies with likes
+    ...userStrategies
       .filter(s => s.likes_count > 0)
       .sort((a, b) => b.likes_count - a.likes_count)
       .slice(0, 2)
@@ -45,8 +50,8 @@ export function RecentActivity({ strategies }: RecentActivityProps) {
         onClick: () => navigate(`/strategy/${strategy.id}`)
       })),
     
-    // Strategies with comments (mock data based on comments_count)
-    ...strategies
+    // Current user's strategies with comments
+    ...userStrategies
       .filter(s => s.comments_count > 0)
       .sort((a, b) => b.comments_count - a.comments_count)
       .slice(0, 2)
