@@ -30,7 +30,7 @@ export default function StrategyPage() {
 
   if (isLoading || sessionLoading) {
     return (
-      <div className="space-y-4 px-4 sm:px-0">
+      <div className="space-y-4">
         {/* Header Skeleton */}
         <div className="flex items-center justify-between">
           <Skeleton className="h-8 w-20" />
@@ -58,7 +58,7 @@ export default function StrategyPage() {
 
   if (error) {
     return (
-      <div className="space-y-4 px-4 sm:px-0">
+      <div className="space-y-4">
         <div className="flex items-center justify-between">
           <Button variant="outline" size="sm" onClick={() => navigate(-1)}>
             <ArrowLeft className="mr-1 h-4 w-4" />
@@ -76,7 +76,7 @@ export default function StrategyPage() {
   
   if (!strategy) {
     return (
-      <div className="space-y-4 px-4 sm:px-0">
+      <div className="space-y-4">
         <div className="flex items-center justify-between">
           <Button variant="outline" size="sm" onClick={() => navigate(-1)}>
             <ArrowLeft className="mr-1 h-4 w-4" />
@@ -102,7 +102,7 @@ export default function StrategyPage() {
     : null;
 
   return (
-    <div className="space-y-4 px-4 sm:px-0">
+    <div className="space-y-4">
       {/* Compact Header */}
       <div className="flex items-center justify-between py-2">
         <Button variant="outline" size="sm" onClick={() => navigate(-1)}>
@@ -111,7 +111,7 @@ export default function StrategyPage() {
         </Button>
       </div>
 
-      {/* Strategy Content Card - More compact */}
+      {/* Strategy Content Card */}
       <Card className="mx-0">
         <CardHeader className="pb-3 px-4 sm:px-6">
           <div className="space-y-3">
@@ -164,15 +164,17 @@ export default function StrategyPage() {
             </div>
           )}
           
-          <div className="prose dark:prose-invert max-w-none text-sm leading-relaxed prose-headings:text-base prose-headings:font-semibold prose-headings:mb-2 prose-p:mb-3 prose-li:mb-1">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-              {strategy.content_markdown || "No content available."}
-            </ReactMarkdown>
+          <div className="overflow-x-auto">
+            <div className="prose dark:prose-invert max-w-none text-sm leading-relaxed prose-headings:text-base prose-headings:font-semibold prose-headings:mb-2 prose-p:mb-3 prose-li:mb-1">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {strategy.content_markdown || "No content available."}
+              </ReactMarkdown>
+            </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Voting Section - More compact for mobile */}
+      {/* Voting Section */}
       {strategy.is_public && (
         <Card className="mx-0">
           <CardContent className="pt-4 px-4 sm:px-6 pb-4">
