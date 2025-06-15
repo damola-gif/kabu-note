@@ -57,18 +57,18 @@ export function ProfileSettings() {
             {user?.email?.charAt(0).toUpperCase() || 'U'}
           </AvatarFallback>
         </Avatar>
-        <div>
+        <div className="flex-1">
           <Button onClick={handlePhotoChange} variant="outline">
             Change Photo
           </Button>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-gray-500 mt-1 break-words">
             JPG, PNG or GIF. Max size 2MB.
           </p>
         </div>
       </div>
 
       {/* Form Fields */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">
           <Label htmlFor="fullName">Full Name</Label>
           <Input
@@ -87,7 +87,7 @@ export function ProfileSettings() {
             disabled
             className="bg-gray-50"
           />
-          <p className="text-xs text-gray-500">Email cannot be changed</p>
+          <p className="text-xs text-gray-500 break-words">Email cannot be changed</p>
         </div>
 
         <div className="space-y-2">
