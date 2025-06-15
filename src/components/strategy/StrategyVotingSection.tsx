@@ -27,7 +27,7 @@ export function StrategyVotingSection({ strategy }: StrategyVotingSectionProps) 
   const submitVoteMutation = useSubmitVote();
   const removeVoteMutation = useRemoveVote();
 
-  // Check if current user can vote (must be following the strategy author)
+  // Check if current user can vote (must be following the strategy author, and not the owner)
   const canVote = user && strategy.user_id !== user.id && followingIds?.includes(strategy.user_id);
   const isOwner = user?.id === strategy.user_id;
 
@@ -71,6 +71,11 @@ export function StrategyVotingSection({ strategy }: StrategyVotingSectionProps) 
     }
   };
 
+  const totalVotes = (strategy.approval_votes || 0) + (strategy.rejection_votes || 0);
+  const approvalRate = totalVotes > 0 ? ((strategy.approval_votes || 0) / totalVotes) * 100 : 0;
+  const votesNeeded = Math.max(0, 4 - totalVotes);
+  const approvalsNeeded = Math.max(0, 2 - (strategy.approval_votes || 0));
+
   return (
     <Card className="border border-gray-200">
       <CardHeader>
@@ -96,7 +101,9 @@ export function StrategyVotingSection({ strategy }: StrategyVotingSectionProps) 
             </span>
           </div>
           <span className="text-gray-500">
-            {strategy.votes_required || 3} votes needed
+            {strategy.voting_status === 'pending' ? (
+              approvalsNeeded > 0 ? `${approvalsNeeded} more approvals needed` : 'Awaiting final votes'
+            ) : `${totalVotes} total votes`}
           </span>
         </div>
 
@@ -105,12 +112,32 @@ export function StrategyVotingSection({ strategy }: StrategyVotingSectionProps) 
           <div 
             className="bg-green-500 h-2 rounded-full transition-all duration-300" 
             style={{ 
-              width: `${Math.min(((strategy.approval_votes || 0) / (strategy.votes_required || 3)) * 100, 100)}%` 
+              width: `${Math.min(((strategy.approval_votes || 0) / 2) * 100, 100)}%` 
             }}
           />
         </div>
 
-        {/* Voting Actions */}
+        <div className="text-xs text-gray-600">
+          Need 2 out of 4 follower votes to approve. Current: {strategy.approval_votes || 0}/2 approvals, {totalVotes}/4 total votes
+        </div>
+
+        {/* Owner Monitoring Section */}
+        {isOwner && (
+          <div className="p-3 bg-blue-50 rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <Clock className="h-4 w-4 text-blue-600" />
+              <span className="text-sm font-medium text-blue-800">Strategy Status Monitor</span>
+            </div>
+            <p className="text-sm text-blue-700">
+              Your strategy is being reviewed by your followers. You'll receive notifications when votes are cast.
+              {strategy.voting_status === 'pending' && approvalsNeeded > 0 && (
+                ` Need ${approvalsNeeded} more approval${approvalsNeeded !== 1 ? 's' : ''} to publish automatically.`
+              )}
+            </p>
+          </div>
+        )}
+
+        {/* Voting Actions for Followers */}
         {!isOwner && (
           <div className="space-y-3">
             {canVote ? (

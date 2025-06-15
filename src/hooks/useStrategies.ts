@@ -270,7 +270,7 @@ export function useCreateStrategy() {
         tags: newStrategy.tags || [],
         // Initialize voting fields for new strategies
         voting_status: newStrategy.is_public ? 'pending' : null,
-        votes_required: 3,
+        votes_required: 4, // Changed from 3 to 4
         approval_votes: 0,
         rejection_votes: 0,
       };
@@ -283,7 +283,7 @@ export function useCreateStrategy() {
       if (!variables.is_public) {
         toast.success("Strategy created successfully");
       } else {
-        toast.success("Strategy submitted for community voting!");
+        toast.success("Strategy submitted for community voting! Need 2 out of 4 follower approvals.");
       }
       queryClient.invalidateQueries({ queryKey: ["strategies", user?.id] });
     },
@@ -340,6 +340,7 @@ export function useUpdateStrategy() {
         updateData.voting_status = 'pending';
         updateData.approval_votes = 0;
         updateData.rejection_votes = 0;
+        updateData.votes_required = 4; // Set to 4 votes required
       }
 
       const { error } = await supabase
@@ -353,7 +354,7 @@ export function useUpdateStrategy() {
       if (!variables.values.is_public) {
         toast.success("Strategy updated successfully!");
       } else {
-        toast.success("Strategy submitted for community voting!");
+        toast.success("Strategy submitted for community voting! Need 2 out of 4 follower approvals.");
       }
       queryClient.invalidateQueries({ queryKey: ["strategies", user?.id] });
       queryClient.invalidateQueries({ queryKey: ["strategy", variables.id] });
