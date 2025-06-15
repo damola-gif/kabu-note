@@ -26,18 +26,16 @@ export const MessageInput = ({ roomId }: MessageInputProps) => {
   });
 
   const onSubmit = async (values: MessageFormValues) => {
-    await sendMessage.mutateAsync({ roomId, content: values.content }, {
-      onSuccess: () => {
-        form.reset();
-      },
-      onError: (error: any) => {
-        toast({
-          title: 'Error sending message',
-          description: error.message,
-          variant: 'destructive',
-        });
-      },
-    });
+    try {
+      await sendMessage.mutateAsync({ roomId, content: values.content });
+      form.reset();
+    } catch (error: any) {
+      toast({
+        title: 'Error sending message',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
   };
 
   return (
@@ -48,8 +46,14 @@ export const MessageInput = ({ roomId }: MessageInputProps) => {
         autoComplete="off"
         className="flex-grow"
         disabled={sendMessage.isPending}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            form.handleSubmit(onSubmit)();
+          }
+        }}
       />
-      <Button type="submit" size="icon" disabled={sendMessage.isPending}>
+      <Button type="submit" size="icon" disabled={sendMessage.isPending || !form.watch('content')?.trim()}>
         <Send className="h-4 w-4" />
       </Button>
     </form>

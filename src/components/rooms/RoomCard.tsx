@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom';
 import { RoomWithCreator } from '@/hooks/useRooms';
 import { useIsRoomMember, useJoinRoom } from '@/hooks/useRoomMembers';
 import { toast } from '@/hooks/use-toast';
+import { useState } from 'react';
 
 interface RoomCardProps {
   room: RoomWithCreator;
@@ -15,8 +16,10 @@ interface RoomCardProps {
 export const RoomCard = ({ room }: RoomCardProps) => {
   const { data: isMember, isLoading: checkingMembership } = useIsRoomMember(room.id);
   const joinRoom = useJoinRoom();
+  const [isJoining, setIsJoining] = useState(false);
 
   const handleJoinRoom = async () => {
+    setIsJoining(true);
     try {
       await joinRoom.mutateAsync(room.id);
       toast({
@@ -29,6 +32,8 @@ export const RoomCard = ({ room }: RoomCardProps) => {
         description: error.message,
         variant: 'destructive',
       });
+    } finally {
+      setIsJoining(false);
     }
   };
 
@@ -66,9 +71,9 @@ export const RoomCard = ({ room }: RoomCardProps) => {
             size="sm" 
             variant="outline"
             onClick={handleJoinRoom}
-            disabled={joinRoom.isPending}
+            disabled={isJoining}
           >
-            {joinRoom.isPending ? 'Joining...' : 'Join Room'}
+            {isJoining ? 'Joining...' : 'Join Room'}
           </Button>
         )}
       </CardFooter>

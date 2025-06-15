@@ -6,13 +6,15 @@ import { ChatInterface } from '@/components/rooms/ChatInterface';
 import { useRoomDetails } from '@/hooks/useRooms';
 import { useRoomMembers, useIsRoomMember, useJoinRoom } from '@/hooks/useRoomMembers';
 import { toast } from '@/hooks/use-toast';
+import { useState, useEffect } from 'react';
 
 export default function RoomPage() {
   const { roomId } = useParams<{ roomId: string }>();
   const { data: room, isLoading, error } = useRoomDetails(roomId || '');
   const { data: members } = useRoomMembers(roomId || '');
-  const { data: isMember } = useIsRoomMember(roomId || '');
+  const { data: isMember, isLoading: checkingMembership } = useIsRoomMember(roomId || '');
   const joinRoom = useJoinRoom();
+  const [isJoining, setIsJoining] = useState(false);
 
   if (!roomId) {
     return (
@@ -26,6 +28,7 @@ export default function RoomPage() {
   }
 
   const handleJoinRoom = async () => {
+    setIsJoining(true);
     try {
       await joinRoom.mutateAsync(roomId);
       toast({
@@ -38,6 +41,8 @@ export default function RoomPage() {
         description: error.message,
         variant: 'destructive',
       });
+    } finally {
+      setIsJoining(false);
     }
   };
 
@@ -65,17 +70,33 @@ export default function RoomPage() {
         )}
       </div>
       
-      {room && !isMember && (
+      {room && !checkingMembership && !isMember && (
         <Button 
           onClick={handleJoinRoom}
-          disabled={joinRoom.isPending}
+          disabled={isJoining}
         >
-          {joinRoom.isPending ? 'Joining...' : 'Join Room'}
+          {isJoining ? 'Joining...' : 'Join Room'}
         </Button>
       )}
     </div>
   );
 
+  // Show loading state while checking membership
+  if (checkingMembership) {
+    return (
+      <div className="p-4 flex flex-col h-screen max-h-screen">
+        <PageHeader />
+        <div className="flex-grow flex items-center justify-center">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 mx-auto animate-spin text-primary mb-4" />
+            <p className="text-muted-foreground">Checking room access...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show join prompt if not a member
   if (!isMember) {
     return (
       <div className="p-4 flex flex-col h-screen max-h-screen">
@@ -87,8 +108,8 @@ export default function RoomPage() {
             <p className="text-muted-foreground mb-4">
               You need to join this room to see messages and participate in conversations.
             </p>
-            <Button onClick={handleJoinRoom} disabled={joinRoom.isPending}>
-              {joinRoom.isPending ? 'Joining...' : 'Join Room'}
+            <Button onClick={handleJoinRoom} disabled={isJoining}>
+              {isJoining ? 'Joining...' : 'Join Room'}
             </Button>
           </div>
         </div>
@@ -96,6 +117,7 @@ export default function RoomPage() {
     );
   }
 
+  // Show chat interface for members
   return (
     <div className="p-4 flex flex-col h-screen max-h-screen">
       <PageHeader />

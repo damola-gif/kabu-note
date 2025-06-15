@@ -55,8 +55,13 @@ export const useJoinRoom = () => {
       return data;
     },
     onSuccess: (_, roomId) => {
+      // Immediately invalidate all related queries
       queryClient.invalidateQueries({ queryKey: ['roomMembers', roomId] });
+      queryClient.invalidateQueries({ queryKey: ['isRoomMember', roomId] });
       queryClient.invalidateQueries({ queryKey: ['publicRooms'] });
+      
+      // Optimistically update the membership status
+      queryClient.setQueryData(['isRoomMember', roomId, user?.id], true);
     },
   });
 };
@@ -84,5 +89,7 @@ export const useIsRoomMember = (roomId: string) => {
       return !!data;
     },
     enabled: !!roomId && !!user,
+    staleTime: 30000, // Cache for 30 seconds
+    refetchOnWindowFocus: false, // Don't refetch when window regains focus
   });
 };
