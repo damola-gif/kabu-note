@@ -33,8 +33,8 @@ export const HeroSection = ({ onShowVideoModal }: HeroSectionProps) => {
         </h1>
         
         <p className="text-xl text-gray-400 mb-12 max-w-2xl mx-auto leading-relaxed">
-          Experience the future of trading with our AI-powered platform. 
-          Collaborate, analyze, and execute with precision.
+          Experience the future of trading with our community-powered platform. 
+          Collaborate, analyze, and execute with precision. AI features coming soon.
         </p>
         
         <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">

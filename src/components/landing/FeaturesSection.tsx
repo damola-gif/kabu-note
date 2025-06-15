@@ -12,7 +12,7 @@ export const FeaturesSection = () => {
     {
       icon: Brain,
       title: "AI-Powered Analysis",
-      description: "Transform your trading notes into actionable checklists with intelligent automation."
+      description: "Coming soon - Transform your trading notes into actionable checklists with intelligent automation."
     },
     {
       icon: TrendingUp,
