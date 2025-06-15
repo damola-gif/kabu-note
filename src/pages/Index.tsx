@@ -109,7 +109,15 @@ const Index = () => {
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-900 via-blue-950 to-gray-900 overflow-hidden">
         {/* Animated starfield background */}
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;utf8,<svg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"><g fill=\"none\" fill-rule=\"evenodd\"><g fill=\"%23ffffff\" fill-opacity=\"0.1\"><circle cx=\"7\" cy=\"7\" r=\"1\"/><circle cx=\"27\" cy=\"27\" r=\"1\"/><circle cx=\"47\" cy=\"47\" r=\"1\"/></g></g></svg>')] animate-pulse"></div>
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-950/30 to-transparent"></div>
+          <div className="absolute top-[10%] left-[20%] w-1 h-1 bg-white rounded-full animate-pulse"></div>
+          <div className="absolute top-[20%] right-[30%] w-0.5 h-0.5 bg-cyan-400 rounded-full animate-pulse delay-300"></div>
+          <div className="absolute top-[40%] left-[10%] w-0.5 h-0.5 bg-blue-400 rounded-full animate-pulse delay-700"></div>
+          <div className="absolute top-[60%] right-[20%] w-1 h-1 bg-white rounded-full animate-pulse delay-1000"></div>
+          <div className="absolute top-[80%] left-[70%] w-0.5 h-0.5 bg-cyan-400 rounded-full animate-pulse delay-500"></div>
+          <div className="absolute top-[30%] right-[50%] w-0.5 h-0.5 bg-blue-400 rounded-full animate-pulse delay-200"></div>
+        </div>
         
         {/* Semi-transparent overlay panel */}
         <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
