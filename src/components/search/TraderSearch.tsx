@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -41,26 +42,26 @@ export function TraderSearch() {
   };
 
   return (
-    <div className="relative w-full max-w-xs md:max-w-[225px]">
+    <div className="relative w-full max-w-sm">
       <div className="relative">
-        <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
           type="text"
           placeholder="Search traders..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-8 rounded-md text-xs h-8 md:h-9 bg-muted"
+          className="pl-9"
         />
       </div>
       {searchTerm.length >= 2 && (
-        <Card className="absolute top-full left-0 right-0 mt-1 z-50 border bg-popover shadow-xl animate-fade-in">
+        <Card className="absolute top-full left-0 right-0 mt-1 z-50 shadow-lg">
           <CardContent className="p-0">
             {isLoading ? (
-              <div className="p-2 text-center text-xs text-muted-foreground">
+              <div className="p-4 text-center text-sm text-muted-foreground">
                 Searching...
               </div>
             ) : traders.length === 0 ? (
-              <div className="p-2 text-center text-xs text-muted-foreground">
+              <div className="p-4 text-center text-sm text-muted-foreground">
                 No traders found
               </div>
             ) : (
@@ -69,20 +70,22 @@ export function TraderSearch() {
                   <li
                     key={trader.id}
                     onClick={() => handleTraderClick(trader.username)}
-                    className="flex items-center gap-2 px-3 py-2 hover:bg-accent cursor-pointer transition text-xs"
+                    className="flex items-center gap-3 px-4 py-3 hover:bg-accent cursor-pointer transition-colors border-b last:border-b-0"
                   >
-                    <Avatar className="h-7 w-7">
+                    <Avatar className="h-8 w-8">
                       <AvatarImage src={trader.avatar_url || ''} alt={trader.username} />
                       <AvatarFallback>
-                        <User className="h-3 w-3" />
+                        <User className="h-4 w-4" />
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
-                      <span className="font-medium truncate">
+                      <p className="font-medium truncate">
                         {trader.full_name || trader.username}
-                      </span>
+                      </p>
                       {trader.full_name && (
-                        <span className="ml-1 text-muted-foreground">@{trader.username}</span>
+                        <p className="text-sm text-muted-foreground truncate">
+                          @{trader.username}
+                        </p>
                       )}
                     </div>
                   </li>

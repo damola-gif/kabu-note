@@ -98,7 +98,7 @@ export default function Profile() {
   if (isProfileLoading) {
     return (
       <AppShell>
-        <div className="flex flex-col h-full w-full items-center justify-center">
+        <div className="flex items-center justify-center h-64">
           <div className="text-lg">Loading profile...</div>
         </div>
       </AppShell>
@@ -108,19 +108,14 @@ export default function Profile() {
   if (profileError || !profile) {
     return (
       <AppShell>
-        <div className="flex flex-col h-full w-full items-center justify-center">
+        <div className="flex items-center justify-center h-64">
           <Card className="max-w-md">
             <CardContent className="pt-6 text-center">
-              <AlertCircle className="h-12 w-12 mx-auto text-primary mb-4" />
+              <AlertCircle className="h-12 w-12 mx-auto text-destructive mb-4" />
               <h2 className="text-xl font-semibold mb-2">User Not Found</h2>
               <p className="text-muted-foreground">
                 The user "@{username}" doesn't exist or their profile is not available.
               </p>
-              {profileError && (
-                <p className="text-sm text-destructive mt-2">
-                  Error: {profileError.message}
-                </p>
-              )}
             </CardContent>
           </Card>
         </div>
@@ -130,7 +125,7 @@ export default function Profile() {
 
   return (
     <AppShell>
-      <div className="w-full max-w-3xl mx-auto px-2 sm:px-4 py-4 space-y-6">
+      <div className="max-w-4xl mx-auto space-y-6">
         <ProfileHeader
           profile={profile}
           isOwnProfile={isOwnProfile}
