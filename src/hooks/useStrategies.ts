@@ -22,14 +22,42 @@ export function useStrategies() {
       const from = pageParam * STRATEGIES_PER_PAGE;
       const to = from + STRATEGIES_PER_PAGE - 1;
 
-      const { data: strategies, error } = await supabase
+      // Step 1: Fetch strategies
+      const { data: strategies, error: strategiesError } = await supabase
         .from("strategies")
-        .select("*, profile:profiles(id, username, avatar_url)")
+        .select("*")
         .order("created_at", { ascending: false })
         .range(from, to);
 
-      if (error) throw new Error(error.message);
-      return strategies || [];
+      if (strategiesError) throw new Error(strategiesError.message);
+      if (!strategies) return [];
+
+      // Step 2: Get unique user IDs from the fetched strategies
+      const userIds = [...new Set(strategies.map(s => s.user_id).filter(Boolean))];
+      
+      if (userIds.length === 0) {
+        return strategies.map(s => ({ ...s, profile: null }));
+      }
+
+      // Step 3: Fetch profiles for those user IDs
+      const { data: profiles, error: profilesError } = await supabase
+        .from("profiles")
+        .select("id, username, avatar_url")
+        .in("id", userIds);
+
+      if (profilesError) {
+        console.error("Error fetching profiles:", profilesError.message);
+        // Return strategies without profile info if profiles fetch fails
+        return strategies.map(s => ({ ...s, profile: null }));
+      }
+
+      // Step 4: Map profiles to strategies
+      const profilesById = new Map(profiles.map(p => [p.id, p]));
+
+      return strategies.map(strategy => ({
+        ...strategy,
+        profile: strategy.user_id ? profilesById.get(strategy.user_id) ?? null : null,
+      }));
     },
     initialPageParam: 0,
     getNextPageParam: (lastPage, allPages) => {
