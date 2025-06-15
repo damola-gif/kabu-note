@@ -42,49 +42,44 @@ export function UserListItem({ profile }: UserListItemProps) {
 
   return (
     <Card
-      className="hover:shadow-md transition-shadow duration-200 cursor-pointer h-full flex flex-col justify-between min-h-[220px] sm:min-h-[210px]"
+      className="hover:shadow-md transition-shadow duration-200 cursor-pointer flex items-stretch min-h-[90px]"
       onClick={handleProfileClick}
     >
-      <CardContent className="p-6 flex flex-col h-full justify-between">
-        {/* ROW: avatar + user info */}
-        <div className="flex flex-row gap-4 items-center w-full">
-          <Avatar className="h-16 w-16 ring-2 ring-orange-500/20 hover:ring-orange-400/40 transition-all duration-200 shrink-0">
-            <AvatarImage src={profile.avatar_url || ''} alt={profile.username} />
-            <AvatarFallback className="bg-orange-950/40 text-orange-200 text-lg font-semibold">
-              {profile.full_name?.charAt(0).toUpperCase() ||
-                profile.username?.charAt(0).toUpperCase() ||
-                'U'}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex flex-col min-w-0 flex-1">
-            <span className="font-semibold text-base text-orange-100 truncate">
-              {profile.full_name ?? profile.username}
-            </span>
-            <span className="text-sm text-orange-300/70 truncate">
-              @{profile.username}
-            </span>
-          </div>
+      <CardContent className="py-4 px-6 w-full flex flex-row items-center gap-4">
+        <Avatar className="h-12 w-12 ring-2 ring-orange-500/20 hover:ring-orange-400/40 transition-all duration-200 shrink-0">
+          <AvatarImage src={profile.avatar_url || ''} alt={profile.username} />
+          <AvatarFallback className="bg-orange-950/40 text-orange-200 text-lg font-semibold">
+            {profile.full_name?.charAt(0).toUpperCase() ||
+              profile.username?.charAt(0).toUpperCase() ||
+              'U'}
+          </AvatarFallback>
+        </Avatar>
+        <div className="flex flex-col justify-center min-w-0 flex-1" style={{maxWidth: '60%'}}>
+          <span className="font-semibold text-base text-orange-100" style={{overflowWrap: 'break-word'}}>
+            {profile.full_name ?? profile.username}
+          </span>
+          <span className="text-sm text-orange-300/70" style={{overflowWrap: 'break-word'}}>
+            @{profile.username}
+          </span>
         </div>
-        {/* BUTTON below info, inside the card */}
+        {/* Button placed right and vertically centered */}
         {!isOwnProfile && (
-          <div className="flex mt-7 w-full">
-            <Button
-              size="sm"
-              variant={isFollowing ? 'outline' : 'default'}
-              onClick={(e) => {
-                e.stopPropagation(); // Prevents card click
-                handleFollowToggle();
-              }}
-              disabled={followMutation.isPending || unfollowMutation.isPending}
-              className="min-w-[110px] w-full"
-            >
-              {followMutation.isPending || unfollowMutation.isPending
-                ? '...'
-                : isFollowing
-                ? 'Unfollow'
-                : 'Follow'}
-            </Button>
-          </div>
+          <Button
+            size="sm"
+            variant={isFollowing ? 'outline' : 'default'}
+            onClick={(e) => {
+              e.stopPropagation(); // Prevents card click
+              handleFollowToggle();
+            }}
+            disabled={followMutation.isPending || unfollowMutation.isPending}
+            className="min-w-[100px] ml-4"
+          >
+            {followMutation.isPending || unfollowMutation.isPending
+              ? '...'
+              : isFollowing
+              ? 'Unfollow'
+              : 'Follow'}
+          </Button>
         )}
       </CardContent>
     </Card>
