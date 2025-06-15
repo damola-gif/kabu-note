@@ -15,7 +15,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const navigationItems = useNavigationItems();
 
   return (
-    <div className="flex min-h-screen w-full bg-slate-950">
+    <div className="flex min-h-screen w-full bg-gradient-to-br from-orange-950/20 via-black to-orange-900/10">
       {/* Header */}
       <AppHeader
         onMenuClick={() => setMobileMenuOpen(!mobileMenuOpen)}
