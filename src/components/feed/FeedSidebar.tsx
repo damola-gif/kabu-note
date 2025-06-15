@@ -25,17 +25,21 @@ export function FeedSidebar() {
           user_id,
           likes_count,
           approval_votes,
-          profiles!inner(id, username, avatar_url)
+          profiles(id, username, avatar_url)
         `)
-        .eq('is_public', true)
-        .not('profiles.username', 'is', null);
+        .eq('is_public', true);
 
       if (error) throw error;
+
+      // Filter out strategies without valid profiles
+      const validStrategies = strategies.filter(strategy => 
+        strategy.profiles && strategy.profiles.username
+      );
 
       // Group by user and calculate engagement score
       const userEngagement = new Map();
       
-      strategies.forEach(strategy => {
+      validStrategies.forEach(strategy => {
         const userId = strategy.user_id;
         const profile = strategy.profiles;
         

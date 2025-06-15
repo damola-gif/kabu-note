@@ -1,18 +1,14 @@
+
 import {
   Home,
   LayoutDashboard,
   ListChecks,
   BarChartBig,
-  User,
   Settings,
   Activity,
 } from "lucide-react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { useSession } from "@/contexts/SessionProvider";
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 
 interface SidebarItemProps {
   icon: React.ReactNode;
@@ -49,54 +45,6 @@ const sidebarItems: SidebarItemProps[] = [
 ];
 
 export function AppSidebar() {
-  const { user } = useSession();
-  const [profile, setProfile] = useState<any>(null);
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const getProfile = async () => {
-      if (user) {
-        console.log("Fetching profile for user:", user.id);
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", user.id)
-          .single();
-
-        if (error) {
-          console.error("Error fetching profile:", error);
-        } else {
-          console.log("Profile data:", data);
-          setProfile(data);
-        }
-      }
-    };
-
-    getProfile();
-  }, [user]);
-
-  const handleProfileClick = () => {
-    console.log("Profile click - profile data:", profile);
-
-    const trimmedUsername = typeof profile?.username === "string"
-      ? profile.username.trim()
-      : "";
-    // Invalid conditions: missing, empty, still "profile"
-    if (
-      !trimmedUsername ||
-      trimmedUsername.length < 3 ||
-      trimmedUsername.toLowerCase() === "profile"
-    ) {
-      console.log("No valid username found, redirecting to settings (username value:", trimmedUsername, ")");
-      navigate('/settings');
-      toast.info("Please set up your username in Settings first. A valid username is required to view your profile.");
-      return;
-    }
-
-    console.log("Navigating to:", `/u/${trimmedUsername}`);
-    navigate(`/u/${trimmedUsername}`);
-  };
-
   return (
     <div className="flex flex-col h-full bg-gray-50 border-r py-4">
       <div className="px-4 mb-4">
@@ -121,10 +69,6 @@ export function AppSidebar() {
         ))}
       </div>
       <div className="mt-auto px-4">
-        <Button variant="secondary" className="w-full justify-start mb-2" onClick={handleProfileClick}>
-          <User className="h-4 w-4 mr-2" />
-          Profile
-        </Button>
         <NavLink to="/settings">
           <Button variant="ghost" className="w-full justify-start">
             <Settings className="h-4 w-4 mr-2" />
