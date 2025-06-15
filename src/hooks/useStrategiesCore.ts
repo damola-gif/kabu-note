@@ -152,13 +152,19 @@ export function useStrategy(id: string) {
 
 // Hook to fetch all public strategies, paginated (for feed)
 export function usePublicStrategies() {
+  const { user } = useSession();
+  const { data: followingIds } = useFollowing();
+
   return useInfiniteQuery({
-    queryKey: ["publicStrategies"],
+    queryKey: ["publicStrategies", user?.id],
     queryFn: async ({ pageParam = 0 }): Promise<StrategyWithProfile[]> => {
       const from = pageParam * STRATEGIES_PER_PAGE;
       const to = from + STRATEGIES_PER_PAGE - 1;
 
-      const { data: strategies, error } = await supabase
+      let strategies: any[] = [];
+
+      // Only show strategies if user is owner or is a follower of the strategy's owner
+      const { data, error } = await supabase
         .from("strategies")
         .select("*")
         .eq("is_public", true)
@@ -166,10 +172,25 @@ export function usePublicStrategies() {
         .range(from, to);
 
       if (error) throw error;
-      if (!strategies) return [];
+      if (!data) return [];
 
-      // Get unique user IDs from the fetched strategies
-      const userIds = [...new Set(strategies.map(s => s.user_id).filter(Boolean))];
+      // Restrict: non-followers only see public strategies if they're the owner or following
+      let result: any[];
+      if (!user) {
+        // Not logged in, don't show strategies
+        result = [];
+      } else {
+        // Only show if user is strategy owner or is following owner
+        const userId = user.id;
+        let usersFollowing = followingIds || [];
+        result = data.filter((s: any) =>
+          s.user_id === userId ||
+          usersFollowing.includes(s.user_id)
+        );
+      }
+
+      // Get unique user IDs from result
+      const userIds = [...new Set(result.map(s => s.user_id).filter(Boolean))];
       let profiles: any[] = [];
       if (userIds.length > 0) {
         const { data, error: profilesError } = await supabase
@@ -179,7 +200,7 @@ export function usePublicStrategies() {
         if (!profilesError && data) profiles = data;
       }
       const profilesById = new Map(profiles.map(p => [p.id, p]));
-      return strategies.map(strategy => ({
+      return result.map(strategy => ({
         ...strategy,
         profile: strategy.user_id ? profilesById.get(strategy.user_id) ?? null : null,
       }));
@@ -191,5 +212,6 @@ export function usePublicStrategies() {
       }
       return allPages.length;
     },
+    enabled: true,
   });
 }
