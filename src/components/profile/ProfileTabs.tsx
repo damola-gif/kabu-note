@@ -22,14 +22,12 @@ export function ProfileTabs({
   stats 
 }: ProfileTabsProps) {
   const navigate = useNavigate();
-
   const handleStrategyClick = (strategyId: string) => {
     navigate(`/strategies/${strategyId}`);
   };
-
   return (
     <Tabs defaultValue="strategies" className="w-full">
-      <TabsList className="grid w-full grid-cols-3 bg-card">
+      <TabsList className="grid w-full grid-cols-3 bg-card rounded-lg">
         <TabsTrigger value="strategies" className="flex items-center gap-2">
           <FileText className="h-4 w-4" />
           Strategies ({strategies.length})
@@ -43,13 +41,12 @@ export function ProfileTabs({
           Social
         </TabsTrigger>
       </TabsList>
-
       <TabsContent value="strategies" className="mt-6">
         {isStrategiesLoading ? (
           <Card className="landing-card">
             <CardContent className="pt-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {[...Array(6)].map((_, i) => (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {[...Array(4)].map((_, i) => (
                   <Card key={i} className="animate-pulse landing-card">
                     <CardContent className="pt-6">
                       <div className="h-6 bg-muted rounded mb-2"></div>
@@ -66,7 +63,7 @@ export function ProfileTabs({
             </CardContent>
           </Card>
         ) : strategies.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {strategies.map((strategy) => (
               <Card 
                 key={strategy.id} 
@@ -109,7 +106,7 @@ export function ProfileTabs({
         ) : (
           <Card className="landing-card">
             <CardContent className="pt-6">
-              <div className="text-center py-8">
+              <div className="text-center py-6">
                 <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No Strategies Yet</h3>
                 <p className="text-muted-foreground">
@@ -120,11 +117,10 @@ export function ProfileTabs({
           </Card>
         )}
       </TabsContent>
-
       <TabsContent value="activity" className="mt-6">
         <Card className="landing-card">
           <CardContent className="pt-6">
-            <div className="text-center py-8">
+            <div className="text-center py-6">
               <Activity className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
               <h3 className="text-lg font-semibold mb-2">Activity Feed</h3>
               <p className="text-muted-foreground">
@@ -134,7 +130,6 @@ export function ProfileTabs({
           </CardContent>
         </Card>
       </TabsContent>
-
       <TabsContent value="social" className="mt-6">
         <SocialLists userId={profile.id} stats={stats} />
       </TabsContent>

@@ -38,15 +38,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       
       {/* Main Content */}
       <main className={cn(
-        "flex-1 relative z-10",
-        "pt-14 sm:pt-16", // Responsive top padding for different header heights
-        isMobile && "pb-20" // Bottom padding for mobile navigation
+        "flex-1 relative z-10 min-h-[calc(100vh-56px)]",
+        "pt-16 sm:pt-20", // More space for header to not overlap
+        isMobile && "pb-20"
       )}>
-        <div className="container mx-auto px-4 lg:px-6 py-4 sm:py-6">
+        <div className={cn(
+          "mx-auto px-2 sm:px-4 lg:px-8 py-4 sm:py-6 w-full max-w-screen-2xl"
+        )}>
           {children}
         </div>
       </main>
-      
       {/* Mobile Bottom Navigation */}
       <MobileNavigation />
     </div>

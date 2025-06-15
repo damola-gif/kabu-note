@@ -130,7 +130,7 @@ export default function Profile() {
 
   return (
     <AppShell>
-      <div className="w-full max-w-6xl mx-auto p-6 space-y-6">
+      <div className="w-full max-w-3xl mx-auto px-2 sm:px-4 py-4 space-y-6">
         <ProfileHeader 
           profile={profile}
           isOwnProfile={isOwnProfile}
@@ -138,14 +138,12 @@ export default function Profile() {
           onFollowToggle={handleFollowToggle}
           isFollowLoading={followMutation.isPending || unfollowMutation.isPending}
         />
-        
         {stats && (
           <ProfileStats 
             stats={stats}
             isLoading={isStatsLoading}
           />
         )}
-        
         <ProfileTabs 
           strategies={strategies || []}
           isStrategiesLoading={isStrategiesLoading}
