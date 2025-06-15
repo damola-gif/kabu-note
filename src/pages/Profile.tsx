@@ -15,10 +15,17 @@ export default function Profile() {
   const { user } = useSession();
   const queryClient = useQueryClient();
   
+  console.log("Profile page - URL username:", username);
+  console.log("Profile page - current user:", user?.id);
+  
   const { data: profile, isLoading: isProfileLoading, error: profileError } = useUserProfile(username || '');
   const { data: stats, isLoading: isStatsLoading } = useUserStats(profile?.id || '');
   const { data: strategies, isLoading: isStrategiesLoading } = useUserStrategies(profile?.id || '');
   const { data: followingIds } = useFollowing();
+  
+  console.log("Profile data:", profile);
+  console.log("Profile error:", profileError);
+  console.log("Is loading:", isProfileLoading);
   
   const followMutation = useFollowUser();
   const unfollowMutation = useUnfollowUser();
@@ -63,6 +70,9 @@ export default function Profile() {
             <h2 className="text-xl font-semibold mb-2">User Not Found</h2>
             <p className="text-gray-600">
               The user "@{username}" doesn't exist or their profile is not available.
+            </p>
+            <p className="text-sm text-gray-500 mt-2">
+              Debug: Username from URL: "{username}"
             </p>
           </CardContent>
         </Card>

@@ -1,3 +1,4 @@
+
 import {
   Home,
   LayoutDashboard,
@@ -5,7 +6,7 @@ import {
   BarChartBig,
   User,
   Settings,
-  Feed,
+  Activity,
 } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -32,7 +33,7 @@ const sidebarItems: SidebarItemProps[] = [
     route: "/journal",
   },
   {
-    icon: <Feed className="h-4 w-4" />,
+    icon: <Activity className="h-4 w-4" />,
     label: "Feed",
     route: "/feed",
   },
@@ -56,6 +57,7 @@ export function AppSidebar() {
   useEffect(() => {
     const getProfile = async () => {
       if (user) {
+        console.log("Fetching profile for user:", user.id);
         const { data, error } = await supabase
           .from("profiles")
           .select("*")
@@ -65,6 +67,7 @@ export function AppSidebar() {
         if (error) {
           console.error("Error fetching profile:", error);
         } else {
+          console.log("Profile data:", data);
           setProfile(data);
         }
       }
@@ -74,10 +77,12 @@ export function AppSidebar() {
   }, [user]);
 
   const handleProfileClick = () => {
+    console.log("Profile click - profile data:", profile);
     if (profile?.username) {
+      console.log("Navigating to:", `/u/${profile.username}`);
       navigate(`/u/${profile.username}`);
     } else {
-      // If no username yet, go to settings to set it up
+      console.log("No username found, redirecting to settings");
       navigate('/settings');
       toast.info("Please set up your username in settings first");
     }
