@@ -12,10 +12,12 @@ export function usePublicStrategies() {
       const from = pageParam * STRATEGIES_PER_PAGE;
       const to = from + STRATEGIES_PER_PAGE - 1;
 
-      // RLS policy "Users can view public and approved strategies" filters the results.
+      // Only show approved public strategies in the feed
       const { data: strategies, error } = await supabase
         .from("strategies")
         .select("*, profile:profiles(id, username, avatar_url)")
+        .eq("is_public", true)
+        .eq("voting_status", "approved")
         .order("created_at", { ascending: false })
         .range(from, to);
 

@@ -31,35 +31,19 @@ export function useNotifications() {
 
       const { data, error } = await supabase
         .from('notifications')
-        .select('*')
+        .select(`
+          *,
+          profiles:related_user_id(username, avatar_url)
+        `)
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      // Fetch related profile data separately if needed
-      const notificationsWithProfiles = await Promise.all(
-        data.map(async (notification) => {
-          if (notification.related_user_id) {
-            const { data: profile } = await supabase
-              .from('profiles')
-              .select('username, avatar_url')
-              .eq('id', notification.related_user_id)
-              .single();
-            
-            return {
-              ...notification,
-              profiles: profile || null
-            };
-          }
-          return {
-            ...notification,
-            profiles: null
-          };
-        })
-      );
-
-      return notificationsWithProfiles as Notification[];
+      return (data || []).map(notification => ({
+        ...notification,
+        profiles: notification.profiles || null
+      })) as Notification[];
     },
     enabled: !!user,
   });

@@ -9,10 +9,12 @@ export function useHashtagSearch(hashtag: string) {
     queryFn: async (): Promise<StrategyWithProfile[]> => {
       if (!hashtag) return [];
 
+      // Only show approved public strategies in hashtag search
       const { data: strategies, error } = await supabase
         .from('strategies')
         .select('*, profile:profiles(id, username, avatar_url)')
         .eq('is_public', true)
+        .eq('voting_status', 'approved')
         .contains('tags', [hashtag])
         .order('created_at', { ascending: false });
 
