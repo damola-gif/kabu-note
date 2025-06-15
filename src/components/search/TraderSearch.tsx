@@ -42,26 +42,29 @@ export function TraderSearch() {
   };
 
   return (
-    <div className="relative w-full max-w-sm">
+    <div className="relative w-full max-w-xs">
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-cyan-400/60" />
         <Input
           type="text"
           placeholder="Search traders..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-9"
+          className="pl-9 bg-slate-900/60 border-slate-700/50 text-slate-200 placeholder-slate-400 focus:ring-cyan-400/50 focus:border-cyan-400/50 rounded-full"
         />
       </div>
       {searchTerm.length >= 2 && (
-        <Card className="absolute top-full left-0 right-0 mt-1 z-50 shadow-lg">
+        <Card className="absolute top-full left-0 right-0 mt-2 z-50 shadow-xl shadow-black/20 border-slate-700/50 bg-slate-900/95 backdrop-blur-md">
           <CardContent className="p-0">
             {isLoading ? (
-              <div className="p-4 text-center text-sm text-muted-foreground">
-                Searching...
+              <div className="p-4 text-center text-sm text-slate-400">
+                <div className="flex items-center justify-center space-x-2">
+                  <div className="w-4 h-4 border-2 border-cyan-400/30 border-t-cyan-400 rounded-full animate-spin" />
+                  <span>Searching...</span>
+                </div>
               </div>
             ) : traders.length === 0 ? (
-              <div className="p-4 text-center text-sm text-muted-foreground">
+              <div className="p-4 text-center text-sm text-slate-400">
                 No traders found
               </div>
             ) : (
@@ -70,20 +73,20 @@ export function TraderSearch() {
                   <li
                     key={trader.id}
                     onClick={() => handleTraderClick(trader.username)}
-                    className="flex items-center gap-3 px-4 py-3 hover:bg-accent cursor-pointer transition-colors border-b last:border-b-0"
+                    className="flex items-center gap-3 px-4 py-3 hover:bg-cyan-400/10 cursor-pointer transition-all duration-200 border-b border-slate-700/30 last:border-b-0 group"
                   >
-                    <Avatar className="h-8 w-8">
+                    <Avatar className="h-8 w-8 ring-2 ring-slate-700/50 group-hover:ring-cyan-400/50 transition-all duration-200">
                       <AvatarImage src={trader.avatar_url || ''} alt={trader.username} />
-                      <AvatarFallback>
+                      <AvatarFallback className="bg-slate-800 text-slate-300">
                         <User className="h-4 w-4" />
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate">
+                      <p className="font-medium truncate text-slate-200 group-hover:text-cyan-400 transition-colors duration-200">
                         {trader.full_name || trader.username}
                       </p>
                       {trader.full_name && (
-                        <p className="text-sm text-muted-foreground truncate">
+                        <p className="text-sm text-slate-400 truncate">
                           @{trader.username}
                         </p>
                       )}
