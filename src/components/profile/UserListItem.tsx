@@ -76,7 +76,7 @@ export function UserListItem({ profile }: UserListItemProps) {
               handleFollowToggle();
             }}
             disabled={followMutation.isPending || unfollowMutation.isPending}
-            className="ml-6 flex-shrink-0 px-5 h-[40px] border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:border-orange-400 hover:bg-orange-50 transition-colors shadow-none"
+            className="flex-shrink-0 px-5 h-[40px] border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:border-orange-400 hover:bg-orange-50 transition-colors shadow-none"
             style={{
               boxShadow: "none",
               minWidth: 0,
