@@ -61,6 +61,7 @@ const App = () => {
                   <Route path="/feed" element={<Feed />} />
                   <Route path="/analytics" element={<Analytics />} />
                   <Route path="/notifications" element={<Notifications />} />
+                  <Route path="/profile" element={<Profile />} />
                   <Route path="/u/:username" element={<Profile />} />
                   <Route path="/settings" element={<Settings />} />
                   <Route path="/onboarding" element={<Onboarding />} />

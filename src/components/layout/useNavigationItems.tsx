@@ -7,6 +7,7 @@ export function useNavigationItems() {
   const baseItems = [
     { name: "Dashboard", path: "/dashboard" },
     { name: "Feed", path: "/feed" },
+    { name: "Profile", path: "/profile" },
     { name: "Settings", path: "/settings" },
   ];
 
@@ -15,7 +16,9 @@ export function useNavigationItems() {
     return [
       baseItems[0], // Dashboard
       { name: "Strategies", path: "/strategies" },
-      ...baseItems.slice(1), // Feed, Settings
+      baseItems[1], // Feed
+      baseItems[2], // Profile
+      baseItems[3], // Settings
     ];
   }
 
