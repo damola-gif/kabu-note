@@ -1,3 +1,4 @@
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -40,55 +41,55 @@ export function UserListItem({ profile }: UserListItemProps) {
   };
 
   return (
-    <Card
-      className="hover:shadow-md transition-shadow duration-200 cursor-pointer min-h-[156px] md:min-h-[128px] w-full"
-      onClick={handleProfileClick}
-    >
-      <CardContent className="py-6 px-8 w-full flex flex-row items-start gap-5">
-        {/* Avatar left */}
-        <Avatar className="h-14 w-14 ring-2 ring-orange-500/20 hover:ring-orange-400/40 transition-all duration-200 shrink-0">
-          <AvatarImage src={profile.avatar_url || ''} alt={profile.username} />
-          <AvatarFallback className="bg-orange-950/40 text-orange-200 text-lg font-semibold">
-            {profile.full_name?.charAt(0).toUpperCase() ||
-              profile.username?.charAt(0).toUpperCase() ||
-              'U'}
-          </AvatarFallback>
-        </Avatar>
-        {/* User info section - name horizontal, button below */}
-        <div className="flex flex-col flex-1 min-w-0 gap-4 justify-center">
+    <div className="flex flex-row items-center gap-3 w-full">
+      {/* Card */}
+      <Card
+        className="bg-white dark:bg-card rounded-xl border border-gray-200 dark:border-border shadow-md cursor-pointer flex-1 min-h-[78px] px-0"
+        onClick={handleProfileClick}
+      >
+        <CardContent className="flex flex-row items-center gap-4 min-h-[78px] px-4 py-3">
+          {/* Avatar */}
+          <Avatar className="h-11 w-11 ring-0 bg-orange-100 text-orange-700">
+            <AvatarImage src={profile.avatar_url || ''} alt={profile.username} />
+            <AvatarFallback className="bg-orange-100 text-orange-600 text-base font-semibold">
+              {profile.full_name?.charAt(0).toUpperCase() ||
+                profile.username?.charAt(0).toUpperCase() ||
+                'U'}
+            </AvatarFallback>
+          </Avatar>
           {/* Name and username horizontally */}
-          <div className="flex flex-row items-center gap-4 flex-wrap">
-            <span 
-              className="font-semibold text-lg sm:text-xl text-orange-100 break-all"
+          <div className="flex flex-col justify-center">
+            <span
+              className="font-medium text-base sm:text-lg text-gray-900 dark:text-white"
               style={{ wordBreak: 'break-word' }}
             >
               {profile.full_name ?? profile.username}
             </span>
-            <span className="text-base sm:text-lg text-orange-300/70 break-all">
+            <span className="text-sm text-gray-500 dark:text-gray-300" style={{ wordBreak: 'break-word' }}>
               @{profile.username}
             </span>
           </div>
-          {/* Follow/Unfollow button below */}
-          {!isOwnProfile && (
-            <Button
-              size="sm"
-              variant={isFollowing ? 'outline' : 'default'}
-              onClick={(e) => {
-                e.stopPropagation();
-                handleFollowToggle();
-              }}
-              disabled={followMutation.isPending || unfollowMutation.isPending}
-              className="min-w-[100px] mt-2"
-            >
-              {followMutation.isPending || unfollowMutation.isPending
-                ? "..."
-                : isFollowing
-                ? "Unfollow"
-                : "Follow"}
-            </Button>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+      {/* Follow/Unfollow button (outside the card) */}
+      {!isOwnProfile && (
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleFollowToggle();
+          }}
+          disabled={followMutation.isPending || unfollowMutation.isPending}
+          className="ml-1 min-w-[90px] h-[38px]"
+        >
+          {followMutation.isPending || unfollowMutation.isPending
+            ? "..."
+            : isFollowing
+              ? "Unfollow"
+              : "Follow"}
+        </Button>
+      )}
+    </div>
   );
 }
