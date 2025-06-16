@@ -1,32 +1,35 @@
+
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { QueryClient } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SessionProvider } from './contexts/SessionProvider';
 import { Toaster } from 'sonner';
 import { AppShell } from './components/layout/AppShell';
-import { Dashboard } from './pages/Dashboard';
-import { Feed } from './pages/Feed';
-import { Strategies } from './pages/Strategies';
-import { StrategyPage } from './pages/StrategyPage';
-import { FollowingStrategies } from './pages/FollowingStrategies';
-import { Journal } from './pages/Journal';
-import { Rooms } from './pages/Rooms';
-import { RoomPage } from './pages/RoomPage';
-import { Profile } from './pages/Profile';
-import { PublicProfile } from './pages/PublicProfile';
-import { Settings } from './pages/Settings';
-import { Notifications } from './pages/Notifications';
-import { Onboarding } from './pages/Onboarding';
-import { Auth } from './pages/Auth';
-import { Index } from './pages/Index';
-import { NotFound } from './pages/NotFound';
+import Dashboard from './pages/Dashboard';
+import Feed from './pages/Feed';
+import Strategies from './pages/Strategies';
+import StrategyPage from './pages/StrategyPage';
+import FollowingStrategies from './pages/FollowingStrategies';
+import Journal from './pages/Journal';
+import Rooms from './pages/Rooms';
+import RoomPage from './pages/RoomPage';
+import Profile from './pages/Profile';
+import PublicProfile from './pages/PublicProfile';
+import Settings from './pages/Settings';
+import Notifications from './pages/Notifications';
+import Onboarding from './pages/Onboarding';
+import Auth from './pages/Auth';
+import Index from './pages/Index';
+import NotFound from './pages/NotFound';
+import Analytics from './pages/Analytics';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
-
 import Search from './pages/Search';
+
+const queryClient = new QueryClient();
 
 function App() {
   return (
-    <QueryClient>
+    <QueryClientProvider client={queryClient}>
       <SessionProvider>
         <Toaster />
         <BrowserRouter>
@@ -61,7 +64,7 @@ function App() {
           </Routes>
         </BrowserRouter>
       </SessionProvider>
-    </QueryClient>
+    </QueryClientProvider>
   );
 }
 

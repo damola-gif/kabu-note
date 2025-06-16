@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useSession } from '@/contexts/SessionProvider';
@@ -49,7 +48,6 @@ export function usePosts() {
     queryFn: async () => {
       console.log('Fetching posts...');
       
-      // Fetch all posts with complete profile data
       const { data, error } = await supabase
         .from('posts')
         .select(`
@@ -71,10 +69,9 @@ export function usePosts() {
       return data || [];
     },
     refetchOnWindowFocus: false,
-    refetchInterval: 30000, // Reduced from 5000 to 30000 for better performance
+    refetchInterval: 30000,
   });
 
-  // Set up real-time subscriptions with immediate query updates
   useEffect(() => {
     console.log('Setting up real-time posts subscription');
 
@@ -89,7 +86,6 @@ export function usePosts() {
         },
         (payload) => {
           console.log('Posts change detected:', payload);
-          // Force immediate refetch
           queryClient.invalidateQueries({ queryKey: ['posts'] });
         }
       )
@@ -110,16 +106,32 @@ export function useCreatePost() {
 
   return useMutation({
     mutationFn: async (postData: CreatePostData) => {
-      if (!user) throw new Error('User not authenticated');
+      if (!user) {
+        console.error('User not authenticated');
+        throw new Error('User not authenticated');
+      }
 
-      console.log('Creating post:', postData);
+      console.log('Creating post with data:', postData);
+      console.log('User ID:', user.id);
+
+      const insertData = {
+        user_id: user.id,
+        content: postData.content || null,
+        post_type: postData.post_type,
+        media_url: postData.media_url || null,
+        media_type: postData.media_type || null,
+        link_url: postData.link_url || null,
+        link_title: postData.link_title || null,
+        link_description: postData.link_description || null,
+        link_image: postData.link_image || null,
+        hashtags: postData.hashtags || null,
+      };
+
+      console.log('Insert data:', insertData);
 
       const { data, error } = await supabase
         .from('posts')
-        .insert({
-          user_id: user.id,
-          ...postData,
-        })
+        .insert(insertData)
         .select(`
           *,
           profiles:user_id (
@@ -132,74 +144,39 @@ export function useCreatePost() {
 
       if (error) {
         console.error('Error creating post:', error);
+        console.error('Error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
         throw error;
       }
 
       console.log('Post created successfully:', data);
       return data;
     },
-    onMutate: async (newPost) => {
-      // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey: ['posts'] });
-
-      // Snapshot the previous value
-      const previousPosts = queryClient.getQueryData(['posts']);
-
-      // Get current user profile info
-      if (user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('username, avatar_url, full_name')
-          .eq('id', user.id)
-          .single();
-
-        // Optimistically update the cache
-        const optimisticPost: Post = {
-          id: `temp-${Date.now()}`,
-          user_id: user.id,
-          content: newPost.content || null,
-          post_type: newPost.post_type,
-          media_url: newPost.media_url || null,
-          media_type: newPost.media_type || null,
-          link_url: newPost.link_url || null,
-          link_title: newPost.link_title || null,
-          link_description: newPost.link_description || null,
-          link_image: newPost.link_image || null,
-          hashtags: newPost.hashtags || null,
-          likes_count: 0,
-          comments_count: 0,
-          shares_count: 0,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          profiles: profile || {
-            username: user.email?.split('@')[0] || 'User',
-            avatar_url: null,
-            full_name: null,
-          },
-        };
-
-        queryClient.setQueryData(['posts'], (old: Post[] | undefined) => {
-          return [optimisticPost, ...(old || [])];
-        });
-      }
-
-      return { previousPosts };
-    },
     onSuccess: (data) => {
-      // Force immediate refetch to get the real data
+      console.log('Post creation successful, invalidating queries');
       queryClient.invalidateQueries({ queryKey: ['posts'] });
       toast.success('Post created successfully!');
     },
-    onError: (error, newPost, context) => {
-      // Rollback on error
-      if (context?.previousPosts) {
-        queryClient.setQueryData(['posts'], context.previousPosts);
+    onError: (error: any) => {
+      console.error('Post creation failed:', error);
+      
+      let errorMessage = 'Failed to create post. Please try again.';
+      
+      if (error.message?.includes('duplicate key')) {
+        errorMessage = 'Post already exists.';
+      } else if (error.message?.includes('foreign key')) {
+        errorMessage = 'User profile not found. Please refresh and try again.';
+      } else if (error.message?.includes('not null')) {
+        errorMessage = 'Required fields are missing.';
       }
-      console.error('Error creating post:', error);
-      toast.error('Failed to create post. Please try again.');
+      
+      toast.error(errorMessage);
     },
     onSettled: () => {
-      // Always refetch after success or error
       queryClient.invalidateQueries({ queryKey: ['posts'] });
     },
   });

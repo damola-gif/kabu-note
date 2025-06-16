@@ -36,13 +36,16 @@ export function CreatePostDialog() {
     const fileName = `${user.id}/${Date.now()}.${fileExt}`;
 
     const { data, error } = await supabase.storage
-      .from('post-media')
+      .from('post_media')
       .upload(fileName, file);
 
-    if (error) throw error;
+    if (error) {
+      console.error('Storage upload error:', error);
+      throw error;
+    }
 
     const { data: urlData } = supabase.storage
-      .from('post-media')
+      .from('post_media')
       .getPublicUrl(data.path);
 
     return urlData.publicUrl;
@@ -93,7 +96,12 @@ export function CreatePostDialog() {
       let linkPreview = null;
 
       if (mediaFile && (postType === 'image' || postType === 'video')) {
-        mediaUrl = await uploadMedia(mediaFile);
+        try {
+          mediaUrl = await uploadMedia(mediaFile);
+        } catch (uploadError) {
+          console.error('Upload failed:', uploadError);
+          toast.error('Failed to upload media. Continuing without media.');
+        }
       }
 
       if (postType === 'link' && linkUrl) {
@@ -101,6 +109,13 @@ export function CreatePostDialog() {
       }
 
       const hashtags = extractHashtags(content);
+
+      console.log('Creating post with data:', {
+        content: content.trim(),
+        post_type: postType,
+        media_url: mediaUrl,
+        hashtags
+      });
 
       await createPost.mutateAsync({
         content: content.trim() || null,
@@ -114,8 +129,8 @@ export function CreatePostDialog() {
         hashtags: hashtags.length > 0 ? hashtags : null,
       });
 
-      // Reset form immediately after successful submission
       resetForm();
+      toast.success('Post created successfully!');
     } catch (error) {
       console.error('Error creating post:', error);
       toast.error('Failed to create post. Please try again.');
