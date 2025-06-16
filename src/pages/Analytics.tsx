@@ -88,6 +88,13 @@ export default function Analytics() {
     </ResponsiveContainer>
   );
 
+  // Custom cell component for conditional coloring
+  const CustomBarCell = (props: any) => {
+    const { fill, payload } = props;
+    const color = payload.pnl >= 0 ? '#22c55e' : '#ef4444';
+    return <Bar {...props} fill={color} />;
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -208,7 +215,7 @@ export default function Analytics() {
                   <XAxis dataKey="date" />
                   <YAxis />
                   <Tooltip formatter={(value: any) => [`$${value.toFixed(2)}`, 'Daily P&L']} />
-                  <Bar dataKey="pnl" fill={(entry: any) => entry.pnl >= 0 ? '#22c55e' : '#ef4444'} />
+                  <Bar dataKey="pnl" shape={<CustomBarCell />} />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
