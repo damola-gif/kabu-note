@@ -24,6 +24,7 @@ export interface Post {
   profiles?: {
     username: string | null;
     avatar_url: string | null;
+    full_name: string | null;
   };
 }
 
@@ -47,14 +48,15 @@ export function usePosts() {
     queryFn: async () => {
       console.log('Fetching posts...');
       
-      // Fetch all posts with profile data
+      // Fetch all posts with complete profile data
       const { data, error } = await supabase
         .from('posts')
         .select(`
           *,
           profiles:user_id (
             username,
-            avatar_url
+            avatar_url,
+            full_name
           )
         `)
         .order('created_at', { ascending: false });
@@ -67,8 +69,8 @@ export function usePosts() {
       console.log('Fetched posts:', data);
       return data || [];
     },
-    refetchOnWindowFocus: true,
-    refetchInterval: 3000, // Reduced interval for more frequent updates
+    refetchOnWindowFocus: false,
+    refetchInterval: 5000,
   });
 
   // Set up real-time subscriptions with immediate query updates
@@ -122,7 +124,8 @@ export function useCreatePost() {
           *,
           profiles:user_id (
             username,
-            avatar_url
+            avatar_url,
+            full_name
           )
         `)
         .single();
@@ -142,8 +145,15 @@ export function useCreatePost() {
       // Snapshot the previous value
       const previousPosts = queryClient.getQueryData(['posts']);
 
-      // Optimistically update the cache
+      // Get current user profile info
       if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('username, avatar_url, full_name')
+          .eq('id', user.id)
+          .single();
+
+        // Optimistically update the cache
         const optimisticPost: Post = {
           id: `temp-${Date.now()}`,
           user_id: user.id,
@@ -161,9 +171,10 @@ export function useCreatePost() {
           shares_count: 0,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
-          profiles: {
-            username: user.user_metadata?.username || user.email?.split('@')[0] || 'User',
-            avatar_url: user.user_metadata?.avatar_url || null,
+          profiles: profile || {
+            username: user.email?.split('@')[0] || 'User',
+            avatar_url: null,
+            full_name: null,
           },
         };
 

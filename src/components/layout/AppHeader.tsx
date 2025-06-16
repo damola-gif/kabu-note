@@ -83,6 +83,10 @@ export function AppHeader({
     setTimeout(() => setShowResults(false), 200);
   };
 
+  const handleNotificationClick = () => {
+    navigate('/notifications');
+  };
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-black/90 backdrop-blur-md border-b border-orange-500/20">
       <div className="h-full max-w-screen-2xl mx-auto px-6">
@@ -213,6 +217,7 @@ export function AppHeader({
             <Button 
               variant="ghost" 
               size="icon"
+              onClick={handleNotificationClick}
               className="relative h-10 w-10 hover:bg-orange-500/10 hover:text-orange-400 transition-all duration-200 group"
             >
               <Bell className="h-5 w-5 text-orange-100/80 group-hover:text-orange-400" />

@@ -58,9 +58,22 @@ export function PostCard({ post }: PostCardProps) {
   };
 
   const handleProfileClick = () => {
-    if (original.profiles?.username) {
-      navigate(`/u/${original.profiles.username}`);
+    const username = original.profiles?.username;
+    if (username) {
+      navigate(`/u/${username}`);
     }
+  };
+
+  // Get display name - prefer full_name, then username, then fallback
+  const getDisplayName = (profile: any) => {
+    if (profile?.full_name) return profile.full_name;
+    if (profile?.username) return profile.username;
+    return 'Anonymous';
+  };
+
+  // Get username for handle display
+  const getUsername = (profile: any) => {
+    return profile?.username || 'anonymous';
   };
 
   // Render the media as before, but on original
@@ -140,10 +153,10 @@ export function PostCard({ post }: PostCardProps) {
             <Repeat className="h-4 w-4" />
             <Avatar className="h-6 w-6">
               <AvatarImage src={repostUserProfile?.avatar_url || ''} />
-              <AvatarFallback>{repostUserProfile?.username?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
+              <AvatarFallback>{getDisplayName(repostUserProfile)?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
             </Avatar>
             <span>
-              <span className="font-bold">{repostUserProfile?.username || 'User'}</span> reposted
+              <span className="font-bold">{getDisplayName(repostUserProfile)}</span> reposted
               <span className="mx-2">·</span>
               {formatDistanceToNow(new Date(repost.created_at), { addSuffix: true })}
             </span>
@@ -182,7 +195,7 @@ export function PostCard({ post }: PostCardProps) {
             <Avatar className="h-10 w-10">
               <AvatarImage src={original.profiles?.avatar_url || ''} />
               <AvatarFallback className="bg-muted">
-                {original.profiles?.username?.[0]?.toUpperCase() || 'U'}
+                {getDisplayName(original.profiles)?.[0]?.toUpperCase() || 'U'}
               </AvatarFallback>
             </Avatar>
           </div>
@@ -194,8 +207,13 @@ export function PostCard({ post }: PostCardProps) {
                 onClick={handleProfileClick}
                 className="font-bold text-sm hover:underline"
               >
-                {original.profiles?.username || 'Anonymous'}
+                {getDisplayName(original.profiles)}
               </button>
+              {original.profiles?.username && original.profiles?.full_name && (
+                <>
+                  <span className="text-muted-foreground text-sm">@{getUsername(original.profiles)}</span>
+                </>
+              )}
               <span className="text-muted-foreground text-sm">·</span>
               <span className="text-muted-foreground text-sm">
                 {formatDistanceToNow(new Date(original.created_at), { addSuffix: true })}
@@ -309,5 +327,3 @@ export function PostCard({ post }: PostCardProps) {
     </div>
   );
 }
-
-// This file is getting long! Consider asking me to refactor it into smaller pieces for maintainability.
