@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useSession } from '@/contexts/SessionProvider';
@@ -69,10 +68,10 @@ export function usePosts() {
       return data || [];
     },
     refetchOnWindowFocus: true,
-    refetchInterval: 5000, // Refetch every 5 seconds to ensure real-time updates
+    refetchInterval: 3000, // Reduced interval for more frequent updates
   });
 
-  // Set up real-time subscriptions
+  // Set up real-time subscriptions with immediate query updates
   useEffect(() => {
     console.log('Setting up real-time posts subscription');
 
@@ -87,7 +86,9 @@ export function usePosts() {
         },
         (payload) => {
           console.log('Posts change detected:', payload);
+          // Force immediate refetch
           queryClient.invalidateQueries({ queryKey: ['posts'] });
+          queryClient.refetchQueries({ queryKey: ['posts'] });
         }
       )
       .subscribe();
@@ -117,7 +118,13 @@ export function useCreatePost() {
           user_id: user.id,
           ...postData,
         })
-        .select()
+        .select(`
+          *,
+          profiles:user_id (
+            username,
+            avatar_url
+          )
+        `)
         .single();
 
       if (error) {
@@ -128,14 +135,62 @@ export function useCreatePost() {
       console.log('Post created successfully:', data);
       return data;
     },
-    onSuccess: () => {
-      // Immediately invalidate and refetch posts
+    onMutate: async (newPost) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['posts'] });
+
+      // Snapshot the previous value
+      const previousPosts = queryClient.getQueryData(['posts']);
+
+      // Optimistically update the cache
+      if (user) {
+        const optimisticPost: Post = {
+          id: `temp-${Date.now()}`,
+          user_id: user.id,
+          content: newPost.content || null,
+          post_type: newPost.post_type,
+          media_url: newPost.media_url || null,
+          media_type: newPost.media_type || null,
+          link_url: newPost.link_url || null,
+          link_title: newPost.link_title || null,
+          link_description: newPost.link_description || null,
+          link_image: newPost.link_image || null,
+          hashtags: newPost.hashtags || null,
+          likes_count: 0,
+          comments_count: 0,
+          shares_count: 0,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          profiles: {
+            username: user.user_metadata?.username || user.email?.split('@')[0] || 'User',
+            avatar_url: user.user_metadata?.avatar_url || null,
+          },
+        };
+
+        queryClient.setQueryData(['posts'], (old: Post[] | undefined) => {
+          return [optimisticPost, ...(old || [])];
+        });
+      }
+
+      return { previousPosts };
+    },
+    onSuccess: (data) => {
+      // Force immediate refetch to get the real data
       queryClient.invalidateQueries({ queryKey: ['posts'] });
+      queryClient.refetchQueries({ queryKey: ['posts'] });
       toast.success('Post created successfully!');
     },
-    onError: (error) => {
+    onError: (error, newPost, context) => {
+      // Rollback on error
+      if (context?.previousPosts) {
+        queryClient.setQueryData(['posts'], context.previousPosts);
+      }
       console.error('Error creating post:', error);
       toast.error('Failed to create post. Please try again.');
+    },
+    onSettled: () => {
+      // Always refetch after success or error
+      queryClient.invalidateQueries({ queryKey: ['posts'] });
     },
   });
 }

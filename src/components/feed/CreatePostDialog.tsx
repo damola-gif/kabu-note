@@ -62,6 +62,14 @@ export function CreatePostDialog() {
     }
   };
 
+  const resetForm = () => {
+    setContent('');
+    setLinkUrl('');
+    setMediaFile(null);
+    setPostType('text');
+    setOpen(false);
+  };
+
   const handleSubmit = async () => {
     if (!content.trim() && postType === 'text') {
       toast.error('Please enter some content');
@@ -106,15 +114,8 @@ export function CreatePostDialog() {
         hashtags: hashtags.length > 0 ? hashtags : null,
       });
 
-      // Reset form
-      setContent('');
-      setLinkUrl('');
-      setMediaFile(null);
-      setPostType('text');
-      setOpen(false);
-      
-      // Show success message
-      toast.success('Post created successfully!');
+      // Reset form immediately after successful submission
+      resetForm();
     } catch (error) {
       console.error('Error creating post:', error);
       toast.error('Failed to create post. Please try again.');

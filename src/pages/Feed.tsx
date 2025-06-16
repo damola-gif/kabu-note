@@ -97,16 +97,23 @@ export default function Feed() {
                   <div className="flex justify-center py-8">
                     <Loader2 className="h-6 w-6 animate-spin" />
                   </div>
+                ) : filteredPosts.length === 0 ? (
+                  <div className="text-center py-12 px-8">
+                    <h3 className="text-xl font-semibold mb-2">No posts yet</h3>
+                    <p className="text-muted-foreground mb-4">
+                      {activeHashtag 
+                        ? `No posts found with hashtag #${activeHashtag}`
+                        : searchTerm 
+                          ? `No posts found matching "${searchTerm}"`
+                          : 'Be the first to create a post!'
+                      }
+                    </p>
+                  </div>
                 ) : (
                   <div>
                     {filteredPosts.map((post) => (
-                      <PostCard key={`post-${post.id}`} post={post} />
+                      <PostCard key={post.id} post={post} />
                     ))}
-                    <FeedContent 
-                      searchTerm={searchTerm} 
-                      sortBy={sortBy} 
-                      activeHashtag={activeHashtag}
-                    />
                   </div>
                 )}
               </TabsContent>
