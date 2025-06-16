@@ -42,19 +42,30 @@ export function PostCard({ post }: PostCardProps) {
   const repostPost = useRepostPost();
   const deleteRepost = useDeleteRepost();
 
-  const handleLikeToggle = () => {
+  const handleLikeToggle = async () => {
     if (!user) return;
-    toggleLike.mutate({ postId: original.id, isLiked });
+    try {
+      await toggleLike.mutateAsync({ postId: original.id, isLiked });
+    } catch (error) {
+      console.error('Error toggling like:', error);
+    }
   };
 
   const handleRepostClick = () => {
+    if (!user || isPostOwner || hasReposted) return;
     setRepostOpen(true);
   };
 
-  const onConfirmRepost = (comment: string) => {
-    repostPost.mutate({ original_post_id: original.id, repost_comment: comment }, {
-      onSuccess: () => setRepostOpen(false),
-    });
+  const onConfirmRepost = async (comment: string) => {
+    try {
+      await repostPost.mutateAsync({ 
+        original_post_id: original.id, 
+        repost_comment: comment 
+      });
+      setRepostOpen(false);
+    } catch (error) {
+      console.error('Error creating repost:', error);
+    }
   };
 
   const handleProfileClick = () => {
@@ -62,6 +73,11 @@ export function PostCard({ post }: PostCardProps) {
     if (username) {
       navigate(`/u/${username}`);
     }
+  };
+
+  const handleCommentClick = () => {
+    // For now, just log - you can implement comment functionality later
+    console.log('Comment clicked for post:', original.id);
   };
 
   // Get display name - prefer full_name, then username, then fallback
@@ -278,6 +294,7 @@ export function PostCard({ post }: PostCardProps) {
               <Button
                 variant="ghost"
                 size="sm"
+                onClick={handleCommentClick}
                 className="hover:bg-blue-500/10 hover:text-blue-500 text-muted-foreground h-8 px-3"
                 disabled={!user}
               >
@@ -292,7 +309,7 @@ export function PostCard({ post }: PostCardProps) {
                 className={`hover:bg-red-500/10 hover:text-red-500 h-8 px-3 ${
                   isLiked ? 'text-red-500' : 'text-muted-foreground'
                 }`}
-                disabled={!user}
+                disabled={!user || toggleLike.isPending}
               >
                 <Heart className={`h-4 w-4 mr-2 ${isLiked ? 'fill-current' : ''}`} />
                 <span className="text-sm">{original.likes_count || 0}</span>
@@ -306,7 +323,7 @@ export function PostCard({ post }: PostCardProps) {
                 className={`hover:bg-green-500/10 hover:text-green-500 h-8 px-3 ${
                   hasReposted ? 'text-green-500' : 'text-muted-foreground'
                 }`}
-                disabled={!user || isPostOwner || hasReposted}
+                disabled={!user || isPostOwner || hasReposted || repostPost.isPending}
                 aria-label="Repost"
               >
                 <Share className="h-4 w-4" />

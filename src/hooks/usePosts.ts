@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useSession } from '@/contexts/SessionProvider';
@@ -70,7 +71,7 @@ export function usePosts() {
       return data || [];
     },
     refetchOnWindowFocus: false,
-    refetchInterval: 5000,
+    refetchInterval: 30000, // Reduced from 5000 to 30000 for better performance
   });
 
   // Set up real-time subscriptions with immediate query updates
@@ -90,7 +91,6 @@ export function usePosts() {
           console.log('Posts change detected:', payload);
           // Force immediate refetch
           queryClient.invalidateQueries({ queryKey: ['posts'] });
-          queryClient.refetchQueries({ queryKey: ['posts'] });
         }
       )
       .subscribe();
@@ -188,7 +188,6 @@ export function useCreatePost() {
     onSuccess: (data) => {
       // Force immediate refetch to get the real data
       queryClient.invalidateQueries({ queryKey: ['posts'] });
-      queryClient.refetchQueries({ queryKey: ['posts'] });
       toast.success('Post created successfully!');
     },
     onError: (error, newPost, context) => {
@@ -219,7 +218,10 @@ export function usePostLikes() {
         .select('post_id')
         .eq('user_id', user.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching liked posts:', error);
+        throw error;
+      }
       return data.map(like => like.post_id);
     },
     enabled: !!user,
@@ -234,6 +236,8 @@ export function useTogglePostLike() {
     mutationFn: async ({ postId, isLiked }: { postId: string; isLiked: boolean }) => {
       if (!user) throw new Error('User not authenticated');
 
+      console.log('Toggling like for post:', postId, 'isLiked:', isLiked);
+
       if (isLiked) {
         const { error } = await supabase
           .from('post_likes')
@@ -241,7 +245,10 @@ export function useTogglePostLike() {
           .eq('user_id', user.id)
           .eq('post_id', postId);
         
-        if (error) throw error;
+        if (error) {
+          console.error('Error unliking post:', error);
+          throw error;
+        }
       } else {
         const { error } = await supabase
           .from('post_likes')
@@ -250,14 +257,60 @@ export function useTogglePostLike() {
             post_id: postId,
           });
         
-        if (error) throw error;
+        if (error) {
+          console.error('Error liking post:', error);
+          throw error;
+        }
       }
     },
+    onMutate: async ({ postId, isLiked }) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['posts'] });
+      await queryClient.cancelQueries({ queryKey: ['post-likes'] });
+
+      // Snapshot the previous values
+      const previousPosts = queryClient.getQueryData(['posts']);
+      const previousLikes = queryClient.getQueryData(['post-likes', user?.id]);
+
+      // Optimistically update likes
+      queryClient.setQueryData(['post-likes', user?.id], (old: string[] | undefined) => {
+        const currentLikes = old || [];
+        if (isLiked) {
+          return currentLikes.filter(id => id !== postId);
+        } else {
+          return [...currentLikes, postId];
+        }
+      });
+
+      // Optimistically update post counts
+      queryClient.setQueryData(['posts'], (old: Post[] | undefined) => {
+        if (!old) return old;
+        return old.map(post => {
+          if (post.id === postId) {
+            return {
+              ...post,
+              likes_count: isLiked ? Math.max(0, post.likes_count - 1) : post.likes_count + 1
+            };
+          }
+          return post;
+        });
+      });
+
+      return { previousPosts, previousLikes };
+    },
     onSuccess: () => {
+      // Refresh data after successful mutation
       queryClient.invalidateQueries({ queryKey: ['posts'] });
       queryClient.invalidateQueries({ queryKey: ['post-likes'] });
     },
-    onError: (error) => {
+    onError: (error, variables, context) => {
+      // Rollback on error
+      if (context?.previousPosts) {
+        queryClient.setQueryData(['posts'], context.previousPosts);
+      }
+      if (context?.previousLikes) {
+        queryClient.setQueryData(['post-likes', user?.id], context.previousLikes);
+      }
       console.error('Error toggling like:', error);
       toast.error('Failed to update like. Please try again.');
     },
