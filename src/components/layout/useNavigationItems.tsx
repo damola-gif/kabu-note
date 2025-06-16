@@ -1,25 +1,45 @@
 
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useLocation } from 'react-router-dom';
+import { Home, BarChart, TrendingUp, Users, MessageSquare, Bell, User, Settings, FileText } from 'lucide-react';
 
 export function useNavigationItems() {
-  const isMobile = useIsMobile();
+  const location = useLocation();
 
-  const desktopItems = [
-    { name: "Dashboard", path: "/dashboard" },
-    { name: "Strategies", path: "/strategies" },
-    { name: "Feed", path: "/feed" },
-    { name: "Voting", path: "/following-strategies" },
-    { name: "Journal", path: "/journal" },
-    { name: "Rooms", path: "/rooms" },
+  return [
+    {
+      name: 'Home',
+      path: '/',
+      icon: Home,
+    },
+    {
+      name: 'Feed',
+      path: '/feed',
+      icon: MessageSquare,
+    },
+    {
+      name: 'Search', 
+      path: '/search',
+      icon: 'search' as any,
+    },
+    {
+      name: 'Analytics',
+      path: '/analytics',
+      icon: BarChart,
+    },
+    {
+      name: 'Strategies',
+      path: '/strategies',
+      icon: TrendingUp,
+    },
+    {
+      name: 'Journal',
+      path: '/journal',
+      icon: FileText,
+    },
+    {
+      name: 'Rooms',
+      path: '/rooms',
+      icon: Users,
+    }
   ];
-  
-  const mobileNavOrder = ["Dashboard", "Feed", "Voting", "Journal", "Rooms"];
-  
-  if (isMobile) {
-    const mobileItems = desktopItems.filter(item => item.name !== 'Strategies');
-    // The sort is to maintain a consistent order on mobile
-    return mobileItems.sort((a,b) => mobileNavOrder.indexOf(a.name) - mobileNavOrder.indexOf(b.name));
-  }
-  
-  return desktopItems;
 }

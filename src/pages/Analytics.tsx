@@ -9,8 +9,9 @@ import { Badge } from '@/components/ui/badge';
 import { useTrades } from '@/hooks/useTrades';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 import { CalendarIcon, TrendingUp, TrendingDown, DollarSign, Target, Activity } from 'lucide-react';
-import { format, startOfMonth, endOfMonth, parseISO } from 'date-fns';
+import { format, startOfMonth, endOfMonth, parseISO, startOfWeek, startOfQuarter, startOfYear } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { InteractiveCharts } from '@/components/analytics/InteractiveCharts';
 
 interface PerformanceChartProps {
   trades: any[];
@@ -18,14 +19,38 @@ interface PerformanceChartProps {
 
 export default function Analytics() {
   const [date, setDate] = useState<Date>(new Date());
+  const [timeRange, setTimeRange] = useState<'week' | 'month' | 'quarter' | 'year'>('month');
   const { data: allTrades = [], isLoading } = useTrades();
 
-  // Filter trades for the selected month
-  const filteredTrades = allTrades.filter(trade => {
-    if (!trade.closed_at) return false;
-    const tradeDate = parseISO(trade.closed_at);
-    return tradeDate >= startOfMonth(date) && tradeDate <= endOfMonth(date);
-  });
+  // Filter trades based on time range
+  const getFilteredTrades = () => {
+    const now = new Date();
+    let startDate: Date;
+    
+    switch (timeRange) {
+      case 'week':
+        startDate = startOfWeek(now);
+        break;
+      case 'quarter':
+        startDate = startOfQuarter(now);
+        break;
+      case 'year':
+        startDate = startOfYear(now);
+        break;
+      default:
+        startDate = startOfMonth(date);
+    }
+
+    const endDate = timeRange === 'month' ? endOfMonth(date) : now;
+
+    return allTrades.filter(trade => {
+      if (!trade.closed_at) return false;
+      const tradeDate = parseISO(trade.closed_at);
+      return tradeDate >= startDate && tradeDate <= endDate;
+    });
+  };
+
+  const filteredTrades = getFilteredTrades();
 
   // Calculate analytics
   const totalTrades = filteredTrades.length;
@@ -95,6 +120,19 @@ export default function Analytics() {
     return <Bar {...props} fill={color} />;
   };
 
+  const getTimeRangeLabel = () => {
+    switch (timeRange) {
+      case 'week':
+        return 'This Week';
+      case 'quarter':
+        return 'This Quarter';
+      case 'year':
+        return 'This Year';
+      default:
+        return format(date, 'MMMM yyyy');
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -109,26 +147,28 @@ export default function Analytics() {
         <div>
           <h1 className="text-3xl font-bold">Trading Analytics</h1>
           <p className="text-muted-foreground">
-            Performance insights for {format(date, 'MMMM yyyy')}
+            Performance insights for {getTimeRangeLabel()}
           </p>
         </div>
         
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="outline" className={cn("w-[240px] justify-start text-left font-normal")}>
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {format(date, 'MMMM yyyy')}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="end">
-            <Calendar
-              mode="single"
-              selected={date}
-              onSelect={(newDate) => newDate && setDate(newDate)}
-              initialFocus
-            />
-          </PopoverContent>
-        </Popover>
+        {timeRange === 'month' && (
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className={cn("w-[240px] justify-start text-left font-normal")}>
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {format(date, 'MMMM yyyy')}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="end">
+              <Calendar
+                mode="single"
+                selected={date}
+                onSelect={(newDate) => newDate && setDate(newDate)}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+        )}
       </div>
 
       {/* Key Metrics */}
@@ -184,6 +224,13 @@ export default function Analytics() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Interactive Charts */}
+      <InteractiveCharts 
+        trades={filteredTrades} 
+        timeRange={timeRange}
+        onTimeRangeChange={setTimeRange}
+      />
 
       <Tabs defaultValue="performance" className="space-y-4">
         <TabsList>
