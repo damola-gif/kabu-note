@@ -1,9 +1,13 @@
 
 import { useSession } from "@/contexts/SessionProvider";
 import { Navigate, Outlet } from "react-router-dom";
-import { AppShell } from "@/components/layout/AppShell";
+import { ReactNode } from "react";
 
-export const ProtectedRoute = () => {
+interface ProtectedRouteProps {
+  children?: ReactNode;
+}
+
+export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { session, loading } = useSession();
 
   if (loading) {
@@ -23,9 +27,6 @@ export const ProtectedRoute = () => {
     return <Outlet />;
   }
 
-  return (
-    <AppShell>
-      <Outlet />
-    </AppShell>
-  );
+  // If children are provided, render them, otherwise use Outlet
+  return children ? <>{children}</> : <Outlet />;
 };
