@@ -1,154 +1,110 @@
-import { useParams } from "react-router-dom";
-import { useUserProfile, useUserStats, useUserStrategies } from "@/hooks/useUserProfile";
-import { useFollowing, useFollowUser, useUnfollowUser } from "@/hooks/useProfile";
-import { useSession } from "@/contexts/SessionProvider";
+
+import { useState } from "react";
+import { useProfile } from "@/hooks/useProfile";
+import { useUserProfile } from "@/hooks/useUserProfile";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
-import { ProfileStats } from "@/components/profile/ProfileStats";
 import { ProfileTabs } from "@/components/profile/ProfileTabs";
-import { Card, CardContent } from "@/components/ui/card";
-import { AlertCircle } from "lucide-react";
-import { useQueryClient } from "@tanstack/react-query";
-import { AppShell } from "@/components/layout/AppShell";
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { ProfileStats } from "@/components/profile/ProfileStats";
+import { Skeleton } from "@/components/ui/skeleton";
+
+function LoadingSkeleton({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="max-w-6xl mx-auto">
+        <div className="border-x border-border min-h-screen">
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ErrorState({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="max-w-6xl mx-auto">
+        <div className="border-x border-border min-h-screen">
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ProfileLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="max-w-6xl mx-auto">
+        <div className="border-x border-border min-h-screen">
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function Profile() {
-  const { username } = useParams();
-  const { user } = useSession();
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  
-  // If no username in URL and user is logged in, redirect to their profile
-  useEffect(() => {
-    if (!username && user) {
-      // We need to get the user's username from their profile
-      const fetchAndRedirect = async () => {
-        try {
-          const { data: profile, error } = await supabase
-            .from('profiles')
-            .select('username')
-            .eq('id', user.id)
-            .single();
-          
-          if (error) {
-            // console.error('Error fetching user profile:', error);
-            return;
-          }
-          
-          if (profile?.username) {
-            navigate(`/u/${profile.username}`, { replace: true });
-          }
-        } catch (error) {
-          // console.error('Error fetching user profile:', error);
-        }
-      };
-      
-      fetchAndRedirect();
-    }
-  }, [username, user, navigate, queryClient]);
-  
-  // console.log("Profile page - URL username:", username);
-  // console.log("Profile page - current user:", user?.id);
-  
-  const { data: profile, isLoading: isProfileLoading, error: profileError } = useUserProfile(username || '');
-  const { data: stats, isLoading: isStatsLoading } = useUserStats(profile?.id || '');
-  const { data: strategies, isLoading: isStrategiesLoading } = useUserStrategies(profile?.id || '');
-  const { data: followingIds } = useFollowing();
-  
-  // console.log("Profile data:", profile);
-  // console.log("Profile error:", profileError);
-  // console.log("Is loading:", isProfileLoading);
-  
-  const followMutation = useFollowUser();
-  const unfollowMutation = useUnfollowUser();
-  
-  const isOwnProfile = user?.id === profile?.id;
-  const isFollowing = !!(profile?.id && followingIds?.includes(profile.id));
-  
-  const handleFollowToggle = () => {
-    if (!profile?.id) {
-      // console.error('Profile ID is missing');
-      return;
-    }
-    
-    if (isFollowing) {
-      unfollowMutation.mutate(profile.id, {
-        onSuccess: () => {
-          // Invalidate the user stats to update follower count
-          queryClient.invalidateQueries({ queryKey: ["userStats", profile.id] });
-        },
-        onError: (error) => {
-          // console.error('Error unfollowing user:', error);
-        }
-      });
-    } else {
-      followMutation.mutate(profile.id, {
-        onSuccess: () => {
-          // Invalidate the user stats to update follower count
-          queryClient.invalidateQueries({ queryKey: ["userStats", profile.id] });
-        },
-        onError: (error) => {
-          // console.error('Error following user:', error);
-        }
-      });
-    }
-  };
+  const [activeTab, setActiveTab] = useState("overview");
+  const { data: profile, isLoading: profileLoading } = useProfile();
+  const { data: userProfile, isLoading: userProfileLoading } = useUserProfile();
 
-  if (isProfileLoading) {
+  if (profileLoading || userProfileLoading) {
     return (
-      <AppShell>
-        <div className="flex items-center justify-center h-64">
-          <div className="text-lg">Loading profile...</div>
+      <LoadingSkeleton>
+        <div className="p-6 space-y-6">
+          <div className="space-y-4">
+            <Skeleton className="h-32 w-full" />
+            <Skeleton className="h-8 w-64" />
+            <Skeleton className="h-4 w-96" />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <Skeleton className="h-24" />
+            <Skeleton className="h-24" />
+            <Skeleton className="h-24" />
+          </div>
+          <Skeleton className="h-64 w-full" />
         </div>
-      </AppShell>
+      </LoadingSkeleton>
     );
   }
 
-  if (profileError || !profile) {
+  if (!profile) {
     return (
-      <AppShell>
-        <div className="flex items-center justify-center h-64">
-          <Card className="max-w-md">
-            <CardContent className="pt-6 text-center">
-              <AlertCircle className="h-12 w-12 mx-auto text-destructive mb-4" />
-              <h2 className="text-xl font-semibold mb-2">User Not Found</h2>
-              <p className="text-muted-foreground">
-                The user "@{username}" doesn't exist or their profile is not available.
-              </p>
-            </CardContent>
-          </Card>
+      <ErrorState>
+        <div className="p-6">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-foreground mb-4">Profile Not Found</h1>
+            <p className="text-muted-foreground">Unable to load your profile information.</p>
+          </div>
         </div>
-      </AppShell>
+      </ErrorState>
     );
   }
 
   return (
-    <AppShell>
-      <div className="max-w-4xl mx-auto space-y-6">
-        <ProfileHeader
-          profile={profile}
-          isOwnProfile={isOwnProfile}
-          isFollowing={isFollowing}
-          onFollowToggle={handleFollowToggle}
-          isFollowLoading={followMutation.isPending || unfollowMutation.isPending}
-        />
-        {stats && (
-          <ProfileStats
-            stats={stats}
-            isLoading={isStatsLoading}
-          />
-        )}
-        <ProfileTabs
-          strategies={strategies || []}
-          isStrategiesLoading={isStrategiesLoading}
-          profile={profile}
-          stats={{
-            followersCount: stats?.followersCount || 0,
-            followingCount: stats?.followingCount || 0,
-          }}
-        />
+    <ProfileLayout>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-md border-b border-border">
+          <div className="px-6 py-4">
+            <h1 className="text-xl font-bold">Profile</h1>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="px-6 pb-6">
+          <div className="space-y-6">
+            <ProfileHeader profile={profile} userProfile={userProfile} />
+            <ProfileStats profile={profile} />
+            <ProfileTabs 
+              activeTab={activeTab} 
+              onTabChange={setActiveTab}
+              profile={profile}
+              userProfile={userProfile}
+            />
+          </div>
+        </div>
       </div>
-    </AppShell>
+    </ProfileLayout>
   );
 }
