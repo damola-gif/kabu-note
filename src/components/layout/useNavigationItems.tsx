@@ -17,16 +17,6 @@ export function useNavigationItems() {
       icon: MessageSquare,
     },
     {
-      name: 'Search', 
-      path: '/search',
-      icon: 'search' as any,
-    },
-    {
-      name: 'Analytics',
-      path: '/analytics',
-      icon: BarChart,
-    },
-    {
       name: 'Strategies',
       path: '/strategies',
       icon: TrendingUp,

@@ -21,9 +21,7 @@ import Onboarding from './pages/Onboarding';
 import Auth from './pages/Auth';
 import Index from './pages/Index';
 import NotFound from './pages/NotFound';
-import Analytics from './pages/Analytics';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
-import Search from './pages/Search';
 
 const queryClient = new QueryClient();
 
@@ -42,8 +40,6 @@ function App() {
               <Route element={<AppShell />}>
                 <Route index element={<Dashboard />} />
                 <Route path="/feed" element={<Feed />} />
-                <Route path="/search" element={<Search />} />
-                <Route path="/analytics" element={<Analytics />} />
                 <Route path="/strategies" element={<Strategies />} />
                 <Route path="/strategies/:id" element={<StrategyPage />} />
                 <Route path="/following-strategies" element={<FollowingStrategies />} />

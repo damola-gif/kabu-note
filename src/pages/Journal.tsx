@@ -98,6 +98,28 @@ export default function Journal() {
     );
   };
 
+  // Helper handlers for trade actions
+  const handleEditClick = (trade: Tables<'trades'>) => {
+    setSelectedTrade(trade);
+    setIsEditTradeDialogOpen(true);
+  };
+
+  const handleCloseClick = (trade: Tables<'trades'>) => {
+    setSelectedTrade(trade);
+    setIsCloseTradeDialogOpen(true);
+  };
+
+  const handleViewDetailsClick = (trade: Tables<'trades'>) => {
+    setSelectedTrade(trade);
+    setIsTradeDetailsSheetOpen(true);
+  };
+
+  const handleDeleteTrade = (tradeId: string) => {
+    if (confirm("Are you sure you want to delete this trade?")) {
+      deleteMutation.mutate(tradeId);
+    }
+  };
+
   // Main content tabs: Journals or Trades
   const [tab, setTab] = useState<'journal' | 'trades'>('journal');
 
@@ -170,7 +192,7 @@ export default function Journal() {
                 deleteMutation={deleteMutation}
                 isDeleting={deleteMutation.isPending}
                 handleEditClick={handleEditClick}
-                handleDelete={(tradeId) => deleteMutation.mutate(tradeId)}
+                handleDelete={handleDeleteTrade}
                 handleViewDetailsClick={handleViewDetailsClick}
                 handleCloseClick={handleCloseClick}
                 panelRadius={panelRadius}
@@ -200,8 +222,3 @@ export default function Journal() {
     </div>
   );
 }
-
-// helper handlers
-function handleEditClick(trade: Tables<'trades'>) {}
-function handleCloseClick(trade: Tables<'trades'>) {}
-function handleViewDetailsClick(trade: Tables<'trades'>) {}

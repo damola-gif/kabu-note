@@ -1,3 +1,4 @@
+
 import { useTrades } from "@/hooks/useTrades";
 import { useStrategies } from "@/hooks/useStrategies";
 import { useMemo, useState } from "react";
@@ -16,6 +17,8 @@ import { TradeDetailsSheet } from "@/components/trade/TradeDetailsSheet";
 import { useDeleteTrade } from "@/hooks/useTrades";
 import { Tables } from "@/integrations/supabase/types";
 import { toast } from "sonner";
+import { InteractiveCharts } from '@/components/analytics/InteractiveCharts';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const DashboardSkeleton = () => (
   <div className="space-y-6">
@@ -37,6 +40,7 @@ export default function Dashboard() {
   const { data: trades, isLoading: tradesLoading } = useTrades();
   const { data: strategiesData, isLoading: strategiesLoading } = useStrategies();
   const deleteTradeMutation = useDeleteTrade();
+  const [timeRange, setTimeRange] = useState<'week' | 'month' | 'quarter' | 'year'>('month');
 
   const [editingTrade, setEditingTrade] = useState<Tables<"trades"> | null>(null);
   const [closingTrade, setClosingTrade] = useState<Tables<"trades"> | null>(null);
@@ -169,29 +173,48 @@ export default function Dashboard() {
               />
             </div>
 
-            {/* Performance Chart */}
-            <PerformanceChart trades={trades || []} />
+            {/* Analytics and Performance Tabs */}
+            <Tabs defaultValue="overview" className="space-y-4">
+              <TabsList>
+                <TabsTrigger value="overview">Overview</TabsTrigger>
+                <TabsTrigger value="analytics">Analytics</TabsTrigger>
+              </TabsList>
 
-            {/* Two Column Layout */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Left Column */}
-              <div className="space-y-6">
-                <OpenTrades 
-                  trades={stats.openTrades}
-                  onEdit={handleEditTrade}
-                  onClose={handleCloseTrade}
-                  onDelete={handleDeleteTrade}
-                  onViewDetails={handleViewDetails}
-                  isDeleting={deleteTradeMutation.isPending}
+              <TabsContent value="overview" className="space-y-6">
+                {/* Performance Chart */}
+                <PerformanceChart trades={trades || []} />
+
+                {/* Two Column Layout */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Left Column */}
+                  <div className="space-y-6">
+                    <OpenTrades 
+                      trades={stats.openTrades}
+                      onEdit={handleEditTrade}
+                      onClose={handleCloseTrade}
+                      onDelete={handleDeleteTrade}
+                      onViewDetails={handleViewDetails}
+                      isDeleting={deleteTradeMutation.isPending}
+                    />
+                    <DraftStrategies strategies={strategies} />
+                  </div>
+                  
+                  {/* Right Column */}
+                  <div className="space-y-6">
+                    <RecentActivity strategies={strategies} />
+                  </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="analytics" className="space-y-6">
+                {/* Interactive Charts */}
+                <InteractiveCharts 
+                  trades={trades || []} 
+                  timeRange={timeRange}
+                  onTimeRangeChange={setTimeRange}
                 />
-                <DraftStrategies strategies={strategies} />
-              </div>
-              
-              {/* Right Column */}
-              <div className="space-y-6">
-                <RecentActivity strategies={strategies} />
-              </div>
-            </div>
+              </TabsContent>
+            </Tabs>
           </div>
         </div>
       </div>
