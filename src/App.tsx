@@ -37,22 +37,25 @@ function App() {
             {/* Public routes */}
             <Route path="/auth" element={<Auth />} />
             
-            {/* Protected routes */}
-            <Route element={<ProtectedRoute><AppShell /></ProtectedRoute>}>
-              <Route index element={<Dashboard />} />
-              <Route path="/feed" element={<Feed />} />
-              <Route path="/search" element={<Search />} />
-              <Route path="/analytics" element={<Analytics />} />
-              <Route path="/strategies" element={<Strategies />} />
-              <Route path="/strategies/:id" element={<StrategyPage />} />
-              <Route path="/following-strategies" element={<FollowingStrategies />} />
-              <Route path="/journal" element={<Journal />} />
-              <Route path="/rooms" element={<Rooms />} />
-              <Route path="/rooms/:id" element={<RoomPage />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/u/:username" element={<PublicProfile />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/notifications" element={<Notifications />} />
+            {/* Protected routes with AppShell */}
+            <Route element={<ProtectedRoute />}>
+              <Route element={<AppShell />}>
+                <Route index element={<Dashboard />} />
+                <Route path="/feed" element={<Feed />} />
+                <Route path="/search" element={<Search />} />
+                <Route path="/analytics" element={<Analytics />} />
+                <Route path="/strategies" element={<Strategies />} />
+                <Route path="/strategies/:id" element={<StrategyPage />} />
+                <Route path="/following-strategies" element={<FollowingStrategies />} />
+                <Route path="/journal" element={<Journal />} />
+                <Route path="/rooms" element={<Rooms />} />
+                <Route path="/rooms/:id" element={<RoomPage />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/u/:username" element={<PublicProfile />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/notifications" element={<Notifications />} />
+              </Route>
+              {/* Onboarding is special - no AppShell */}
               <Route path="/onboarding" element={<Onboarding />} />
             </Route>
             

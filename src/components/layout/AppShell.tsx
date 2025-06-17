@@ -1,5 +1,5 @@
 
-import { useLocation } from "react-router-dom";
+import { useLocation, Outlet } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { MobileNavigation } from "@/components/MobileNavigation";
@@ -8,7 +8,7 @@ import { AppHeader } from "./AppHeader";
 import { MobileMenu } from "./MobileMenu";
 import { useNavigationItems } from "./useNavigationItems";
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+export function AppShell() {
   const location = useLocation();
   const isMobile = useIsMobile();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -41,7 +41,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         )}
       >
         <div className="max-w-screen-2xl mx-auto w-full px-6 py-8">
-          {children}
+          <Outlet />
         </div>
       </main>
 
