@@ -1,9 +1,10 @@
 
 import { useParams } from "react-router-dom";
-import { useUserProfile, useUserStats } from "@/hooks/useUserProfile";
+import { useUserProfile, useUserStats, useUserStrategies } from "@/hooks/useUserProfile";
 import { useFollowing, useFollowUser, useUnfollowUser } from "@/hooks/useProfile";
 import { PublicProfileHeader } from "@/components/profile/PublicProfileHeader";
 import { ProfileStats } from "@/components/profile/ProfileStats";
+import { ProfileTabs } from "@/components/profile/ProfileTabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSession } from "@/contexts/SessionProvider";
 
@@ -48,6 +49,7 @@ export default function PublicProfile() {
   const { user } = useSession();
   const { data: userProfile, isLoading } = useUserProfile(username || '');
   const { data: stats, isLoading: statsLoading } = useUserStats(userProfile?.id || '');
+  const { data: strategies, isLoading: strategiesLoading } = useUserStrategies(userProfile?.id || '');
   const { data: following } = useFollowing();
   const followUser = useFollowUser();
   const unfollowUser = useUnfollowUser();
@@ -125,6 +127,15 @@ export default function PublicProfile() {
                 isLoading={false}
               />
             )}
+            <ProfileTabs 
+              strategies={strategies || []}
+              isStrategiesLoading={strategiesLoading}
+              profile={userProfile}
+              stats={{
+                followersCount: stats?.followersCount || 0,
+                followingCount: stats?.followingCount || 0,
+              }}
+            />
           </div>
         </div>
       </div>

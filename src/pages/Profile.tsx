@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { useProfile } from "@/hooks/useProfile";
-import { useUserProfile, useUserStats } from "@/hooks/useUserProfile";
+import { useUserProfile, useUserStats, useUserStrategies } from "@/hooks/useUserProfile";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { ProfileTabs } from "@/components/profile/ProfileTabs";
 import { ProfileStats } from "@/components/profile/ProfileStats";
@@ -50,6 +50,7 @@ export default function Profile() {
   const { data: profile, isLoading: profileLoading } = useProfile();
   const { data: userProfile, isLoading: userProfileLoading } = useUserProfile(profile?.username || '');
   const { data: stats, isLoading: statsLoading } = useUserStats(profile?.id || '');
+  const { data: strategies, isLoading: strategiesLoading } = useUserStrategies(profile?.id || '');
 
   if (profileLoading || userProfileLoading || statsLoading) {
     return (
@@ -108,8 +109,13 @@ export default function Profile() {
               />
             )}
             <ProfileTabs 
-              userId={profile.id}
-              username={profile.username || ''}
+              strategies={strategies || []}
+              isStrategiesLoading={strategiesLoading}
+              profile={profile}
+              stats={{
+                followersCount: stats?.followersCount || 0,
+                followingCount: stats?.followingCount || 0,
+              }}
             />
           </div>
         </div>
