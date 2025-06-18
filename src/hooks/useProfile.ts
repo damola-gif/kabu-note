@@ -1,8 +1,35 @@
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/contexts/SessionProvider";
 import { toast } from "sonner";
+
+export function useProfile() {
+  const { user } = useSession();
+  
+  return useQuery({
+    queryKey: ["profile", user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (error) {
+        if (error.code === 'PGRST116') {
+          return null; // Profile not found
+        }
+        throw error;
+      }
+
+      return profile;
+    },
+    enabled: !!user,
+  });
+}
 
 export function useFollowing() {
   const { user } = useSession();

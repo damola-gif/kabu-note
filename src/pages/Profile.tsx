@@ -1,11 +1,12 @@
 
 import { useState } from "react";
 import { useProfile } from "@/hooks/useProfile";
-import { useUserProfile } from "@/hooks/useUserProfile";
+import { useUserProfile, useUserStats } from "@/hooks/useUserProfile";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { ProfileTabs } from "@/components/profile/ProfileTabs";
 import { ProfileStats } from "@/components/profile/ProfileStats";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useSession } from "@/contexts/SessionProvider";
 
 function LoadingSkeleton({ children }: { children: React.ReactNode }) {
   return (
@@ -45,10 +46,12 @@ function ProfileLayout({ children }: { children: React.ReactNode }) {
 
 export default function Profile() {
   const [activeTab, setActiveTab] = useState("overview");
+  const { user } = useSession();
   const { data: profile, isLoading: profileLoading } = useProfile();
-  const { data: userProfile, isLoading: userProfileLoading } = useUserProfile();
+  const { data: userProfile, isLoading: userProfileLoading } = useUserProfile(profile?.username || '');
+  const { data: stats, isLoading: statsLoading } = useUserStats(profile?.id || '');
 
-  if (profileLoading || userProfileLoading) {
+  if (profileLoading || userProfileLoading || statsLoading) {
     return (
       <LoadingSkeleton>
         <div className="p-6 space-y-6">
@@ -94,13 +97,19 @@ export default function Profile() {
         {/* Content */}
         <div className="px-6 pb-6">
           <div className="space-y-6">
-            <ProfileHeader profile={profile} userProfile={userProfile} />
-            <ProfileStats profile={profile} />
+            <ProfileHeader 
+              profile={profile} 
+              isOwnProfile={true}
+            />
+            {stats && (
+              <ProfileStats 
+                stats={stats}
+                isLoading={false}
+              />
+            )}
             <ProfileTabs 
-              activeTab={activeTab} 
-              onTabChange={setActiveTab}
-              profile={profile}
-              userProfile={userProfile}
+              userId={profile.id}
+              username={profile.username || ''}
             />
           </div>
         </div>

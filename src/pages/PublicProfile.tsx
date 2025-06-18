@@ -1,9 +1,11 @@
 
 import { useParams } from "react-router-dom";
-import { useUserProfile } from "@/hooks/useUserProfile";
+import { useUserProfile, useUserStats } from "@/hooks/useUserProfile";
+import { useFollowing, useFollowUser, useUnfollowUser } from "@/hooks/useProfile";
 import { PublicProfileHeader } from "@/components/profile/PublicProfileHeader";
 import { ProfileStats } from "@/components/profile/ProfileStats";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useSession } from "@/contexts/SessionProvider";
 
 function LoadingSkeleton({ children }: { children: React.ReactNode }) {
   return (
@@ -43,9 +45,28 @@ function PublicProfileLayout({ children }: { children: React.ReactNode }) {
 
 export default function PublicProfile() {
   const { username } = useParams<{ username: string }>();
-  const { data: userProfile, isLoading } = useUserProfile(username);
+  const { user } = useSession();
+  const { data: userProfile, isLoading } = useUserProfile(username || '');
+  const { data: stats, isLoading: statsLoading } = useUserStats(userProfile?.id || '');
+  const { data: following } = useFollowing();
+  const followUser = useFollowUser();
+  const unfollowUser = useUnfollowUser();
 
-  if (isLoading) {
+  const isFollowing = following?.includes(userProfile?.id || '') || false;
+  const canFollow = user && userProfile && user.id !== userProfile.id;
+  const isFollowLoading = followUser.isPending || unfollowUser.isPending;
+
+  const handleFollowToggle = () => {
+    if (!userProfile) return;
+    
+    if (isFollowing) {
+      unfollowUser.mutate(userProfile.id);
+    } else {
+      followUser.mutate(userProfile.id);
+    }
+  };
+
+  if (isLoading || statsLoading) {
     return (
       <LoadingSkeleton>
         <div className="p-6 space-y-6">
@@ -91,8 +112,19 @@ export default function PublicProfile() {
         {/* Content */}
         <div className="px-6 pb-6">
           <div className="space-y-6">
-            <PublicProfileHeader userProfile={userProfile} />
-            <ProfileStats profile={userProfile} />
+            <PublicProfileHeader 
+              profile={userProfile}
+              isFollowing={isFollowing}
+              onFollowToggle={handleFollowToggle}
+              isFollowLoading={isFollowLoading}
+              canFollow={canFollow || false}
+            />
+            {stats && (
+              <ProfileStats 
+                stats={stats}
+                isLoading={false}
+              />
+            )}
           </div>
         </div>
       </div>
