@@ -8,7 +8,7 @@ export function useNavigationItems() {
   return [
     {
       name: 'Home',
-      path: '/',
+      path: '/home',
       icon: Home,
     },
     {

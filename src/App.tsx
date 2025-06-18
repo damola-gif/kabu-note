@@ -39,6 +39,7 @@ function App() {
             <Route element={<ProtectedRoute />}>
               <Route element={<AppShell />}>
                 <Route index element={<Dashboard />} />
+                <Route path="/home" element={<Dashboard />} />
                 <Route path="/feed" element={<Feed />} />
                 <Route path="/strategies" element={<Strategies />} />
                 <Route path="/strategies/:id" element={<StrategyPage />} />

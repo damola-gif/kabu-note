@@ -9,7 +9,7 @@ export function MobileNavigation() {
   const mobileNavItems = [
     {
       title: "Home",
-      url: "/dashboard",
+      url: "/home",
       icon: Home,
     },
     {

@@ -22,7 +22,7 @@ const Index = () => {
   }
 
   if (session) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/home" replace />;
   }
 
   return (

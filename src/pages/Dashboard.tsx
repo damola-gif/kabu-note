@@ -109,17 +109,9 @@ export default function Dashboard() {
     },
   });
 
-  const handleCreateTrade = (values: Omit<Tables<"trades">, "id">) => {
-    createTrade.mutate(values);
-  };
-
   const handleEditTrade = (trade: Tables<"trades">) => {
     setSelectedTrade(trade);
     setIsEditTradeOpen(true);
-  };
-
-  const handleUpdateTrade = (values: Tables<"trades">) => {
-    updateTrade.mutate(values);
   };
 
   const handleCloseTrade = (trade: Tables<"trades">) => {
@@ -165,14 +157,12 @@ export default function Dashboard() {
       <NewTradeDialog
         open={isNewTradeOpen}
         onOpenChange={setIsNewTradeOpen}
-        onSubmit={handleCreateTrade}
       />
 
       {/* Edit Trade Dialog */}
       <EditTradeDialog
         open={isEditTradeOpen}
         onOpenChange={setIsEditTradeOpen}
-        onSubmit={handleUpdateTrade}
         trade={selectedTrade}
       />
     </>

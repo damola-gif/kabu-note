@@ -14,15 +14,11 @@ import { useTwelveData } from "@/contexts/TwelveDataProvider";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, Plus, BookOpen, UploadCloud, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import clsx from "clsx";
 import { useSession } from "@/contexts/SessionProvider";
 import { useStrategies, useUpdateStrategy } from "@/hooks/useStrategies";
 import { toast } from "@/hooks/use-toast";
 import { ImageEditor } from "@/components/common/ImageEditor";
 import { StrategyEditorDialog } from "@/components/strategy/StrategyEditorDialog";
-import { JournalTabsHeader } from "@/components/journal/JournalTabsHeader";
-import { JournalEntriesList } from "@/components/journal/JournalEntriesList";
-import { JournalTradesSection } from "@/components/journal/JournalTradesSection";
 
 export default function Journal() {
   const [isNewTradeDialogOpen, setIsNewTradeDialogOpen] = useState(false);
@@ -65,15 +61,6 @@ export default function Journal() {
     }) ?? [];
 
   const hasOpenTrades = filteredTrades.some(trade => !trade.closed_at);
-
-  // Styling tokens
-  const cardBg = "bg-[#23202a] bg-opacity-90 border-none shadow-lg";
-  const strongAccentColor = "text-orange-400";
-  const fadedText = "text-zinc-400";
-  const panelRadius = "rounded-xl";
-  const buttonPrimary = "bg-gradient-to-tr from-orange-500 via-orange-400 to-yellow-400 text-white font-bold shadow-orange-500/30 hover:from-orange-400 hover:to-yellow-200";
-  const buttonOutline = "border-orange-400 text-orange-400 hover:bg-orange-500/10";
-  const tabBg = "bg-gradient-to-br from-[#19141c] via-[#191920] to-[#16111b]";
 
   // Journal (draft strategy) publishing
   const handlePublishStrategy = (strategy) => {
@@ -124,83 +111,189 @@ export default function Journal() {
   const [tab, setTab] = useState<'journal' | 'trades'>('journal');
 
   return (
-    <div className={clsx("min-h-screen w-full", tabBg, "pb-8")}>
+    <div className="min-h-screen w-full bg-gray-50 pb-8">
       <div className="max-w-5xl mx-auto">
-        <div className={clsx("min-h-screen border-x", cardBg, panelRadius, "border-orange-600/30")}>
+        <div className="min-h-screen bg-white shadow-sm rounded-lg">
           {/* Header */}
-          <JournalTabsHeader
-            tab={tab}
-            setTab={setTab}
-            onNewTrade={() => setIsNewTradeDialogOpen(true)}
-            onNewJournal={() => setEditingJournal("NEW")}
-            cardBg={cardBg}
-            panelRadius={panelRadius}
-            fadedText={fadedText}
-            strongAccentColor={strongAccentColor}
-            buttonPrimary={buttonPrimary}
-          />
+          <div className="sticky top-0 z-20 bg-white border-b border-gray-200 rounded-t-lg">
+            <div className="px-8 py-6 flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">Trading Journal</h1>
+                <p className="text-gray-600 mt-1">Track, analyze, and own your trading performance</p>
+              </div>
+              <Button 
+                onClick={() => setIsNewTradeDialogOpen(true)}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+                size="lg"
+              >
+                <Plus className="h-5 w-5 mr-2" />
+                New Trade
+              </Button>
+            </div>
+            <div className="flex px-8 pb-3 gap-2">
+              <button
+                onClick={() => setTab('journal')}
+                className={`py-2 px-6 rounded-t-lg font-medium focus:outline-none transition border-b-2 ${
+                  tab === 'journal'
+                    ? "border-blue-500 text-blue-600 bg-blue-50"
+                    : "border-transparent text-gray-500 hover:text-blue-600 hover:bg-gray-50"
+                }`}
+              >
+                Journals
+              </button>
+              <button
+                onClick={() => setTab('trades')}
+                className={`py-2 px-6 rounded-t-lg font-medium focus:outline-none transition border-b-2 ${
+                  tab === 'trades'
+                    ? "border-blue-500 text-blue-600 bg-blue-50"
+                    : "border-transparent text-gray-500 hover:text-blue-600 hover:bg-gray-50"
+                }`}
+              >
+                Trades
+              </button>
+            </div>
+          </div>
+
           {/* Content */}
           <div className="px-8 py-8">
             {!isConnected && hasOpenTrades && (
-              <Alert variant="destructive" className="mb-7 rounded-lg bg-[#2b2020] border-orange-400/40 text-orange-200">
-                <AlertCircle className="h-5 w-5 text-orange-400" />
-                <AlertTitle className={clsx(strongAccentColor)}>Live Feed Disconnected</AlertTitle>
+              <Alert variant="destructive" className="mb-6">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Live Feed Disconnected</AlertTitle>
                 <AlertDescription>
-                  Could not connect to the real-time price feed from Twelve Data. Live P&L updates for open trades will not be available.<br />
-                  <span className={clsx("text-orange-300")}>Check your API key or network connection.</span>
+                  Could not connect to the real-time price feed from Twelve Data. Live P&L updates for open trades will not be available.
                 </AlertDescription>
               </Alert>
             )}
+
             {tab === 'journal' && (
               <div>
                 <div className="mb-6">
-                  <h2 className={clsx("text-lg font-semibold", strongAccentColor)}>
+                  <h2 className="text-lg font-semibold text-gray-900 mb-2">
                     Your Private Journals
                   </h2>
-                  <p className={fadedText + " text-sm mb-4"}>
+                  <p className="text-gray-600 text-sm mb-4">
                     Only you can view and edit your journals. Submit one to promote it as a strategy for voting.
                   </p>
                   <Button
-                    className={clsx(buttonPrimary, "mb-2")}
                     onClick={() => setEditingJournal("NEW")}
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
                   >
-                    <BookOpen className="w-4 h-4 mr-1" /> New Journal Entry
+                    <BookOpen className="w-4 h-4 mr-2" /> New Journal Entry
                   </Button>
                 </div>
-                <JournalEntriesList
-                  ownDraftStrategies={ownDraftStrategies}
-                  strategiesLoading={strategiesLoading}
-                  editingJournal={editingJournal}
-                  setEditingJournal={setEditingJournal}
-                  handlePublishStrategy={handlePublishStrategy}
-                  fadedText={fadedText}
-                  cardBg={cardBg}
-                  panelRadius={panelRadius}
-                  strongAccentColor={strongAccentColor}
-                  buttonOutline={buttonOutline}
-                  buttonPrimary={buttonPrimary}
-                />
+
+                {/* Journal Entries List */}
+                {strategiesLoading ? (
+                  <div className="flex items-center justify-center py-16">
+                    <div className="text-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-3"></div>
+                      <p className="text-gray-600">Loading your journals...</p>
+                    </div>
+                  </div>
+                ) : !ownDraftStrategies.length ? (
+                  <div className="text-center py-12 bg-gray-50 rounded-lg">
+                    <BookOpen className="mx-auto mb-3 h-8 w-8 text-gray-400" />
+                    <h3 className="text-xl font-semibold mb-2 text-gray-900">No Journals Yet</h3>
+                    <p className="text-gray-600">Your personal trading journals will appear here. Create a new one or start from your trades!</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {ownDraftStrategies.map((strategy) => (
+                      <div
+                        key={strategy.id}
+                        className="bg-white border border-gray-200 rounded-lg p-5 hover:shadow-md transition-shadow"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <div>
+                            <span className="font-semibold text-lg text-gray-900">
+                              {strategy.name || "Untitled Journal"}
+                            </span>
+                            {strategy.voting_status === 'pending' && (
+                              <span className="ml-2 px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs font-medium">
+                                In Voting
+                              </span>
+                            )}
+                            {!strategy.is_public && !strategy.voting_status && (
+                              <span className="ml-2 px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs">
+                                Draft
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex gap-2">
+                            <Button variant="outline" size="sm"
+                              onClick={() => setEditingJournal(strategy.id)}
+                            >Edit</Button>
+                            {!strategy.is_public && (!strategy.voting_status || strategy.voting_status === 'rejected') && (
+                              <Button
+                                onClick={() => handlePublishStrategy(strategy)}
+                                className="bg-blue-600 hover:bg-blue-700 text-white"
+                                size="sm"
+                              >
+                                <UploadCloud className="h-4 w-4 mr-1" />
+                                Submit for Voting
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                        
+                        {strategy.image_path && (
+                          <div className="mb-3">
+                            <ImageEditor
+                              imageUrl={
+                                strategy.image_path.startsWith("http")
+                                  ? strategy.image_path
+                                  : `https://nprkhqxhvergyikusvbc.supabase.co/storage/v1/object/public/strategy_images/${strategy.image_path}`
+                              }
+                              width={380}
+                              height={220}
+                              onEdit={() => {}}
+                            />
+                          </div>
+                        )}
+                        
+                        <div className="text-gray-700">
+                          {strategy.content_markdown?.slice(0, 340) || <span className="text-sm text-gray-500">No content</span>}
+                          {(strategy.content_markdown?.length ?? 0) > 340 && <span>…</span>}
+                        </div>
+                        
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {(strategy.tags || []).map(tag =>
+                            <span key={tag} className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">{tag}</span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
+
             {tab === 'trades' && (
-              <JournalTradesSection
-                filter={filter}
-                setFilter={setFilter}
-                dateRange={dateRange}
-                setDateRange={setDateRange}
-                filteredTrades={filteredTrades}
-                deleteMutation={deleteMutation}
-                isDeleting={deleteMutation.isPending}
-                handleEditClick={handleEditClick}
-                handleDelete={handleDeleteTrade}
-                handleViewDetailsClick={handleViewDetailsClick}
-                handleCloseClick={handleCloseClick}
-                panelRadius={panelRadius}
-              />
+              <div className="bg-white rounded-lg border border-gray-200 p-4">
+                <div className="mb-6">
+                  <JournalHeader 
+                    filter={filter}
+                    onFilterChange={setFilter}
+                    onNewTrade={() => setIsNewTradeDialogOpen(true)}
+                    dateRange={dateRange}
+                    onDateRangeChange={setDateRange}
+                  />
+                </div>
+                <TradesTable
+                  trades={filteredTrades}
+                  onEdit={handleEditClick}
+                  onDelete={handleDeleteTrade}
+                  onViewDetails={handleViewDetailsClick}
+                  onClose={handleCloseClick}
+                  isDeleting={deleteMutation.isPending}
+                />
+              </div>
             )}
           </div>
         </div>
       </div>
+
       {/* Dialogs */}
       <NewTradeDialog open={isNewTradeDialogOpen} onOpenChange={setIsNewTradeDialogOpen} />
       {selectedTrade && (
@@ -212,11 +305,21 @@ export default function Journal() {
       {selectedTrade && (
         <TradeDetailsSheet open={isTradeDetailsSheetOpen} onOpenChange={setIsTradeDetailsSheetOpen} trade={selectedTrade} />
       )}
+      
       {/* Dialog for NEW journal entry */}
       {editingJournal === "NEW" && (
         <StrategyEditorDialog
           open={true}
           onOpenChange={() => setEditingJournal(null)}
+        />
+      )}
+      
+      {/* Show StrategyEditorDialog for editing existing Journal */}
+      {editingJournal && editingJournal !== "NEW" && (
+        <StrategyEditorDialog
+          open={true}
+          onOpenChange={() => setEditingJournal(null)}
+          strategy={ownDraftStrategies.find(s => s.id === editingJournal)}
         />
       )}
     </div>

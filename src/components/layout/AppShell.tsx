@@ -11,7 +11,7 @@ import { useNavigationItems } from "./useNavigationItems";
 
 // Map routes to page titles
 const getPageTitle = (pathname: string): string => {
-  if (pathname === '/dashboard') return 'Dashboard';
+  if (pathname === '/' || pathname === '/home') return 'Home';
   if (pathname === '/journal') return 'Trade Journal';
   if (pathname === '/strategies') return 'Strategies';
   if (pathname === '/feed') return 'Feed';
