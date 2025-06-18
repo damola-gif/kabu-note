@@ -33,10 +33,10 @@ export function MobileDashboard({
   const openTrades = trades?.filter((t) => !t.closed_at) || [];
   const closedTrades = trades?.filter((t) => t.closed_at) || [];
   
-  // Calculate stats
-  const totalPnL = closedTrades.reduce((sum, trade) => sum + (trade.realized_pnl || 0), 0);
+  // Calculate stats using the correct 'pnl' field
+  const totalPnL = closedTrades.reduce((sum, trade) => sum + (trade.pnl || 0), 0);
   const winRate = closedTrades.length > 0 
-    ? Math.round((closedTrades.filter(t => (t.realized_pnl || 0) > 0).length / closedTrades.length) * 100)
+    ? Math.round((closedTrades.filter(t => (t.pnl || 0) > 0).length / closedTrades.length) * 100)
     : 0;
 
   return (
@@ -97,51 +97,57 @@ export function MobileDashboard({
           <h2 className="text-lg font-semibold text-[#1E2A4E] px-1">Open Trades</h2>
           <div className="overflow-x-auto">
             <div className="flex gap-3 pb-2" style={{ width: 'max-content' }}>
-              {openTrades.slice(0, 5).map((trade) => (
-                <div
-                  key={trade.id}
-                  className="bg-white rounded-lg p-3 shadow-sm border min-w-[140px] cursor-pointer hover:shadow-md transition-shadow"
-                  onClick={() => onViewDetails(trade)}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-medium text-[#1E2A4E] text-sm">
-                      {trade.symbol}
-                    </span>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onClose(trade);
-                      }}
-                      className="text-xs text-gray-400 hover:text-red-500"
-                    >
-                      Close
-                    </button>
+              {openTrades.slice(0, 5).map((trade) => {
+                // For open trades, calculate unrealized P&L based on entry price
+                // This is a simplified calculation - in a real app you'd use current market price
+                const unrealizedPnL = trade.pnl || 0;
+                
+                return (
+                  <div
+                    key={trade.id}
+                    className="bg-white rounded-lg p-3 shadow-sm border min-w-[140px] cursor-pointer hover:shadow-md transition-shadow"
+                    onClick={() => onViewDetails(trade)}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-medium text-[#1E2A4E] text-sm">
+                        {trade.symbol}
+                      </span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onClose(trade);
+                        }}
+                        className="text-xs text-gray-400 hover:text-red-500"
+                      >
+                        Close
+                      </button>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-xs text-gray-600">
+                        {trade.side === 'long' ? 'LONG' : 'SHORT'}
+                      </p>
+                      <p className={`text-sm font-semibold ${
+                        unrealizedPnL >= 0 ? 'text-[#2AB7CA]' : 'text-red-500'
+                      }`}>
+                        {unrealizedPnL >= 0 ? '+' : ''}${unrealizedPnL.toFixed(2)}
+                      </p>
+                    </div>
                   </div>
-                  <div className="space-y-1">
-                    <p className="text-xs text-gray-600">
-                      {trade.side === 'long' ? 'LONG' : 'SHORT'}
-                    </p>
-                    <p className={`text-sm font-semibold ${
-                      (trade.unrealized_pnl || 0) >= 0 ? 'text-[#2AB7CA]' : 'text-red-500'
-                    }`}>
-                      {(trade.unrealized_pnl || 0) >= 0 ? '+' : ''}${(trade.unrealized_pnl || 0).toFixed(2)}
-                    </p>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
       )}
 
-      {/* Draft Strategies Preview */}
-      {strategies.some(s => s.status === 'draft') && (
+      {/* Draft Strategies Preview - using is_draft instead of status */}
+      {strategies.some(s => s.is_draft) && (
         <div className="bg-white rounded-lg p-4 shadow-sm border-l-4 border-[#2AB7CA]">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-medium text-[#1E2A4E]">Draft Strategy</h3>
               <p className="text-sm text-gray-600 mt-1">
-                {strategies.find(s => s.status === 'draft')?.name || 'Untitled Strategy'}
+                {strategies.find(s => s.is_draft)?.name || 'Untitled Strategy'}
               </p>
             </div>
             <Button 

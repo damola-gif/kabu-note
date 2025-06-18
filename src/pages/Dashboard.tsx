@@ -1,8 +1,10 @@
+
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
-import { TradeDialog } from "@/components/dashboard/TradeDialog";
+import { NewTradeDialog } from "@/components/trade/NewTradeDialog";
+import { EditTradeDialog } from "@/components/trade/EditTradeDialog";
 import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton";
 import { StrategyWithProfile, useStrategies } from "@/hooks/useStrategies";
 import { toast } from "sonner";
@@ -29,7 +31,10 @@ export default function Dashboard() {
     },
   });
 
-  const { data: strategies } = useStrategies();
+  const { data: strategiesData } = useStrategies();
+
+  // Flatten the InfiniteData structure to get the strategies array
+  const strategies: StrategyWithProfile[] = strategiesData?.pages?.flat() || [];
 
   const createTrade = useMutation({
     mutationFn: async (values: Omit<Tables<"trades">, "id">) => {
@@ -136,7 +141,7 @@ export default function Dashboard() {
       {isMobile ? (
         <MobileDashboard
           trades={trades || []}
-          strategies={strategies || []}
+          strategies={strategies}
           onNewTrade={() => setIsNewTradeOpen(true)}
           onEdit={handleEditTrade}
           onClose={handleCloseTrade}
@@ -147,7 +152,7 @@ export default function Dashboard() {
       ) : (
         <DashboardContent
           trades={trades || []}
-          strategies={strategies || []}
+          strategies={strategies}
           onEdit={handleEditTrade}
           onClose={handleCloseTrade}
           onDelete={handleDeleteTrade}
@@ -157,14 +162,14 @@ export default function Dashboard() {
       )}
 
       {/* New Trade Dialog */}
-      <TradeDialog
+      <NewTradeDialog
         open={isNewTradeOpen}
         onOpenChange={setIsNewTradeOpen}
         onSubmit={handleCreateTrade}
       />
 
       {/* Edit Trade Dialog */}
-      <TradeDialog
+      <EditTradeDialog
         open={isEditTradeOpen}
         onOpenChange={setIsEditTradeOpen}
         onSubmit={handleUpdateTrade}
