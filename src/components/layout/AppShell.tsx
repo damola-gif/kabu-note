@@ -31,7 +31,7 @@ export function AppShell() {
   const pageTitle = getPageTitle(location.pathname);
 
   return (
-    <div className="flex min-h-screen w-full bg-[#F5F7FA]">
+    <div className="flex min-h-screen w-full bg-background">
       {/* Header - Mobile vs Desktop */}
       {isMobile ? (
         <MobileHeader
@@ -59,7 +59,7 @@ export function AppShell() {
       {/* Main Content */}
       <main
         className={cn(
-          "flex-1 pt-16 min-h-screen",
+          "flex-1 pt-16 min-h-screen bg-background",
           isMobile && "pb-20"
         )}
       >

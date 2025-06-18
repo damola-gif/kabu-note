@@ -111,19 +111,19 @@ export default function Auth() {
   }
 
   return (
-    <div className="min-h-screen bg-muted flex items-center justify-center p-4">
-      <Card className="w-full max-w-sm shadow-lg animate-fade-in">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <Card className="w-full max-w-sm shadow-lg animate-fade-in border-border">
         <CardContent className="pt-6">
           <KabuLogo />
           <div className="flex mb-4">
             <button
-              className={cn("flex-1 p-2 font-semibold rounded-t-md", tab === "sign-in" ? "bg-background" : "bg-muted/70 text-muted-foreground")}
+              className={cn("flex-1 p-2 font-semibold rounded-t-md", tab === "sign-in" ? "bg-card text-foreground" : "bg-muted text-muted-foreground")}
               onClick={() => setTab("sign-in")}
             >
               Sign In
             </button>
             <button
-              className={cn("flex-1 p-2 font-semibold rounded-t-md", tab === "sign-up" ? "bg-background" : "bg-muted/70 text-muted-foreground")}
+              className={cn("flex-1 p-2 font-semibold rounded-t-md", tab === "sign-up" ? "bg-card text-foreground" : "bg-muted text-muted-foreground")}
               onClick={() => setTab("sign-up")}
             >
               Sign Up
@@ -131,7 +131,7 @@ export default function Auth() {
           </div>
           
           <Button 
-            className="w-full mb-4 bg-white text-gray-900 border border-gray-300 hover:bg-gray-50" 
+            className="w-full mb-4 bg-card text-foreground border border-border hover:bg-muted" 
             variant="outline" 
             onClick={handleGoogleSignIn} 
             disabled={loading || googleLoading}
@@ -146,9 +146,9 @@ export default function Auth() {
           </Button>
 
           <div className="flex items-center gap-2 mb-4">
-            <hr className="flex-1" />
+            <hr className="flex-1 border-border" />
             <span className="text-xs text-muted-foreground">— or —</span>
-            <hr className="flex-1" />
+            <hr className="flex-1 border-border" />
           </div>
 
           <form className="space-y-3 mb-4" onSubmit={handleAuth}>

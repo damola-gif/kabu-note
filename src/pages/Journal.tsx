@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from "react";
 import { NewTradeDialog } from "@/components/trade/NewTradeDialog";
 import { EditTradeDialog } from "@/components/trade/EditTradeDialog";
@@ -111,19 +110,19 @@ export default function Journal() {
   const [tab, setTab] = useState<'journal' | 'trades'>('journal');
 
   return (
-    <div className="min-h-screen w-full bg-gray-50 pb-8">
+    <div className="min-h-screen w-full bg-background pb-8">
       <div className="max-w-5xl mx-auto">
-        <div className="min-h-screen bg-white shadow-sm rounded-lg">
+        <div className="min-h-screen bg-card shadow-sm rounded-lg border border-border">
           {/* Header */}
-          <div className="sticky top-0 z-20 bg-white border-b border-gray-200 rounded-t-lg">
+          <div className="sticky top-0 z-20 bg-card border-b border-border rounded-t-lg">
             <div className="px-8 py-6 flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Trading Journal</h1>
-                <p className="text-gray-600 mt-1">Track, analyze, and own your trading performance</p>
+                <h1 className="text-2xl font-bold text-foreground">Trading Journal</h1>
+                <p className="text-muted-foreground mt-1">Track, analyze, and own your trading performance</p>
               </div>
               <Button 
                 onClick={() => setIsNewTradeDialogOpen(true)}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground"
                 size="lg"
               >
                 <Plus className="h-5 w-5 mr-2" />
@@ -135,8 +134,8 @@ export default function Journal() {
                 onClick={() => setTab('journal')}
                 className={`py-2 px-6 rounded-t-lg font-medium focus:outline-none transition border-b-2 ${
                   tab === 'journal'
-                    ? "border-blue-500 text-blue-600 bg-blue-50"
-                    : "border-transparent text-gray-500 hover:text-blue-600 hover:bg-gray-50"
+                    ? "border-primary text-primary bg-primary/10"
+                    : "border-transparent text-muted-foreground hover:text-primary hover:bg-muted"
                 }`}
               >
                 Journals
@@ -145,8 +144,8 @@ export default function Journal() {
                 onClick={() => setTab('trades')}
                 className={`py-2 px-6 rounded-t-lg font-medium focus:outline-none transition border-b-2 ${
                   tab === 'trades'
-                    ? "border-blue-500 text-blue-600 bg-blue-50"
-                    : "border-transparent text-gray-500 hover:text-blue-600 hover:bg-gray-50"
+                    ? "border-primary text-primary bg-primary/10"
+                    : "border-transparent text-muted-foreground hover:text-primary hover:bg-muted"
                 }`}
               >
                 Trades
@@ -169,15 +168,15 @@ export default function Journal() {
             {tab === 'journal' && (
               <div>
                 <div className="mb-6">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-2">
+                  <h2 className="text-lg font-semibold text-foreground mb-2">
                     Your Private Journals
                   </h2>
-                  <p className="text-gray-600 text-sm mb-4">
+                  <p className="text-muted-foreground text-sm mb-4">
                     Only you can view and edit your journals. Submit one to promote it as a strategy for voting.
                   </p>
                   <Button
                     onClick={() => setEditingJournal("NEW")}
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground"
                   >
                     <BookOpen className="w-4 h-4 mr-2" /> New Journal Entry
                   </Button>
@@ -187,26 +186,26 @@ export default function Journal() {
                 {strategiesLoading ? (
                   <div className="flex items-center justify-center py-16">
                     <div className="text-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-3"></div>
-                      <p className="text-gray-600">Loading your journals...</p>
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-3"></div>
+                      <p className="text-muted-foreground">Loading your journals...</p>
                     </div>
                   </div>
                 ) : !ownDraftStrategies.length ? (
-                  <div className="text-center py-12 bg-gray-50 rounded-lg">
-                    <BookOpen className="mx-auto mb-3 h-8 w-8 text-gray-400" />
-                    <h3 className="text-xl font-semibold mb-2 text-gray-900">No Journals Yet</h3>
-                    <p className="text-gray-600">Your personal trading journals will appear here. Create a new one or start from your trades!</p>
+                  <div className="text-center py-12 bg-muted rounded-lg">
+                    <BookOpen className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />
+                    <h3 className="text-xl font-semibold mb-2 text-foreground">No Journals Yet</h3>
+                    <p className="text-muted-foreground">Your personal trading journals will appear here. Create a new one or start from your trades!</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
                     {ownDraftStrategies.map((strategy) => (
                       <div
                         key={strategy.id}
-                        className="bg-white border border-gray-200 rounded-lg p-5 hover:shadow-md transition-shadow"
+                        className="bg-card border border-border rounded-lg p-5 hover:shadow-md transition-shadow"
                       >
                         <div className="flex items-center justify-between mb-2">
                           <div>
-                            <span className="font-semibold text-lg text-gray-900">
+                            <span className="font-semibold text-lg text-foreground">
                               {strategy.name || "Untitled Journal"}
                             </span>
                             {strategy.voting_status === 'pending' && (
@@ -227,7 +226,7 @@ export default function Journal() {
                             {!strategy.is_public && (!strategy.voting_status || strategy.voting_status === 'rejected') && (
                               <Button
                                 onClick={() => handlePublishStrategy(strategy)}
-                                className="bg-blue-600 hover:bg-blue-700 text-white"
+                                className="bg-primary hover:bg-primary/90 text-primary-foreground"
                                 size="sm"
                               >
                                 <UploadCloud className="h-4 w-4 mr-1" />
@@ -270,7 +269,7 @@ export default function Journal() {
             )}
 
             {tab === 'trades' && (
-              <div className="bg-white rounded-lg border border-gray-200 p-4">
+              <div className="bg-card rounded-lg border border-border p-4">
                 <div className="mb-6">
                   <JournalHeader 
                     filter={filter}
