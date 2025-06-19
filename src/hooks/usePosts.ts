@@ -302,6 +302,20 @@ export function useDeletePost() {
     mutationFn: async (postId: string) => {
       if (!user) throw new Error("User not authenticated");
       
+      console.log('Deleting post:', postId);
+      
+      // First, delete all related post_likes
+      const { error: likesError } = await supabase
+        .from('post_likes')
+        .delete()
+        .eq('post_id', postId);
+
+      if (likesError) {
+        console.error('Error deleting post likes:', likesError);
+        throw likesError;
+      }
+
+      // Get post media info for cleanup
       const { data: post, error: fetchErr } = await supabase
         .from('posts')
         .select('media_url')
@@ -310,6 +324,7 @@ export function useDeletePost() {
 
       if (fetchErr) throw fetchErr;
 
+      // Delete media file if exists
       if (post?.media_url) {
         try {
           const urlParts = post.media_url.split('/object/buckets/post_media/objects/');
@@ -327,12 +342,19 @@ export function useDeletePost() {
         }
       }
 
+      // Finally, delete the post
       const { error } = await supabase
         .from('posts')
         .delete()
         .eq('id', postId)
         .eq('user_id', user.id);
-      if (error) throw error;
+      
+      if (error) {
+        console.error('Error deleting post:', error);
+        throw error;
+      }
+
+      console.log('Post deleted successfully');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['posts'] });

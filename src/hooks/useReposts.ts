@@ -28,39 +28,8 @@ export function useRepostPost() {
       original_post_id: string;
       repost_comment?: string;
     }) => {
-      if (!user) throw new Error('User not authenticated');
-
-      const { data: orig } = await supabase
-        .from('posts')
-        .select('user_id')
-        .eq('id', original_post_id)
-        .maybeSingle();
-
-      if (orig?.user_id === user.id) {
-        throw new Error("You can't repost your own post.");
-      }
-
-      const { data: existing } = await (supabase.from('reposts' as any) as any)
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('original_post_id', original_post_id)
-        .maybeSingle();
-
-      if (existing) {
-        throw new Error('You have already reposted this post.');
-      }
-
-      const { data, error } = await (supabase.from('reposts' as any) as any)
-        .insert({
-          user_id: user.id,
-          original_post_id,
-          repost_comment: repost_comment ?? null,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+      console.log('Repost functionality not yet implemented');
+      throw new Error("Repost functionality coming soon!");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['posts'] });
@@ -80,12 +49,8 @@ export function useDeleteRepost() {
 
   return useMutation({
     mutationFn: async (repostId: string) => {
-      if (!user) throw new Error('User not authenticated');
-      const { error } = await (supabase.from('reposts' as any) as any)
-        .delete()
-        .eq('user_id', user.id)
-        .eq('id', repostId);
-      if (error) throw error;
+      console.log('Delete repost functionality not yet implemented');
+      throw new Error("Delete repost functionality coming soon!");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['posts'] });
@@ -99,19 +64,14 @@ export function useDeleteRepost() {
   });
 }
 
-// Query: Which posts has the user reposted?
+// Query: Which posts has the user reposted? (returns empty array for now)
 export function useUserRepostedIds() {
   const { user } = useSession();
   return useQuery({
     queryKey: ['user-reposted-ids', user?.id],
     queryFn: async () => {
-      if (!user) return [];
-      const { data, error } = await (supabase.from('reposts' as any) as any)
-        .select('original_post_id')
-        .eq('user_id', user.id);
-
-      if (error) throw error;
-      return data.map((row: any) => row.original_post_id);
+      // Return empty array since reposts table doesn't exist yet
+      return [];
     },
     enabled: !!user,
   });
