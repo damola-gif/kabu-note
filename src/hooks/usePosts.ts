@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useSession } from '@/contexts/SessionProvider';
@@ -304,7 +305,7 @@ export function useDeletePost() {
       
       console.log('Deleting post:', postId);
       
-      // First, delete all related post_likes
+      // First, delete all related post_likes to avoid foreign key constraint violations
       const { error: likesError } = await supabase
         .from('post_likes')
         .delete()
@@ -322,23 +323,28 @@ export function useDeletePost() {
         .eq('id', postId)
         .maybeSingle();
 
-      if (fetchErr) throw fetchErr;
+      if (fetchErr) {
+        console.error('Error fetching post for cleanup:', fetchErr);
+        throw fetchErr;
+      }
 
       // Delete media file if exists
       if (post?.media_url) {
         try {
-          const urlParts = post.media_url.split('/object/buckets/post_media/objects/');
+          // Extract file path from URL
+          const urlParts = post.media_url.split('/storage/v1/object/public/post_media/');
           if (urlParts.length === 2) {
             const filePath = decodeURIComponent(urlParts[1]);
-            await supabase.storage.from('post_media').remove([filePath]);
-          } else {
-            const match = post.media_url.match(/post_media\/(.+)$/);
-            if (match) {
-              await supabase.storage.from('post_media').remove([match[1]]);
+            const { error: storageError } = await supabase.storage
+              .from('post_media')
+              .remove([filePath]);
+            
+            if (storageError) {
+              console.warn('Error deleting post media file:', storageError);
             }
           }
         } catch (err) {
-          console.warn('Error deleting post image:', err);
+          console.warn('Error cleaning up post media:', err);
         }
       }
 
@@ -358,9 +364,10 @@ export function useDeletePost() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['posts'] });
+      queryClient.invalidateQueries({ queryKey: ['post-likes'] });
       toast.success('Post deleted successfully!');
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Error deleting post:', error);
       toast.error('Failed to delete post. Please try again.');
     },
