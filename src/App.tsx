@@ -3,9 +3,10 @@ import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SessionProvider } from './contexts/SessionProvider';
+import { TwelveDataProvider } from './contexts/TwelveDataProvider';
 import { Toaster } from 'sonner';
 import { AppShell } from './components/layout/AppShell';
-import Dashboard from './pages/Dashboard';
+import Home from './pages/Home';
 import Feed from './pages/Feed';
 import Strategies from './pages/Strategies';
 import StrategyPage from './pages/StrategyPage';
@@ -29,40 +30,42 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <SessionProvider>
-        <Toaster />
-        <BrowserRouter>
-          <Routes>
-            {/* Public routes */}
-            <Route path="/auth" element={<Auth />} />
-            
-            {/* Protected routes with AppShell */}
-            <Route element={<ProtectedRoute />}>
-              <Route element={<AppShell />}>
-                <Route index element={<Dashboard />} />
-                <Route path="/home" element={<Dashboard />} />
-                <Route path="/feed" element={<Feed />} />
-                <Route path="/strategies" element={<Strategies />} />
-                <Route path="/strategies/:id" element={<StrategyPage />} />
-                <Route path="/following-strategies" element={<FollowingStrategies />} />
-                <Route path="/journal" element={<Journal />} />
-                <Route path="/rooms" element={<Rooms />} />
-                <Route path="/rooms/:id" element={<RoomPage />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/u/:username" element={<PublicProfile />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="/notifications" element={<Notifications />} />
+        <TwelveDataProvider>
+          <Toaster />
+          <BrowserRouter>
+            <Routes>
+              {/* Public routes */}
+              <Route path="/auth" element={<Auth />} />
+              
+              {/* Protected routes with AppShell */}
+              <Route element={<ProtectedRoute />}>
+                <Route element={<AppShell />}>
+                  <Route index element={<Home />} />
+                  <Route path="/home" element={<Home />} />
+                  <Route path="/feed" element={<Feed />} />
+                  <Route path="/strategies" element={<Strategies />} />
+                  <Route path="/strategies/:id" element={<StrategyPage />} />
+                  <Route path="/following-strategies" element={<FollowingStrategies />} />
+                  <Route path="/journal" element={<Journal />} />
+                  <Route path="/rooms" element={<Rooms />} />
+                  <Route path="/rooms/:id" element={<RoomPage />} />
+                  <Route path="/profile" element={<Profile />} />
+                  <Route path="/u/:username" element={<PublicProfile />} />
+                  <Route path="/settings" element={<Settings />} />
+                  <Route path="/notifications" element={<Notifications />} />
+                </Route>
+                {/* Onboarding is special - no AppShell */}
+                <Route path="/onboarding" element={<Onboarding />} />
               </Route>
-              {/* Onboarding is special - no AppShell */}
-              <Route path="/onboarding" element={<Onboarding />} />
-            </Route>
-            
-            {/* Landing page for non-authenticated users */}
-            <Route path="/" element={<Index />} />
-            
-            {/* Catch all route */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
+              
+              {/* Landing page for non-authenticated users */}
+              <Route path="/" element={<Index />} />
+              
+              {/* Catch all route */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TwelveDataProvider>
       </SessionProvider>
     </QueryClientProvider>
   );
