@@ -305,7 +305,24 @@ export function useDeletePost() {
       
       console.log('Deleting post:', postId);
       
-      // First, delete all related post_likes to avoid foreign key constraint violations
+      // First, get post media info for cleanup before deletion
+      const { data: post, error: fetchErr } = await supabase
+        .from('posts')
+        .select('media_url')
+        .eq('id', postId)
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (fetchErr) {
+        console.error('Error fetching post for cleanup:', fetchErr);
+        throw fetchErr;
+      }
+
+      if (!post) {
+        throw new Error('Post not found or you do not have permission to delete it');
+      }
+
+      // Delete all related post_likes first to avoid foreign key constraint violations
       const { error: likesError } = await supabase
         .from('post_likes')
         .delete()
@@ -316,20 +333,20 @@ export function useDeletePost() {
         throw likesError;
       }
 
-      // Get post media info for cleanup
-      const { data: post, error: fetchErr } = await supabase
+      // Now delete the post
+      const { error } = await supabase
         .from('posts')
-        .select('media_url')
+        .delete()
         .eq('id', postId)
-        .maybeSingle();
-
-      if (fetchErr) {
-        console.error('Error fetching post for cleanup:', fetchErr);
-        throw fetchErr;
+        .eq('user_id', user.id);
+      
+      if (error) {
+        console.error('Error deleting post:', error);
+        throw error;
       }
 
-      // Delete media file if exists
-      if (post?.media_url) {
+      // Delete media file if exists (after successful post deletion)
+      if (post.media_url) {
         try {
           // Extract file path from URL
           const urlParts = post.media_url.split('/storage/v1/object/public/post_media/');
@@ -341,23 +358,13 @@ export function useDeletePost() {
             
             if (storageError) {
               console.warn('Error deleting post media file:', storageError);
+              // Don't throw here since the post is already deleted
             }
           }
         } catch (err) {
           console.warn('Error cleaning up post media:', err);
+          // Don't throw here since the post is already deleted
         }
-      }
-
-      // Finally, delete the post
-      const { error } = await supabase
-        .from('posts')
-        .delete()
-        .eq('id', postId)
-        .eq('user_id', user.id);
-      
-      if (error) {
-        console.error('Error deleting post:', error);
-        throw error;
       }
 
       console.log('Post deleted successfully');
