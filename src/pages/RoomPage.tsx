@@ -16,7 +16,20 @@ export default function RoomPage() {
   const joinRoom = useJoinRoom();
   const [isJoining, setIsJoining] = useState(false);
 
+  // Add debug logging
+  useEffect(() => {
+    console.log('RoomPage Debug:', {
+      roomId,
+      room,
+      isLoading,
+      error,
+      isMember,
+      checkingMembership
+    });
+  }, [roomId, room, isLoading, error, isMember, checkingMembership]);
+
   if (!roomId) {
+    console.log('No roomId found in URL params');
     return (
       <div className="p-4 text-center">
         <p>Invalid room ID.</p>
@@ -36,6 +49,7 @@ export default function RoomPage() {
         description: `You've successfully joined ${room?.name}`,
       });
     } catch (error: any) {
+      console.error('Error joining room:', error);
       toast({
         title: 'Error joining room',
         description: error.message,
@@ -58,7 +72,12 @@ export default function RoomPage() {
           Back to Rooms
         </Button>
         {isLoading && <Loader2 className="h-6 w-6 animate-spin" />}
-        {error && <h1 className="text-2xl font-bold text-destructive">Error loading room</h1>}
+        {error && (
+          <div>
+            <h1 className="text-2xl font-bold text-destructive">Error loading room</h1>
+            <p className="text-sm text-muted-foreground mt-1">Error: {error.message}</p>
+          </div>
+        )}
         {room && (
           <div>
             <h1 className="text-2xl font-bold">{room.name}</h1>
@@ -80,6 +99,45 @@ export default function RoomPage() {
       )}
     </div>
   );
+
+  // Show loading state while checking room details
+  if (isLoading) {
+    return (
+      <div className="p-4 flex flex-col h-screen max-h-screen">
+        <PageHeader />
+        <div className="flex-grow flex items-center justify-center">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 mx-auto animate-spin text-primary mb-4" />
+            <p className="text-muted-foreground">Loading room details...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state if room doesn't exist or can't be loaded
+  if (error) {
+    console.error('Room loading error:', error);
+    return (
+      <div className="p-4 flex flex-col h-screen max-h-screen">
+        <PageHeader />
+        <div className="flex-grow flex items-center justify-center">
+          <div className="text-center">
+            <h2 className="text-xl font-semibold mb-2 text-destructive">Room not found</h2>
+            <p className="text-muted-foreground mb-4">
+              This room doesn't exist or you don't have permission to view it.
+            </p>
+            <p className="text-sm text-muted-foreground mb-4">
+              Room ID: {roomId}
+            </p>
+            <Button onClick={() => window.history.back()}>
+              Go Back to Rooms
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Show loading state while checking membership
   if (checkingMembership) {

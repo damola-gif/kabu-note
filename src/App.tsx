@@ -48,7 +48,7 @@ function App() {
                   <Route path="/following-strategies" element={<FollowingStrategies />} />
                   <Route path="/journal" element={<Journal />} />
                   <Route path="/rooms" element={<Rooms />} />
-                  <Route path="/rooms/:id" element={<RoomPage />} />
+                  <Route path="/rooms/:roomId" element={<RoomPage />} />
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/u/:username" element={<PublicProfile />} />
                   <Route path="/settings" element={<Settings />} />
