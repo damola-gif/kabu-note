@@ -1,4 +1,3 @@
-
 import { useParams, Navigate } from "react-router-dom";
 import { useStrategy } from "@/hooks/useStrategies";
 import { useSession } from "@/contexts/SessionProvider";
@@ -12,11 +11,13 @@ import ReactMarkdown from "react-markdown";
 import { CommentSection } from "@/components/comments/CommentSection";
 import { StrategyVotingSection } from "@/components/strategy/StrategyVotingSection";
 import { useNavigate } from "react-router-dom";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function StrategyPage() {
   const { id } = useParams<{ id: string }>();
   const { user } = useSession();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const { data: strategy, isLoading, error } = useStrategy(id!);
 
   if (!id) {
@@ -25,15 +26,17 @@ export default function StrategyPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
-        <div className="max-w-4xl mx-auto">
-          <div className="border-x border-border min-h-screen bg-white">
-            <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-border">
-              <div className="px-6 py-4">
-                <Skeleton className="h-6 w-32" />
+      <div className={isMobile ? "space-y-4" : "min-h-screen bg-background"}>
+        <div className={isMobile ? "" : "max-w-4xl mx-auto"}>
+          <div className={isMobile ? "" : "border-x border-border min-h-screen bg-white"}>
+            {!isMobile && (
+              <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-border">
+                <div className="px-6 py-4">
+                  <Skeleton className="h-6 w-32" />
+                </div>
               </div>
-            </div>
-            <div className="px-6 py-8 space-y-6">
+            )}
+            <div className={isMobile ? "space-y-4" : "px-6 py-8 space-y-6"}>
               <Skeleton className="h-8 w-3/4" />
               <Skeleton className="h-4 w-1/2" />
               <Skeleton className="h-64 w-full" />
@@ -46,10 +49,10 @@ export default function StrategyPage() {
 
   if (error || !strategy) {
     return (
-      <div className="min-h-screen bg-background">
-        <div className="max-w-4xl mx-auto">
-          <div className="border-x border-border min-h-screen bg-white">
-            <div className="px-6 py-8">
+      <div className={isMobile ? "text-center space-y-4" : "min-h-screen bg-background"}>
+        <div className={isMobile ? "" : "max-w-4xl mx-auto"}>
+          <div className={isMobile ? "" : "border-x border-border min-h-screen bg-white"}>
+            <div className={isMobile ? "" : "px-6 py-8"}>
               <div className="text-center">
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">Strategy Not Found</h2>
                 <p className="text-gray-600 mb-4">
@@ -75,6 +78,135 @@ export default function StrategyPage() {
     }
   };
 
+  if (isMobile) {
+    return (
+      <div className="space-y-6">
+        {/* Mobile Header */}
+        <div className="flex items-center gap-3 -mx-4 -mt-4 px-4 py-3 bg-white border-b border-gray-200 sticky top-16 z-10">
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={() => window.history.back()}
+            className="text-gray-600 hover:text-gray-900 p-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <BookOpen className="h-4 w-4 text-blue-500 flex-shrink-0" />
+            <span className="text-sm font-medium text-gray-900 truncate">Strategy</span>
+          </div>
+        </div>
+
+        {/* Strategy Content */}
+        <div className="space-y-6">
+          {/* Title and Status */}
+          <div className="space-y-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge 
+                variant={strategy.is_public ? "default" : "secondary"}
+                className={strategy.is_public ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-600"}
+              >
+                {strategy.is_public ? "Published" : "Draft"}
+              </Badge>
+              {strategy.voting_status && strategy.voting_status !== 'pending' && (
+                <Badge 
+                  variant={strategy.voting_status === 'approved' ? "default" : "destructive"}
+                  className={
+                    strategy.voting_status === 'approved' 
+                      ? "bg-blue-100 text-blue-800" 
+                      : "bg-red-100 text-red-800"
+                  }
+                >
+                  {strategy.voting_status === 'approved' ? 'Community Approved' : 'Community Rejected'}
+                </Badge>
+              )}
+            </div>
+
+            <h1 className="text-2xl font-bold text-gray-900 leading-tight">{strategy.name}</h1>
+
+            {/* Author Info */}
+            {strategy.profile && (
+              <div className="flex items-center gap-2 text-sm">
+                <span className="text-gray-600">by</span>
+                <button 
+                  onClick={handleProfileClick}
+                  className="font-semibold text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+                >
+                  @{strategy.profile.username}
+                </button>
+              </div>
+            )}
+
+            {/* Meta info */}
+            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
+              <div className="flex items-center gap-1">
+                <Calendar className="h-3 w-3" />
+                <span>{format(new Date(strategy.created_at), "MMM d, yyyy")}</span>
+              </div>
+              {strategy.win_rate && (
+                <div className="flex items-center gap-1">
+                  <TrendingUp className="h-3 w-3" />
+                  <span>{strategy.win_rate}% Win Rate</span>
+                </div>
+              )}
+              <div className="flex items-center gap-1">
+                <Users className="h-3 w-3" />
+                <span>{strategy.likes_count || 0} likes</span>
+              </div>
+            </div>
+
+            {/* Tags */}
+            {strategy.tags && strategy.tags.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {strategy.tags.map((tag, index) => (
+                  <Badge key={index} variant="outline" className="text-blue-600 border-blue-200 text-xs">
+                    #{tag}
+                  </Badge>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Strategy Image */}
+          {strategy.image_path && (
+            <div className="rounded-lg overflow-hidden border border-gray-200">
+              <img 
+                src={strategy.image_path} 
+                alt={strategy.name}
+                className="w-full h-48 object-cover"
+              />
+            </div>
+          )}
+
+          {/* Strategy Content */}
+          <Card className="border border-gray-200">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg">Strategy Details</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {strategy.content_markdown ? (
+                <div className="prose prose-sm prose-gray max-w-none">
+                  <ReactMarkdown>{strategy.content_markdown}</ReactMarkdown>
+                </div>
+              ) : (
+                <p className="text-gray-500 italic text-sm">No strategy details provided.</p>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Voting Section - Only show if strategy is not published and user is not the owner */}
+          {!strategy.is_public && !isOwner && (
+            <StrategyVotingSection strategy={strategy} />
+          )}
+
+          {/* Comments Section */}
+          <CommentSection strategyId={strategy.id} />
+        </div>
+      </div>
+    );
+  }
+
+  // Desktop layout (keep existing desktop layout)
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto">
