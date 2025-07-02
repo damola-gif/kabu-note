@@ -26,9 +26,9 @@ export default function StrategyPage() {
 
   if (isLoading) {
     return (
-      <div className={isMobile ? "space-y-4" : "min-h-screen bg-background"}>
-        <div className={isMobile ? "" : "max-w-4xl mx-auto"}>
-          <div className={isMobile ? "" : "border-x border-border min-h-screen bg-white"}>
+      <div className={isMobile ? "w-full max-w-full overflow-hidden" : "min-h-screen bg-background"}>
+        <div className={isMobile ? "w-full" : "max-w-4xl mx-auto"}>
+          <div className={isMobile ? "w-full" : "border-x border-border min-h-screen bg-white"}>
             {!isMobile && (
               <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-border">
                 <div className="px-6 py-4">
@@ -36,7 +36,7 @@ export default function StrategyPage() {
                 </div>
               </div>
             )}
-            <div className={isMobile ? "space-y-4" : "px-6 py-8 space-y-6"}>
+            <div className={isMobile ? "p-4 space-y-4" : "px-6 py-8 space-y-6"}>
               <Skeleton className="h-8 w-3/4" />
               <Skeleton className="h-4 w-1/2" />
               <Skeleton className="h-64 w-full" />
@@ -49,10 +49,10 @@ export default function StrategyPage() {
 
   if (error || !strategy) {
     return (
-      <div className={isMobile ? "text-center space-y-4" : "min-h-screen bg-background"}>
-        <div className={isMobile ? "" : "max-w-4xl mx-auto"}>
-          <div className={isMobile ? "" : "border-x border-border min-h-screen bg-white"}>
-            <div className={isMobile ? "" : "px-6 py-8"}>
+      <div className={isMobile ? "w-full max-w-full p-4" : "min-h-screen bg-background"}>
+        <div className={isMobile ? "w-full" : "max-w-4xl mx-auto"}>
+          <div className={isMobile ? "w-full" : "border-x border-border min-h-screen bg-white"}>
+            <div className={isMobile ? "text-center space-y-4" : "px-6 py-8"}>
               <div className="text-center">
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">Strategy Not Found</h2>
                 <p className="text-gray-600 mb-4">
@@ -80,127 +80,139 @@ export default function StrategyPage() {
 
   if (isMobile) {
     return (
-      <div className="space-y-6">
-        {/* Mobile Header */}
-        <div className="flex items-center gap-3 -mx-4 -mt-4 px-4 py-3 bg-white border-b border-gray-200 sticky top-16 z-10">
-          <Button 
-            variant="ghost" 
-            size="sm"
-            onClick={() => window.history.back()}
-            className="text-gray-600 hover:text-gray-900 p-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div className="flex items-center gap-2 min-w-0 flex-1">
-            <BookOpen className="h-4 w-4 text-blue-500 flex-shrink-0" />
-            <span className="text-sm font-medium text-gray-900 truncate">Strategy</span>
+      <div className="w-full max-w-full min-h-screen bg-gray-50 overflow-x-hidden">
+        {/* Mobile Header - Fixed */}
+        <div className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 shadow-sm">
+          <div className="flex items-center gap-3 px-4 py-3 h-14">
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => window.history.back()}
+              className="text-gray-600 hover:text-gray-900 p-2 -ml-2"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div className="flex items-center gap-2 min-w-0 flex-1">
+              <BookOpen className="h-5 w-5 text-blue-500 flex-shrink-0" />
+              <span className="font-medium text-gray-900 truncate">Strategy</span>
+            </div>
           </div>
         </div>
 
-        {/* Strategy Content */}
-        <div className="space-y-6">
-          {/* Title and Status */}
-          <div className="space-y-3">
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge 
-                variant={strategy.is_public ? "default" : "secondary"}
-                className={strategy.is_public ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-600"}
-              >
-                {strategy.is_public ? "Published" : "Draft"}
-              </Badge>
-              {strategy.voting_status && strategy.voting_status !== 'pending' && (
+        {/* Content - With proper top padding to account for fixed header */}
+        <div className="pt-14 pb-20 w-full max-w-full overflow-x-hidden">
+          <div className="p-4 space-y-6 w-full max-w-full">
+            {/* Title and Status */}
+            <div className="space-y-3 w-full">
+              <div className="flex flex-wrap items-start gap-2 w-full">
                 <Badge 
-                  variant={strategy.voting_status === 'approved' ? "default" : "destructive"}
-                  className={
-                    strategy.voting_status === 'approved' 
-                      ? "bg-blue-100 text-blue-800" 
-                      : "bg-red-100 text-red-800"
-                  }
+                  variant={strategy.is_public ? "default" : "secondary"}
+                  className={strategy.is_public ? "bg-green-100 text-green-800 text-xs" : "bg-gray-100 text-gray-600 text-xs"}
                 >
-                  {strategy.voting_status === 'approved' ? 'Community Approved' : 'Community Rejected'}
+                  {strategy.is_public ? "Published" : "Draft"}
                 </Badge>
-              )}
-            </div>
-
-            <h1 className="text-2xl font-bold text-gray-900 leading-tight">{strategy.name}</h1>
-
-            {/* Author Info */}
-            {strategy.profile && (
-              <div className="flex items-center gap-2 text-sm">
-                <span className="text-gray-600">by</span>
-                <button 
-                  onClick={handleProfileClick}
-                  className="font-semibold text-blue-600 hover:text-blue-800 hover:underline transition-colors"
-                >
-                  @{strategy.profile.username}
-                </button>
-              </div>
-            )}
-
-            {/* Meta info */}
-            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
-              <div className="flex items-center gap-1">
-                <Calendar className="h-3 w-3" />
-                <span>{format(new Date(strategy.created_at), "MMM d, yyyy")}</span>
-              </div>
-              {strategy.win_rate && (
-                <div className="flex items-center gap-1">
-                  <TrendingUp className="h-3 w-3" />
-                  <span>{strategy.win_rate}% Win Rate</span>
-                </div>
-              )}
-              <div className="flex items-center gap-1">
-                <Users className="h-3 w-3" />
-                <span>{strategy.likes_count || 0} likes</span>
-              </div>
-            </div>
-
-            {/* Tags */}
-            {strategy.tags && strategy.tags.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {strategy.tags.map((tag, index) => (
-                  <Badge key={index} variant="outline" className="text-blue-600 border-blue-200 text-xs">
-                    #{tag}
+                {strategy.voting_status && strategy.voting_status !== 'pending' && (
+                  <Badge 
+                    variant={strategy.voting_status === 'approved' ? "default" : "destructive"}
+                    className={
+                      strategy.voting_status === 'approved' 
+                        ? "bg-blue-100 text-blue-800 text-xs" 
+                        : "bg-red-100 text-red-800 text-xs"
+                    }
+                  >
+                    {strategy.voting_status === 'approved' ? 'Community Approved' : 'Community Rejected'}
                   </Badge>
-                ))}
+                )}
+              </div>
+
+              <h1 className="text-xl font-bold text-gray-900 leading-tight break-words w-full">
+                {strategy.name}
+              </h1>
+
+              {/* Author Info */}
+              {strategy.profile && (
+                <div className="flex items-center gap-2 text-sm w-full">
+                  <span className="text-gray-600">by</span>
+                  <button 
+                    onClick={handleProfileClick}
+                    className="font-semibold text-blue-600 hover:text-blue-800 hover:underline transition-colors truncate"
+                  >
+                    @{strategy.profile.username}
+                  </button>
+                </div>
+              )}
+
+              {/* Meta info */}
+              <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500 w-full">
+                <div className="flex items-center gap-1">
+                  <Calendar className="h-3 w-3 flex-shrink-0" />
+                  <span className="whitespace-nowrap">{format(new Date(strategy.created_at), "MMM d, yyyy")}</span>
+                </div>
+                {strategy.win_rate && (
+                  <div className="flex items-center gap-1">
+                    <TrendingUp className="h-3 w-3 flex-shrink-0" />
+                    <span className="whitespace-nowrap">{strategy.win_rate}% Win Rate</span>
+                  </div>
+                )}
+                <div className="flex items-center gap-1">
+                  <Users className="h-3 w-3 flex-shrink-0" />
+                  <span className="whitespace-nowrap">{strategy.likes_count || 0} likes</span>
+                </div>
+              </div>
+
+              {/* Tags */}
+              {strategy.tags && strategy.tags.length > 0 && (
+                <div className="flex flex-wrap gap-2 w-full">
+                  {strategy.tags.map((tag, index) => (
+                    <Badge key={index} variant="outline" className="text-blue-600 border-blue-200 text-xs break-all">
+                      #{tag}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Strategy Image */}
+            {strategy.image_path && (
+              <div className="w-full rounded-lg overflow-hidden border border-gray-200">
+                <img 
+                  src={strategy.image_path} 
+                  alt={strategy.name}
+                  className="w-full h-48 object-cover"
+                />
               </div>
             )}
-          </div>
 
-          {/* Strategy Image */}
-          {strategy.image_path && (
-            <div className="rounded-lg overflow-hidden border border-gray-200">
-              <img 
-                src={strategy.image_path} 
-                alt={strategy.name}
-                className="w-full h-48 object-cover"
-              />
+            {/* Strategy Content */}
+            <Card className="border border-gray-200 w-full">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">Strategy Details</CardTitle>
+              </CardHeader>
+              <CardContent className="w-full overflow-hidden">
+                {strategy.content_markdown ? (
+                  <div className="prose prose-sm prose-gray max-w-none w-full break-words">
+                    <ReactMarkdown className="w-full overflow-wrap-anywhere">
+                      {strategy.content_markdown}
+                    </ReactMarkdown>
+                  </div>
+                ) : (
+                  <p className="text-gray-500 italic text-sm">No strategy details provided.</p>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Voting Section - Only show if strategy is not published and user is not the owner */}
+            {!strategy.is_public && !isOwner && (
+              <div className="w-full">
+                <StrategyVotingSection strategy={strategy} />
+              </div>
+            )}
+
+            {/* Comments Section */}
+            <div className="w-full">
+              <CommentSection strategyId={strategy.id} />
             </div>
-          )}
-
-          {/* Strategy Content */}
-          <Card className="border border-gray-200">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg">Strategy Details</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {strategy.content_markdown ? (
-                <div className="prose prose-sm prose-gray max-w-none">
-                  <ReactMarkdown>{strategy.content_markdown}</ReactMarkdown>
-                </div>
-              ) : (
-                <p className="text-gray-500 italic text-sm">No strategy details provided.</p>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Voting Section - Only show if strategy is not published and user is not the owner */}
-          {!strategy.is_public && !isOwner && (
-            <StrategyVotingSection strategy={strategy} />
-          )}
-
-          {/* Comments Section */}
-          <CommentSection strategyId={strategy.id} />
+          </div>
         </div>
       </div>
     );
