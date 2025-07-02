@@ -80,7 +80,7 @@ export default function StrategyPage() {
 
   if (isMobile) {
     return (
-      <div className="w-full max-w-full min-h-screen bg-gray-50 overflow-x-hidden">
+      <div className="w-full min-h-screen bg-gray-50">
         {/* Mobile Header - Fixed */}
         <div className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 shadow-sm">
           <div className="flex items-center gap-3 px-4 py-3 h-14">
@@ -100,11 +100,11 @@ export default function StrategyPage() {
         </div>
 
         {/* Content - With proper top padding to account for fixed header */}
-        <div className="pt-14 pb-20 w-full max-w-full overflow-x-hidden">
-          <div className="p-4 space-y-6 w-full max-w-full">
+        <div className="pt-14 pb-20">
+          <div className="p-4 space-y-6">
             {/* Title and Status */}
-            <div className="space-y-3 w-full">
-              <div className="flex flex-wrap items-start gap-2 w-full">
+            <div className="space-y-3">
+              <div className="flex flex-wrap items-start gap-2">
                 <Badge 
                   variant={strategy.is_public ? "default" : "secondary"}
                   className={strategy.is_public ? "bg-green-100 text-green-800 text-xs" : "bg-gray-100 text-gray-600 text-xs"}
@@ -125,13 +125,13 @@ export default function StrategyPage() {
                 )}
               </div>
 
-              <h1 className="text-xl font-bold text-gray-900 leading-tight break-words w-full">
+              <h1 className="text-xl font-bold text-gray-900 leading-tight break-words">
                 {strategy.name}
               </h1>
 
               {/* Author Info */}
               {strategy.profile && (
-                <div className="flex items-center gap-2 text-sm w-full">
+                <div className="flex items-center gap-2 text-sm">
                   <span className="text-gray-600">by</span>
                   <button 
                     onClick={handleProfileClick}
@@ -143,7 +143,7 @@ export default function StrategyPage() {
               )}
 
               {/* Meta info */}
-              <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500 w-full">
+              <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500">
                 <div className="flex items-center gap-1">
                   <Calendar className="h-3 w-3 flex-shrink-0" />
                   <span className="whitespace-nowrap">{format(new Date(strategy.created_at), "MMM d, yyyy")}</span>
@@ -162,7 +162,7 @@ export default function StrategyPage() {
 
               {/* Tags */}
               {strategy.tags && strategy.tags.length > 0 && (
-                <div className="flex flex-wrap gap-2 w-full">
+                <div className="flex flex-wrap gap-2">
                   {strategy.tags.map((tag, index) => (
                     <Badge key={index} variant="outline" className="text-blue-600 border-blue-200 text-xs break-all">
                       #{tag}
@@ -174,7 +174,7 @@ export default function StrategyPage() {
 
             {/* Strategy Image */}
             {strategy.image_path && (
-              <div className="w-full rounded-lg overflow-hidden border border-gray-200">
+              <div className="rounded-lg overflow-hidden border border-gray-200">
                 <img 
                   src={strategy.image_path} 
                   alt={strategy.name}
@@ -184,14 +184,14 @@ export default function StrategyPage() {
             )}
 
             {/* Strategy Content */}
-            <Card className="border border-gray-200 w-full">
+            <Card className="border border-gray-200">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base">Strategy Details</CardTitle>
               </CardHeader>
-              <CardContent className="w-full overflow-hidden">
+              <CardContent>
                 {strategy.content_markdown ? (
-                  <div className="prose prose-sm prose-gray max-w-none w-full break-words">
-                    <ReactMarkdown className="w-full overflow-wrap-anywhere">
+                  <div className="prose prose-sm prose-gray max-w-none break-words overflow-wrap-anywhere">
+                    <ReactMarkdown>
                       {strategy.content_markdown}
                     </ReactMarkdown>
                   </div>
@@ -203,15 +203,11 @@ export default function StrategyPage() {
 
             {/* Voting Section - Only show if strategy is not published and user is not the owner */}
             {!strategy.is_public && !isOwner && (
-              <div className="w-full">
-                <StrategyVotingSection strategy={strategy} />
-              </div>
+              <StrategyVotingSection strategy={strategy} />
             )}
 
             {/* Comments Section */}
-            <div className="w-full">
-              <CommentSection strategyId={strategy.id} />
-            </div>
+            <CommentSection strategyId={strategy.id} />
           </div>
         </div>
       </div>
